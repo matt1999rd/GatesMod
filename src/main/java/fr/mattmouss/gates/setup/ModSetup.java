@@ -1,0 +1,25 @@
+package fr.mattmouss.gates.setup;
+
+import fr.mattmouss.gates.doors.DoorRegister;
+import fr.mattmouss.gates.doors.ModBlock;
+import net.minecraft.item.ItemGroup;
+import net.minecraft.item.ItemStack;
+
+public class ModSetup {
+
+    public static ItemGroup itemGroup = new ItemGroup("gate") {
+        @Override
+        public ItemStack createIcon() {
+            return new ItemStack(DoorRegister.STONE_DOOR);
+        }
+    };
+
+
+
+
+
+
+    public void init(){
+
+    }
+}
