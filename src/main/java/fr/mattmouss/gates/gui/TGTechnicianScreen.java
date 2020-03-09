@@ -2,21 +2,26 @@ package fr.mattmouss.gates.gui;
 
 
 import fr.mattmouss.gates.GatesMod;
+import fr.mattmouss.gates.network.Networking;
+import fr.mattmouss.gates.network.PacketLowerPrice;
+import fr.mattmouss.gates.network.PacketRaisePrice;
 import fr.mattmouss.gates.tileentity.TollGateTileEntity;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.screen.Screen;
+import net.minecraft.client.gui.screen.inventory.ContainerScreen;
 import net.minecraft.client.gui.widget.button.Button;
+import net.minecraft.entity.player.PlayerInventory;
 import net.minecraft.util.ResourceLocation;
+import net.minecraft.util.text.ITextComponent;
 import net.minecraft.util.text.StringTextComponent;
 
-public class TGTechnicianScreen extends Screen {
+public class TGTechnicianScreen extends ContainerScreen<TGTechContainer> {
 
     private static final int WIDTH = 146;
     private static final int HEIGHT = 83;
 
     private Button plusButton;
     private Button moinsButton;
-    private Button doneButton;
     private static final int white = 0xffffff;
 
     private static final int green = 0x007b18;
@@ -24,9 +29,9 @@ public class TGTechnicianScreen extends Screen {
     private ResourceLocation GUI = new ResourceLocation(GatesMod.MODID, "textures/gui/tg_tech_gui.png");
 
     private TollGateTileEntity tgte;
-    public TGTechnicianScreen(TollGateTileEntity tileEntity) {
-        super(new StringTextComponent("Technician Menu"));
-        tgte = tileEntity;
+    public TGTechnicianScreen(TGTechContainer container, PlayerInventory inventory, ITextComponent title) {
+        super(container,inventory,title);
+        tgte = container.getTileEntity();
     }
 
     @Override
@@ -36,7 +41,7 @@ public class TGTechnicianScreen extends Screen {
 
         plusButton = new Button(relX+62,relY+16,21,18,"+",button -> raisePrice());
         moinsButton = new Button(relX+62,relY+34,21,18,"-",button -> lowerPrice());
-        doneButton = new Button(relX+39,relY+60,67,18,"Done",button -> onClose());
+        Button doneButton = new Button(relX + 39, relY + 60, 67, 18, "Done", button -> onClose());
 
         addButton(plusButton);
         addButton(moinsButton);
@@ -45,12 +50,12 @@ public class TGTechnicianScreen extends Screen {
 
     private void lowerPrice() {
         System.out.println("lowering price..");
-        tgte.lowerPrice();
+        Networking.INSTANCE.sendToServer(new PacketLowerPrice(minecraft.player.dimension,container.getTileEntity().getPos()));
     }
 
     private void raisePrice() {
         System.out.println("raising price..");
-        tgte.raisePrice();
+        Networking.INSTANCE.sendToServer(new PacketRaisePrice(minecraft.player.dimension,container.getTileEntity().getPos()));
     }
 
     @Override
@@ -72,5 +77,10 @@ public class TGTechnicianScreen extends Screen {
         this.drawString(Minecraft.getInstance().fontRenderer,"Choose your fee",relX+27,relY+4,white);
         this.drawString(Minecraft.getInstance().fontRenderer," "+price,relX+decalage,relY+56, green );
         super.render(mouseX, mouseY, partialTicks);
+    }
+
+    @Override
+    protected void drawGuiContainerBackgroundLayer(float partialTicks, int mouseX, int mouseY) {
+
     }
 }

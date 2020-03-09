@@ -366,7 +366,10 @@ public class TollGate extends Block {
         if ((entity_looking_direction==facing.rotateY() && (dhs == DoorHingeSide.RIGHT))||
                 (entity_looking_direction==facing.rotateYCCW() && (dhs == DoorHingeSide.LEFT))){
             System.out.println("le joueur est un controleur ");
-            tgte.openGui();
+            ((TollGateTileEntity) world.getTileEntity(pos)).setSide(false);
+            if (!world.isRemote) {
+                NetworkHooks.openGui((ServerPlayerEntity) entity, tgte, tgte.getPos());
+            }
             return ActionResultType.SUCCESS;
         }
         //le joueur est un utilisateur
@@ -374,6 +377,7 @@ public class TollGate extends Block {
                 (entity_looking_direction==facing.rotateY() && (dhs == DoorHingeSide.LEFT))){
             System.out.println("le joueur est un utilisateur ");
             System.out.println("openning user gui !!");
+            ((TollGateTileEntity) world.getTileEntity(pos)).setSide(true);
             if (!world.isRemote) {
                 NetworkHooks.openGui((ServerPlayerEntity) entity, tgte, tgte.getPos());
             }

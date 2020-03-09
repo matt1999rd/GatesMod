@@ -6,7 +6,6 @@ import fr.mattmouss.gates.tileentity.TollGateTileEntity;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.player.PlayerInventory;
 import net.minecraft.inventory.container.Container;
-import net.minecraft.inventory.container.ContainerType;
 import net.minecraft.inventory.container.Slot;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.Items;
@@ -20,14 +19,15 @@ import net.minecraftforge.items.SlotItemHandler;
 import net.minecraftforge.items.wrapper.InvWrapper;
 
 
-public class TGContainer extends Container {
+public class TGUserContainer extends Container {
     private TollGateTileEntity tileEntity ;
     private PlayerEntity playerEntity;
     private IItemHandler inventory;
 
 
-    public TGContainer(int windowId, World world, BlockPos pos, PlayerInventory inventory, PlayerEntity player) {
-        super(ModBlock.TOLLGATE_CONTAINER, windowId);
+
+    public TGUserContainer(int windowId, World world, BlockPos pos, PlayerInventory inventory, PlayerEntity player) {
+        super(ModBlock.TOLLGATE_USER_CONTAINER, windowId);
         tileEntity = (TollGateTileEntity) world.getTileEntity(pos);
         playerEntity= player;
         this.inventory= new InvWrapper(inventory);

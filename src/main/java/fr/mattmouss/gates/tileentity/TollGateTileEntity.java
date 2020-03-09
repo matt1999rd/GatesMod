@@ -6,13 +6,13 @@ import fr.mattmouss.gates.animationboolean.IAnimationBoolean;
 import fr.mattmouss.gates.doors.ModBlock;
 import fr.mattmouss.gates.doors.TollGate;
 import fr.mattmouss.gates.enum_door.TollGPosition;
-import fr.mattmouss.gates.gui.TGContainer;
+import fr.mattmouss.gates.gui.TGTechContainer;
+import fr.mattmouss.gates.gui.TGUserContainer;
 import fr.mattmouss.gates.gui.TGTechnicianScreen;
 
 import fr.mattmouss.gates.pricecap.PriceStorage;
 
 import net.minecraft.block.*;
-import net.minecraft.client.Minecraft;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.player.PlayerInventory;
 import net.minecraft.inventory.container.Container;
@@ -36,7 +36,6 @@ import net.minecraftforge.energy.IEnergyStorage;
 import net.minecraftforge.items.CapabilityItemHandler;
 import net.minecraftforge.items.IItemHandler;
 import net.minecraftforge.items.ItemStackHandler;
-import org.lwjgl.system.CallbackI;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -49,8 +48,6 @@ public class TollGateTileEntity extends TileEntity implements ITickableTileEntit
         super(ModBlock.TOLL_GATE_ENTITY_TYPE);
     }
 
-    private TGTechnicianScreen techScreen = new TGTechnicianScreen(this);
-
     private LazyOptional<AnimationBoolean> startAnimation = LazyOptional.of(this::getAnimation).cast();
 
     private LazyOptional<IEnergyStorage> price = LazyOptional.of(this::getPriceValue).cast();
@@ -58,6 +55,8 @@ public class TollGateTileEntity extends TileEntity implements ITickableTileEntit
     private static int amount_paid = 0;
 
     private static int timer = 0;
+
+    private static boolean UserGuiOpen = true;
 
     private LazyOptional<IItemHandler> handler = LazyOptional.of(this::createHandler).cast();
 
@@ -67,12 +66,10 @@ public class TollGateTileEntity extends TileEntity implements ITickableTileEntit
 
     private IEnergyStorage getPriceValue(){ return new PriceStorage(64,0);}
 
-    public void openGui(){
-        if (!world.isRemote) {
-            techScreen.init();
-            System.out.println("initialising screen !!");
-            Minecraft.getInstance().displayGuiScreen(techScreen);
-        }
+    //true pour la gui de l'utilisateur
+    //false pour la gui du technician
+    public void setSide(boolean newSide){
+        UserGuiOpen = newSide;
     }
 
     public ItemStackHandler createHandler() {
@@ -273,42 +270,39 @@ public class TollGateTileEntity extends TileEntity implements ITickableTileEntit
     }
 
     public void lowerPrice(){
-        if (!world.isRemote) {
-            price.ifPresent(e -> {
-                ((PriceStorage) e).lowerPrice();
-            });
-            if (getBlockState().get(TollGate.TG_POSITION) == TollGPosition.CONTROL_UNIT) {
-                List<BlockPos> posList = getPositionOfBlockConnected();
-                for (BlockPos pos1 : posList) {
-                    if (pos1.getX() != pos.getX() || pos1.getY() != pos.getY() || pos1.getZ() != pos.getZ()) {
-                        TollGateTileEntity tgte = (TollGateTileEntity) world.getTileEntity(pos1);
-                        if (tgte == null){
-                            return;
-                        }
-                        tgte.lowerPrice();
+        price.ifPresent(e -> {
+            ((PriceStorage) e).lowerPrice();
+        });
+        if (getBlockState().get(TollGate.TG_POSITION) == TollGPosition.CONTROL_UNIT) {
+            List<BlockPos> posList = getPositionOfBlockConnected();
+            for (BlockPos pos1 : posList) {
+                if (pos1.getX() != pos.getX() || pos1.getY() != pos.getY() || pos1.getZ() != pos.getZ()) {
+                    TollGateTileEntity tgte = (TollGateTileEntity) world.getTileEntity(pos1);
+                    if (tgte == null){
+                        System.out.println("la tile entity est null");
+                        return;
                     }
+                    tgte.lowerPrice();
                 }
             }
         }
     }
 
     public void raisePrice(){
-        if (!world.isRemote){
-            System.out.println("raising price..");
-            price.ifPresent(e -> {
-                ((PriceStorage)e).raisePrice();
-            });
-            if (getBlockState().get(TollGate.TG_POSITION)==TollGPosition.CONTROL_UNIT){
-                List<BlockPos> posList = getPositionOfBlockConnected();
-                for (BlockPos pos1 : posList){
-                    if (pos1.getX()!=pos.getX() || pos1.getY()!=pos.getY() || pos1.getZ() != pos.getZ()){
-                        TollGateTileEntity tgte = (TollGateTileEntity)world.getTileEntity(pos1);
-                        if (tgte == null){
-                            return;
-                        }
-                        tgte.raisePrice();
+        System.out.println("raising price..");
+        price.ifPresent(e -> {
+            ((PriceStorage)e).raisePrice();
+        });
+        if (getBlockState().get(TollGate.TG_POSITION)==TollGPosition.CONTROL_UNIT){
+            List<BlockPos> posList = getPositionOfBlockConnected();
+            for (BlockPos pos1 : posList){
+                if (pos1.getX()!=pos.getX() || pos1.getY()!=pos.getY() || pos1.getZ() != pos.getZ()){
+                    TollGateTileEntity tgte = (TollGateTileEntity)world.getTileEntity(pos1);
+                    if (tgte == null){
+                        System.out.println("la tile entity est null");
+                        return;
                     }
-
+                    tgte.raisePrice();
                 }
             }
 
@@ -318,10 +312,6 @@ public class TollGateTileEntity extends TileEntity implements ITickableTileEntit
 
     public void raiseAmountPaid(int newAmount){
         amount_paid += newAmount;
-    }
-
-    public int getAmountPaid(){
-        return amount_paid;
     }
 
     @Override
@@ -425,7 +415,11 @@ public class TollGateTileEntity extends TileEntity implements ITickableTileEntit
     @Nullable
     @Override
     public Container createMenu(int i, PlayerInventory playerInventory, PlayerEntity playerEntity) {
-        return new TGContainer(i,world,pos,playerInventory,playerEntity);
+        if (UserGuiOpen){
+            return new TGUserContainer(i,world,pos,playerInventory,playerEntity);
+        }else{
+            return new TGTechContainer(i,world,pos,playerEntity);
+        }
     }
 
     public int getRemainingPayment() {

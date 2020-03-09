@@ -9,14 +9,14 @@ import net.minecraft.entity.player.PlayerInventory;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.text.ITextComponent;
 
-public class TGUserScreen extends ContainerScreen<TGContainer> {
+public class TGUserScreen extends ContainerScreen<TGUserContainer> {
 
     private ResourceLocation GUI_OPEN = new ResourceLocation(GatesMod.MODID,"textures/gui/tg_user_gui_open.png");
     private ResourceLocation GUI_CLOSE = new ResourceLocation(GatesMod.MODID,"textures/gui/tg_user_gui_close.png");
     private static final int white = 0xffffff;
 
 
-    public TGUserScreen(TGContainer container, PlayerInventory inventory, ITextComponent title) {
+    public TGUserScreen(TGUserContainer container, PlayerInventory inventory, ITextComponent title) {
         super(container, inventory, title);
     }
 

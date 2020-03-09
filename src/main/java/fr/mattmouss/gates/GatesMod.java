@@ -1,7 +1,8 @@
 package fr.mattmouss.gates;
 
 import fr.mattmouss.gates.doors.*;
-import fr.mattmouss.gates.gui.TGContainer;
+import fr.mattmouss.gates.gui.TGTechContainer;
+import fr.mattmouss.gates.gui.TGUserContainer;
 import fr.mattmouss.gates.items.TollGateItem;
 import fr.mattmouss.gates.setup.ClientProxy;
 import fr.mattmouss.gates.setup.IProxy;
@@ -117,12 +118,19 @@ public class GatesMod {
         public static void onContainerRegistry(final RegistryEvent.Register<ContainerType<?>> event){
             event.getRegistry().register(IForgeContainerType.create(((windowId, inv, data) -> {
                 BlockPos pos =data.readBlockPos();
-                return new TGContainer(windowId,
+                return new TGUserContainer(windowId,
                         GatesMod.proxy.getClientWorld(),
                         pos,
                         inv,
                         GatesMod.proxy.getClientPlayer());
             })).setRegistryName("toll_gate"));
+            event.getRegistry().register(IForgeContainerType.create(((windowId, inv, data) -> {
+                BlockPos pos = data.readBlockPos();
+                return new TGTechContainer(windowId,
+                        GatesMod.proxy.getClientWorld(),
+                        pos,
+                        GatesMod.proxy.getClientPlayer());
+            })).setRegistryName("toll_gate_tech"));
         }
     }
 }
