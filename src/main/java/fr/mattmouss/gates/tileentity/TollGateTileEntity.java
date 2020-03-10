@@ -57,8 +57,6 @@ public class TollGateTileEntity extends TileEntity implements ITickableTileEntit
 
     private static int timer = 0;
 
-    private static int common_price =1;
-
     private static boolean UserGuiOpen = true;
 
     private LazyOptional<IItemHandler> handler = LazyOptional.of(this::createHandler).cast();
@@ -160,11 +158,11 @@ public class TollGateTileEntity extends TileEntity implements ITickableTileEntit
         handler.ifPresent(h -> {
             ItemStack stack = h.getStackInSlot(0);
             int number_of_emerald = stack.getCount();
-            System.out.println("remaining payment :"+this.getRemainingPayment());
+            //System.out.println("remaining payment :"+this.getRemainingPayment());
             //when payment is not completely done
             if (stack.getItem()==Items.EMERALD ){
                 if (number_of_emerald >= this.getRemainingPayment()){
-                    System.out.println("payment done !");
+                    //System.out.println("payment done !");
                     //beginning of open animation
                     startAllAnimation();
                     //we extract the emerald in the slot
@@ -173,7 +171,7 @@ public class TollGateTileEntity extends TileEntity implements ITickableTileEntit
                     amount_paid = 0;
                     markDirty();
                 }else{
-                    System.out.println("payment not done !");
+                    //System.out.println("payment not done !");
                     //when the amount paid is not enough we just extract the amount given and we register it
                     h.extractItem(0,number_of_emerald,false);
                     this.raiseAmountPaid(number_of_emerald);
@@ -184,15 +182,12 @@ public class TollGateTileEntity extends TileEntity implements ITickableTileEntit
 
     }
 
-    private void openGate(){
-
-    }
 
     private void checkStability() {
         TollGPosition tgp = getBlockState().get(TollGate.TG_POSITION);
         Block block = world.getBlockState(pos.down()).getBlock();
         if (block instanceof AirBlock || block instanceof BushBlock || block instanceof LeavesBlock){
-            System.out.println("pas de block à "+pos.down()+" : destruction du block !!");
+            //System.out.println("pas de block à "+pos.down()+" : destruction du block !!");
             destroyBlock();
             //return pour arrêter la fonction
             return;
@@ -206,7 +201,7 @@ public class TollGateTileEntity extends TileEntity implements ITickableTileEntit
         List<BlockPos> posList = getPositionOfBlockConnected();
         for (BlockPos pos1 : posList){
             if (!(world.getTileEntity(pos1) instanceof TollGateTileEntity)) throw new IllegalArgumentException("No tile entity on this blockPos :"+pos1);
-            System.out.println("position du block animé :"+pos1);
+            //System.out.println("position du block animé :"+pos1);
             TollGateTileEntity tgte2 = (TollGateTileEntity) world.getTileEntity(pos1);
             assert tgte2 != null;
             tgte2.startAnimation();
@@ -289,10 +284,9 @@ public class TollGateTileEntity extends TileEntity implements ITickableTileEntit
         AtomicInteger price_in = new AtomicInteger(1);
         price.ifPresent(iEnergyStorage -> {
             if (!world.isRemote) {
-                System.out.println("price obtenu :" + iEnergyStorage.getEnergyStored());
+                //System.out.println("price obtenu :" + iEnergyStorage.getEnergyStored());
             }
             price_in.set(iEnergyStorage.getEnergyStored());
-
         });
         return price_in.get();
     }

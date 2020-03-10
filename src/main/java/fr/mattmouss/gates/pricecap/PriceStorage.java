@@ -34,14 +34,14 @@ public class PriceStorage extends EnergyStorage implements INBTSerializable<Comp
     @Override
     public CompoundNBT serializeNBT() {
         CompoundNBT tag_price = new CompoundNBT();
-        System.out.println("----------------------writing price :"+getEnergyStored()+"-------------");
+        //System.out.println("----------------------writing price :"+getEnergyStored()+"-------------");
         tag_price.putInt("price",getEnergyStored());
         return tag_price;
     }
 
     @Override
     public void deserializeNBT(CompoundNBT nbt) {
-        System.out.println("--------------------reading price :"+nbt.getInt("price")+"-------------");
+        //System.out.println("--------------------reading price :"+nbt.getInt("price")+"-------------");
         setValue(nbt.getInt("price"));
     }
 }

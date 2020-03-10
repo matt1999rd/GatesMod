@@ -344,7 +344,7 @@ public class TollGate extends Block {
 
     @Override
     public ActionResultType onBlockActivated(BlockState state, World world, BlockPos pos, PlayerEntity entity, Hand hand, BlockRayTraceResult blockRayTraceResult) {
-        //ancienne fonctionnalité du block
+        //old functionnality of block
 
         TollGateTileEntity tgte = (TollGateTileEntity) world.getTileEntity(pos);
         assert tgte != null;
@@ -354,28 +354,17 @@ public class TollGate extends Block {
         return ActionResultType.SUCCESS;
 
          */
-
-
         if (state.get(TG_POSITION) != TollGPosition.CONTROL_UNIT){
             return ActionResultType.FAIL;
         }
         Direction facing = state.get(BlockStateProperties.HORIZONTAL_FACING);
         Direction entity_looking_direction = ModBlock.getDirectionFromEntity(entity,pos);
         DoorHingeSide dhs = state.get(BlockStateProperties.DOOR_HINGE);
-        //le joueur est un controleur
-        if ((entity_looking_direction==facing.rotateY() && (dhs == DoorHingeSide.RIGHT))||
-                (entity_looking_direction==facing.rotateYCCW() && (dhs == DoorHingeSide.LEFT))){
-            System.out.println("le joueur est un controleur ");
-            ((TollGateTileEntity) world.getTileEntity(pos)).setSide(false);
-            if (!world.isRemote) {
-                NetworkHooks.openGui((ServerPlayerEntity) entity, tgte, tgte.getPos());
-            }
-            return ActionResultType.SUCCESS;
-        }
-        //le joueur est un utilisateur
+
+        //the player is a user
         if ((entity_looking_direction==facing.rotateYCCW() && (dhs == DoorHingeSide.RIGHT))||
                 (entity_looking_direction==facing.rotateY() && (dhs == DoorHingeSide.LEFT))){
-            System.out.println("le joueur est un utilisateur ");
+            System.out.println("the player is a user ");
             System.out.println("openning user gui !!");
             ((TollGateTileEntity) world.getTileEntity(pos)).setSide(true);
             if (!world.isRemote) {
@@ -384,10 +373,6 @@ public class TollGate extends Block {
             return ActionResultType.SUCCESS;
         }
         return ActionResultType.FAIL;
-
-
-
-
     }
 
 

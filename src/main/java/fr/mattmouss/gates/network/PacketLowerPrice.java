@@ -30,7 +30,7 @@ public class PacketLowerPrice {
 
     public void handle(Supplier<NetworkEvent.Context> context){
         context.get().enqueueWork(()->{
-            TollGateTileEntity tgte = (TollGateTileEntity) context.get().getSender().world.getServer().getWorld(type).getTileEntity(pos);
+            TollGateTileEntity tgte = (TollGateTileEntity) context.get().getSender().getServerWorld().getTileEntity(pos);
             tgte.lowerPrice();
         });
         context.get().setPacketHandled(true);

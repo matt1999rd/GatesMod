@@ -5,12 +5,18 @@ import fr.mattmouss.gates.doors.TollGate;
 import fr.mattmouss.gates.setup.ModSetup;
 import net.minecraft.block.AirBlock;
 import net.minecraft.entity.player.PlayerEntity;
+import net.minecraft.inventory.EquipmentSlotType;
+import net.minecraft.inventory.Inventory;
 import net.minecraft.item.BlockItem;
 import net.minecraft.item.Item;
+import net.minecraft.item.ItemStack;
 import net.minecraft.item.ItemUseContext;
+import net.minecraft.nbt.CompoundNBT;
 import net.minecraft.state.properties.DoorHingeSide;
 import net.minecraft.util.ActionResultType;
 import net.minecraft.util.Direction;
+import net.minecraft.util.Hand;
+import net.minecraft.util.IItemProvider;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
 
@@ -28,7 +34,16 @@ public class TollGateItem extends BlockItem {
         BlockPos pos =context.getPos();
         World world = context.getWorld();
         PlayerEntity entity=context.getPlayer();
+        TollKeyItem key = new TollKeyItem(pos);
+        System.out.println("item defini : "+key);
+        ItemStack stack = entity.getActiveItemStack();
         if (allBlockReplacedisAir(pos.up(),entity,world)){
+            //TollKeyItem key = new TollKeyItem(pos);
+            ItemStack newStack = new ItemStack(key);
+            System.out.println("itemstack of new key item : "+newStack);
+            entity.setItemStackToSlot(EquipmentSlotType.MAINHAND,ItemStack.EMPTY);
+            entity.setItemStackToSlot(EquipmentSlotType.MAINHAND,newStack);
+
             return super.onItemUse(context);
         }
         System.out.println("block non fabriqué");

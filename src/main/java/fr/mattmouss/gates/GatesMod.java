@@ -4,6 +4,7 @@ import fr.mattmouss.gates.doors.*;
 import fr.mattmouss.gates.gui.TGTechContainer;
 import fr.mattmouss.gates.gui.TGUserContainer;
 import fr.mattmouss.gates.items.TollGateItem;
+import fr.mattmouss.gates.items.TollKeyItem;
 import fr.mattmouss.gates.setup.ClientProxy;
 import fr.mattmouss.gates.setup.IProxy;
 import fr.mattmouss.gates.setup.ModSetup;
@@ -77,6 +78,7 @@ public class GatesMod {
         public static void onItemRegistry(final RegistryEvent.Register<Item> blockRegistryEvent) {
             //Item.Properties properties = new Item.Properties().group(ModSetup.itemGroup);
             blockRegistryEvent.getRegistry().register(new TollGateItem(ModBlock.TOLL_GATE));
+            blockRegistryEvent.getRegistry().register(new TollKeyItem());
         }
 
         @SubscribeEvent
