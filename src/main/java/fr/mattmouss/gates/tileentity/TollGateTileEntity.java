@@ -56,6 +56,8 @@ public class TollGateTileEntity extends TileEntity implements ITickableTileEntit
 
     private static int timer = 0;
 
+    private static int common_price =1;
+
     private static boolean UserGuiOpen = true;
 
     private LazyOptional<IItemHandler> handler = LazyOptional.of(this::createHandler).cast();
@@ -100,6 +102,7 @@ public class TollGateTileEntity extends TileEntity implements ITickableTileEntit
 
     @Override
     public void tick() {
+        updatePrice();
         if (!world.isRemote) {
             BlockState state = this.getBlockState();
             //block for gestion of animation
@@ -265,8 +268,19 @@ public class TollGateTileEntity extends TileEntity implements ITickableTileEntit
         });
     }
 
+    public void updatePrice(){
+        if (!world.isRemote){
+            common_price =price.map(IEnergyStorage::getEnergyStored).orElse(1);
+        }else {
+            price.ifPresent(iEnergyStorage -> {
+                ((PriceStorage)iEnergyStorage).setValue(common_price);
+            });
+        }
+
+    }
+
     public int getPrice(){
-        return price.map(IEnergyStorage::getEnergyStored).orElse(1);
+        return common_price;
     }
 
     public void lowerPrice(){
@@ -305,10 +319,8 @@ public class TollGateTileEntity extends TileEntity implements ITickableTileEntit
                     tgte.raisePrice();
                 }
             }
-
         }
     }
-
 
     public void raiseAmountPaid(int newAmount){
         amount_paid += newAmount;
@@ -341,7 +353,6 @@ public class TollGateTileEntity extends TileEntity implements ITickableTileEntit
             tag.put("inv",compoundNBT);
         });
         price.ifPresent(iPriceValue -> {
-            System.out.println("energie stocké avant application de la fonction serialise :" + iPriceValue.getEnergyStored());
             CompoundNBT compoundNBT = ((INBTSerializable<CompoundNBT>) iPriceValue).serializeNBT();
             tag.put("price", compoundNBT);
 
