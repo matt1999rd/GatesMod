@@ -41,6 +41,7 @@ import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicInteger;
 
 public class TollGateTileEntity extends TileEntity implements ITickableTileEntity, INamedContainerProvider {
 
@@ -68,8 +69,8 @@ public class TollGateTileEntity extends TileEntity implements ITickableTileEntit
 
     private IEnergyStorage getPriceValue(){ return new PriceStorage(64,0);}
 
-    //true pour la gui de l'utilisateur
-    //false pour la gui du technician
+    //true for user gui
+    //false for teechnician gui
     public void setSide(boolean newSide){
         UserGuiOpen = newSide;
     }
@@ -102,7 +103,7 @@ public class TollGateTileEntity extends TileEntity implements ITickableTileEntit
 
     @Override
     public void tick() {
-        updatePrice();
+        //updatePrice();
         if (!world.isRemote) {
             BlockState state = this.getBlockState();
             //block for gestion of animation
@@ -142,7 +143,7 @@ public class TollGateTileEntity extends TileEntity implements ITickableTileEntit
     private void checkTimer() {
         if (this.getBlockState().get(TollGate.ANIMATION)==4){
             if (timer>400){
-                //startAllAnimation();
+                startAllAnimation();
                 timer =0;
             }else{
                 System.out.println("le timer d'ouverture : "+timer);
@@ -155,14 +156,14 @@ public class TollGateTileEntity extends TileEntity implements ITickableTileEntit
         int price_to_pay = price.map(iEnergyStorage -> {
             return iEnergyStorage.getEnergyStored();
         }).orElse(1);
-        System.out.println("price to pay : "+price_to_pay );
 
         handler.ifPresent(h -> {
             ItemStack stack = h.getStackInSlot(0);
-            if (stack.getItem()==Items.EMERALD){
-                int number_of_emerald = stack.getCount();
-                System.out.println("remaining payment :"+this.getRemainingPayment());
-                if (number_of_emerald>this.getRemainingPayment()){
+            int number_of_emerald = stack.getCount();
+            System.out.println("remaining payment :"+this.getRemainingPayment());
+            //when payment is not completely done
+            if (stack.getItem()==Items.EMERALD ){
+                if (number_of_emerald >= this.getRemainingPayment()){
                     System.out.println("payment done !");
                     //beginning of open animation
                     startAllAnimation();
@@ -177,10 +178,13 @@ public class TollGateTileEntity extends TileEntity implements ITickableTileEntit
                     h.extractItem(0,number_of_emerald,false);
                     this.raiseAmountPaid(number_of_emerald);
                 }
-
             }
 
         });
+
+    }
+
+    private void openGate(){
 
     }
 
@@ -267,7 +271,7 @@ public class TollGateTileEntity extends TileEntity implements ITickableTileEntit
             animationBoolean.setBoolClose(bool);
         });
     }
-
+    /*
     public void updatePrice(){
         if (!world.isRemote){
             common_price =price.map(IEnergyStorage::getEnergyStored).orElse(1);
@@ -279,8 +283,18 @@ public class TollGateTileEntity extends TileEntity implements ITickableTileEntit
 
     }
 
+     */
+
     public int getPrice(){
-        return common_price;
+        AtomicInteger price_in = new AtomicInteger(1);
+        price.ifPresent(iEnergyStorage -> {
+            if (!world.isRemote) {
+                System.out.println("price obtenu :" + iEnergyStorage.getEnergyStored());
+            }
+            price_in.set(iEnergyStorage.getEnergyStored());
+
+        });
+        return price_in.get();
     }
 
     public void lowerPrice(){

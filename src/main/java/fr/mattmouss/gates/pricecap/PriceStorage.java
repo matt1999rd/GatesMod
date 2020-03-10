@@ -9,7 +9,7 @@ public class PriceStorage extends EnergyStorage implements INBTSerializable<Comp
 
     public PriceStorage(int capacity, int maxTransfer) {
         //the standard price is 1 emerald
-        super(capacity, maxTransfer);
+        super(capacity, maxTransfer,maxTransfer,1);
     }
 
 

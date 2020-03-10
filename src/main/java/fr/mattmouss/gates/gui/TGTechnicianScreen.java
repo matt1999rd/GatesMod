@@ -51,12 +51,15 @@ public class TGTechnicianScreen extends ContainerScreen<TGTechContainer> {
     private void lowerPrice() {
         System.out.println("lowering price..");
         Networking.INSTANCE.sendToServer(new PacketLowerPrice(minecraft.player.dimension,container.getTileEntity().getPos()));
+        tgte.lowerPrice();
     }
 
     private void raisePrice() {
         System.out.println("raising price..");
         Networking.INSTANCE.sendToServer(new PacketRaisePrice(minecraft.player.dimension,container.getTileEntity().getPos()));
+        tgte.raisePrice();
     }
+
 
     @Override
     public boolean isPauseScreen() {
