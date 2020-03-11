@@ -36,6 +36,10 @@ public enum TollGPosition implements IStringSerializable {
         return (anim_stade == 0 && (meta == 2 || meta == 0)) || (anim_stade == 4 && meta==3);
     }
 
+    public boolean isDownBlock(){
+        return  meta !=3;
+    }
+
 
 
 

@@ -10,6 +10,7 @@ import fr.mattmouss.gates.gui.TGTechContainer;
 import fr.mattmouss.gates.gui.TGUserContainer;
 import fr.mattmouss.gates.gui.TGTechnicianScreen;
 
+import fr.mattmouss.gates.items.TollKeyItem;
 import fr.mattmouss.gates.pricecap.PriceStorage;
 
 import net.minecraft.block.*;
@@ -159,6 +160,10 @@ public class TollGateTileEntity extends TileEntity implements ITickableTileEntit
             ItemStack stack = h.getStackInSlot(0);
             int number_of_emerald = stack.getCount();
             //System.out.println("remaining payment :"+this.getRemainingPayment());
+            //if the animation is in process or the toll gate is open it will stop the management of payment
+            if (this.getBlockState().get(TollGate.ANIMATION)!=0){
+                return;
+            }
             //when payment is not completely done
             if (stack.getItem()==Items.EMERALD ){
                 if (number_of_emerald >= this.getRemainingPayment()){
@@ -186,10 +191,14 @@ public class TollGateTileEntity extends TileEntity implements ITickableTileEntit
     private void checkStability() {
         TollGPosition tgp = getBlockState().get(TollGate.TG_POSITION);
         Block block = world.getBlockState(pos.down()).getBlock();
+        if (!tgp.isDownBlock()){
+            //no stability to check
+            return;
+        }
         if (block instanceof AirBlock || block instanceof BushBlock || block instanceof LeavesBlock){
             //System.out.println("pas de block à "+pos.down()+" : destruction du block !!");
             destroyBlock();
-            //return pour arrêter la fonction
+            //return for stoping the function
             return;
         }
     }

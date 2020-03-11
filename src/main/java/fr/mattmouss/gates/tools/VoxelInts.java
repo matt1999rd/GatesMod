@@ -13,7 +13,7 @@ public class VoxelInts {
     private int[] plane_val ;
     public VoxelInts(int x1,int y1,int z1,int x2,int y2,int z2){
         if (x1>16 || x2>16 || y1>16 || y2>16 || z1>16 ||z2>16){
-            throw new ExceptionInInitializerError("none of this 6 int are greater than 16");
+            throw new ExceptionInInitializerError("none of this 6 int are greater than 15");
         }
         plane_val= new int[]{x1, y1, z1, x2, y2, z2};
     }
@@ -57,7 +57,7 @@ public class VoxelInts {
 
     public VoxelInts rotate(Direction present_direction,Direction changing_direction){
         if (present_direction == changing_direction){
-            throw new IllegalArgumentException("Direction must be different ");
+            return this;
         }
         //si il sont sur le même axe on fait une rotation autour de n'importe lequel des deux autres axes de 180°
         if (present_direction.getAxis() == changing_direction.getAxis()){
@@ -109,6 +109,7 @@ public class VoxelInts {
 
 
     //make the symetry around the plane formed by the two axis given if distinct
+    //not functinonning !!
     public VoxelInts makeSymetry(Direction.Axis axis1, Direction.Axis axis2){
         if (axis1 == axis2){
             throw new IllegalArgumentException("The Axis selected are identic no axial symetry can be done");
@@ -122,26 +123,26 @@ public class VoxelInts {
         //symetrie par rapport au plan XY
         if ((axis1== Direction.Axis.X && axis2== Direction.Axis.Y)
                 ||(axis1== Direction.Axis.Y && axis2== Direction.Axis.X)){
-            return new VoxelInts(x1,y1,16-z1,x2,y2,16-z2);
+            return new VoxelInts(x1,y1,16-z2,x2,y2,16-z1);
         }
 
         //symetrie par rapport au plan YZ
         if ((axis1== Direction.Axis.Z && axis2== Direction.Axis.Y)
                 ||(axis1== Direction.Axis.Y && axis2== Direction.Axis.Z)){
-            return new VoxelInts(16-x1,y1,z1,16-x2,y2,z2);
+            return new VoxelInts(16-x2,y1,z1,16-x1,y2,z2);
         }
 
         //symetrie par rapport au plan XZ
         if ((axis1== Direction.Axis.X && axis2== Direction.Axis.Z)
                 ||(axis1== Direction.Axis.Z && axis2== Direction.Axis.X)){
-            return new VoxelInts(x1,16-y1,z1,x2,16-y2,z2);
+            return new VoxelInts(x1,16-y2,z1,x2,16-y1,z2);
         }
         return null;
     }
 
     public VoxelShape getAssociatedShape(){
         return Block.makeCuboidShape(
-                (double)plane_val[0],(double)plane_val[1],(double)plane_val[2],
-                (double)plane_val[3],(double)plane_val[4],(double)plane_val[5]);
+                plane_val[0], plane_val[1], plane_val[2],
+                plane_val[3], plane_val[4], plane_val[5]);
     }
 }

@@ -2,6 +2,7 @@ package fr.mattmouss.gates.gui;
 
 import fr.mattmouss.gates.GatesMod;
 
+import fr.mattmouss.gates.util.Functions;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.screen.inventory.ContainerScreen;
 import net.minecraft.entity.player.PlayerInventory;
@@ -23,8 +24,10 @@ public class TGUserScreen extends ContainerScreen<TGUserContainer> {
     @Override
     protected void drawGuiContainerForegroundLayer(int p_146979_1_, int p_146979_2_) {
         int price = container.getRemainingPayment();
+        int id = Functions.getIdFromBlockPos(container.getPos());
         this.drawString(Minecraft.getInstance().fontRenderer,"Value to pay :",29,48,white);
         this.drawString(Minecraft.getInstance().fontRenderer," "+price,118,49,white);
+        this.drawString(Minecraft.getInstance().fontRenderer,"Toll Gate number "+id,47,6,white);
         super.drawGuiContainerForegroundLayer(p_146979_1_, p_146979_2_);
     }
 

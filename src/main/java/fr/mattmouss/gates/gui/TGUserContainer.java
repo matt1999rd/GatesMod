@@ -92,6 +92,10 @@ public class TGUserContainer extends Container {
         addSlotRange(inventory,0,leftCol,topRow,9,18);
     }
 
+    public BlockPos getPos(){
+        return tileEntity.getPos();
+    }
+
     private int addSlotRange(IItemHandler handler, int index, int x, int y, int amount, int dx) {
         for (int i = 0;i< amount;i++){
             addSlot(new SlotItemHandler(handler, index, x, y));

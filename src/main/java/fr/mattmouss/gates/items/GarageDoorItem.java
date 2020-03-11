@@ -4,6 +4,7 @@ import fr.mattmouss.gates.doors.GarageDoor;
 import fr.mattmouss.gates.doors.ModBlock;
 import fr.mattmouss.gates.setup.ModSetup;
 
+import fr.mattmouss.gates.util.Functions;
 import net.minecraft.block.AirBlock;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.BlockItem;
@@ -37,7 +38,7 @@ public class GarageDoorItem extends BlockItem {
     }
 
     private boolean allBlockReplacedisAir(BlockPos pos,PlayerEntity entity,World world){
-        Direction facing = ModBlock.getDirectionFromEntity(entity,pos);
+        Direction facing = Functions.getDirectionFromEntity(entity,pos);
         Direction dir_left_section=facing.rotateY();
         List<BlockPos> posList = new ArrayList<>();
         posList.add(pos);

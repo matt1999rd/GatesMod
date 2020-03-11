@@ -2,6 +2,7 @@ package fr.mattmouss.gates.doors;
 
 import fr.mattmouss.gates.enum_door.Placing;
 import fr.mattmouss.gates.tileentity.GarageTileEntity;
+import fr.mattmouss.gates.util.Functions;
 import net.minecraft.block.*;
 import net.minecraft.block.material.Material;
 import net.minecraft.entity.LivingEntity;
@@ -186,7 +187,7 @@ public class GarageDoor extends Block {
     @Override
     public void onBlockPlacedBy(World world, BlockPos pos, BlockState state, @Nullable LivingEntity entity, ItemStack stack) {
         if (entity != null){
-            Direction dir_entity =ModBlock.getDirectionFromEntity(entity,pos);
+            Direction dir_entity = Functions.getDirectionFromEntity(entity,pos);
             System.out.println("dir_entity :"+dir_entity.getName());
             //placement des 2 block de droite de la porte de garage
             world.setBlockState(pos,state
