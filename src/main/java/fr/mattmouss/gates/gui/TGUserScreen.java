@@ -22,6 +22,13 @@ public class TGUserScreen extends ContainerScreen<TGUserContainer> {
     }
 
     @Override
+    public void render(int mouseX, int mouseY, float partialTicks) {
+        this.renderBackground();
+        super.render(mouseX, mouseY, partialTicks);
+        this.renderHoveredToolTip(mouseX,mouseY);
+    }
+
+    @Override
     protected void drawGuiContainerForegroundLayer(int p_146979_1_, int p_146979_2_) {
         int price = container.getRemainingPayment();
         int id = Functions.getIdFromBlockPos(container.getPos());

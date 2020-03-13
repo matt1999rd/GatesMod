@@ -3,6 +3,7 @@ package fr.mattmouss.gates;
 import fr.mattmouss.gates.doors.*;
 import fr.mattmouss.gates.gui.TGTechContainer;
 import fr.mattmouss.gates.gui.TGUserContainer;
+import fr.mattmouss.gates.items.CardKeyItem;
 import fr.mattmouss.gates.items.TollGateItem;
 import fr.mattmouss.gates.items.TollKeyItem;
 import fr.mattmouss.gates.setup.ClientProxy;
@@ -79,6 +80,7 @@ public class GatesMod {
             //Item.Properties properties = new Item.Properties().group(ModSetup.itemGroup);
             blockRegistryEvent.getRegistry().register(new TollGateItem(ModBlock.TOLL_GATE));
             blockRegistryEvent.getRegistry().register(new TollKeyItem());
+            blockRegistryEvent.getRegistry().register(new CardKeyItem());
         }
 
         @SubscribeEvent

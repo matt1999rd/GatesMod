@@ -2,11 +2,14 @@ package fr.mattmouss.gates.gui;
 
 
 import fr.mattmouss.gates.doors.ModBlock;
+import fr.mattmouss.gates.items.ModItem;
 import fr.mattmouss.gates.tileentity.TollGateTileEntity;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.player.PlayerInventory;
+import net.minecraft.inventory.container.CartographyContainer;
 import net.minecraft.inventory.container.Container;
 import net.minecraft.inventory.container.Slot;
+import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.Items;
 
@@ -17,6 +20,8 @@ import net.minecraftforge.items.CapabilityItemHandler;
 import net.minecraftforge.items.IItemHandler;
 import net.minecraftforge.items.SlotItemHandler;
 import net.minecraftforge.items.wrapper.InvWrapper;
+
+import javax.annotation.Nonnull;
 
 
 public class TGUserContainer extends Container {
@@ -32,8 +37,20 @@ public class TGUserContainer extends Container {
         playerEntity= player;
         this.inventory= new InvWrapper(inventory);
 
+
         tileEntity.getCapability(CapabilityItemHandler.ITEM_HANDLER_CAPABILITY).ifPresent(h->{
-            addSlot(new SlotItemHandler(h,0,64,24));
+            addSlot(new SlotItemHandler(h,0,64,24){
+                @Override
+                public boolean isItemValid(@Nonnull ItemStack stack) {
+                    return stack.getItem()==Items.EMERALD;
+                }
+            });
+            addSlot(new SlotItemHandler(h,1,149,24){
+                @Override
+                public boolean isItemValid(@Nonnull ItemStack stack) {
+                    return (stack.getItem() == ModItem.CARD_KEY.asItem());
+                }
+            });
         });
         layoutPlayerInventorySlots(10,70);
 
@@ -52,20 +69,29 @@ public class TGUserContainer extends Container {
             ItemStack stack = slot.getStack();
             itemStack = stack.copy();
             if (index ==0) {
-                if (!this.mergeItemStack(stack,1,37,true)) {
+                if (!this.mergeItemStack(stack,2,38,true)) {
                     return ItemStack.EMPTY;
                 }
                 slot.onSlotChange(stack,itemStack);
-            } else {
+            } else if (index == 1) {
+                if (!this.mergeItemStack(stack,2,38,true)) {
+                    return ItemStack.EMPTY;
+                }
+                slot.onSlotChange(stack,itemStack);
+            }else{
                 if (stack.getItem() == Items.EMERALD) {
-                    if (!this.mergeItemStack(stack, 0, 1, false)) {
+                    if (!this.mergeItemStack(stack, 0, 2, false)) {
+                        return ItemStack.EMPTY;
+                    }
+                }else if (stack.getItem() == ModItem.CARD_KEY.asItem()){
+                    if (!this.mergeItemStack(stack,1,2,false)){
                         return ItemStack.EMPTY;
                     }
                 } else if (index < 28) {
                     if (!this.mergeItemStack(stack, 28, 37, false)) {
                         return ItemStack.EMPTY;
                     }
-                }else if (index < 37 && !this.mergeItemStack(stack, 1, 28, false)) {
+                }else if (index < 38 && !this.mergeItemStack(stack, 2, 28, false)) {
                     return ItemStack.EMPTY;
                 }
             }

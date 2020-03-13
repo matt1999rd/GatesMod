@@ -10,9 +10,12 @@ import fr.mattmouss.gates.gui.TGTechContainer;
 import fr.mattmouss.gates.gui.TGUserContainer;
 import fr.mattmouss.gates.gui.TGTechnicianScreen;
 
+import fr.mattmouss.gates.items.CardKeyItem;
+import fr.mattmouss.gates.items.ModItem;
 import fr.mattmouss.gates.items.TollKeyItem;
 import fr.mattmouss.gates.pricecap.PriceStorage;
 
+import fr.mattmouss.gates.util.Functions;
 import net.minecraft.block.*;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.player.PlayerInventory;
@@ -27,6 +30,7 @@ import net.minecraft.tileentity.ITickableTileEntity;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.Direction;
 import net.minecraft.util.math.BlockPos;
+import net.minecraft.util.math.Vec3d;
 import net.minecraft.util.text.ITextComponent;
 import net.minecraft.util.text.StringTextComponent;
 import net.minecraftforge.common.capabilities.Capability;
@@ -46,6 +50,8 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 public class TollGateTileEntity extends TileEntity implements ITickableTileEntity, INamedContainerProvider {
 
+    //TODO : correct bug with too much emerald given (stop the emerald amount at max size)
+
     public TollGateTileEntity() {
         super(ModBlock.TOLL_GATE_ENTITY_TYPE);
     }
@@ -59,6 +65,8 @@ public class TollGateTileEntity extends TileEntity implements ITickableTileEntit
     private static int timer = 0;
 
     private static boolean UserGuiOpen = true;
+
+    private static int last_user_player_id = 0;
 
     private LazyOptional<IItemHandler> handler = LazyOptional.of(this::createHandler).cast();
 
@@ -75,7 +83,7 @@ public class TollGateTileEntity extends TileEntity implements ITickableTileEntit
     }
 
     public ItemStackHandler createHandler() {
-        return new ItemStackHandler(1){
+        return new ItemStackHandler(2){
 
             @Override
             protected void onContentsChanged(int slot) {
@@ -84,13 +92,18 @@ public class TollGateTileEntity extends TileEntity implements ITickableTileEntit
 
             @Override
             public boolean isItemValid(int slot, @Nonnull ItemStack stack) {
-                return stack.getItem() == Items.EMERALD;
+                if (slot == 0){
+                    return (stack.getItem() == Items.EMERALD)&& (amount_paid !=0);
+                }else {
+                    return stack.getItem() == ModItem.CARD_KEY.asItem();
+                }
+
             }
 
             @Nonnull
             @Override
             public ItemStack insertItem(int slot, @Nonnull ItemStack stack, boolean simulate) {
-                if (stack.getItem() != Items.EMERALD) {
+                if ((stack.getItem() != Items.EMERALD && slot ==0) || (stack.getItem() != ModItem.CARD_KEY.asItem() && slot == 1)) {
                     return stack;
                 }
                 return super.insertItem(slot, stack, simulate);
@@ -98,7 +111,9 @@ public class TollGateTileEntity extends TileEntity implements ITickableTileEntit
         };
     }
 
-
+    public static void changePlayerId(PlayerEntity entity) {
+        last_user_player_id = entity.getEntityId();
+    }
 
     @Override
     public void tick() {
@@ -140,6 +155,30 @@ public class TollGateTileEntity extends TileEntity implements ITickableTileEntit
     }
 
     private void checkTimer() {
+        if (this.getBlockState().get(TollGate.ANIMATION)==4) {
+            PlayerEntity entity = (PlayerEntity) world.getEntityByID(last_user_player_id);
+            if (entity == null){
+                return;
+            }
+            double[] entity_pos = new double[3];
+            Vec3d vec3d = entity.getPositionVector();
+            entity_pos[0] = vec3d.x;
+            entity_pos[1] = vec3d.y;
+            entity_pos[2] = vec3d.z;
+            double[] block_pos = new double[3];
+            block_pos[0] = pos.getX();
+            block_pos[1] = pos.getY();
+            block_pos[2] = pos.getZ();
+            System.out.println(Functions.Distance3(block_pos,entity_pos));
+
+            if (Functions.Distance3(block_pos, entity_pos) < 10) {
+                return;
+            }
+            System.out.println("end of barrier open");
+            startAllAnimation();
+        }
+
+        /*
         if (this.getBlockState().get(TollGate.ANIMATION)==4){
             if (timer>400){
                 startAllAnimation();
@@ -149,6 +188,7 @@ public class TollGateTileEntity extends TileEntity implements ITickableTileEntit
                 timer++;
             }
         }
+         */
     }
 
     private void manageEmeraldConsumption() {
@@ -157,15 +197,16 @@ public class TollGateTileEntity extends TileEntity implements ITickableTileEntit
         }).orElse(1);
 
         handler.ifPresent(h -> {
-            ItemStack stack = h.getStackInSlot(0);
-            int number_of_emerald = stack.getCount();
+            ItemStack stack0 = h.getStackInSlot(0);
+            ItemStack stack1 = h.getStackInSlot(1);
+            int number_of_emerald = stack0.getCount();
             //System.out.println("remaining payment :"+this.getRemainingPayment());
             //if the animation is in process or the toll gate is open it will stop the management of payment
             if (this.getBlockState().get(TollGate.ANIMATION)!=0){
                 return;
             }
             //when payment is not completely done
-            if (stack.getItem()==Items.EMERALD ){
+            if (stack0.getItem()==Items.EMERALD ){
                 if (number_of_emerald >= this.getRemainingPayment()){
                     //System.out.println("payment done !");
                     //beginning of open animation
@@ -180,6 +221,17 @@ public class TollGateTileEntity extends TileEntity implements ITickableTileEntit
                     //when the amount paid is not enough we just extract the amount given and we register it
                     h.extractItem(0,number_of_emerald,false);
                     this.raiseAmountPaid(number_of_emerald);
+                }
+            }else if (stack1.getItem() == ModItem.CARD_KEY.asItem()){
+                CardKeyItem key = (CardKeyItem)stack1.getItem();
+                BlockPos key_pos = key.getTGPosition(stack1,world);
+                if (key_pos == null){
+                    return;
+                }
+                if (pos.equals(key_pos)){
+                    h.extractItem(1,1,false);
+                    startAllAnimation();
+                    markDirty();
                 }
             }
 

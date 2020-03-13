@@ -14,10 +14,12 @@ import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.ItemUseContext;
 import net.minecraft.item.MapItem;
+import net.minecraft.nbt.CompoundNBT;
 import net.minecraft.state.properties.BlockStateProperties;
 import net.minecraft.state.properties.DoorHingeSide;
 import net.minecraft.util.ActionResultType;
 import net.minecraft.util.Direction;
+import net.minecraft.util.Hand;
 import net.minecraft.util.IItemProvider;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.text.ITextComponent;
@@ -31,19 +33,11 @@ import net.minecraftforge.fml.network.NetworkHooks;
 import javax.annotation.Nullable;
 import java.util.List;
 
-public class TollKeyItem extends Item {
-
-    private BlockPos registeredPos ;
-
-
+public class TollKeyItem extends KeyItem {
 
     public TollKeyItem(){
-        super(new Item.Properties().group(ModSetup.itemGroup).maxStackSize(1));
+        super();
         this.setRegistryName("toll_gate_key");
-    }
-
-    public void setRegisteredPos(BlockPos registeredPos) {
-        this.registeredPos = registeredPos;
     }
 
     @Override
@@ -56,14 +50,21 @@ public class TollKeyItem extends Item {
         BlockPos pos = context.getPos();
         PlayerEntity entity = context.getPlayer();
         World world = context.getWorld();
+        Hand hand = context.getHand();
+        ItemStack stack = entity.getHeldItem(hand);
         if (!(world.getTileEntity(pos) instanceof TollGateTileEntity)){
             //we exit the function if it is not a TollGateTileEntity
             return super.onItemUse(context);
         }
         //if someone takes the key from the creative tab it will not have any BlockPos and we set the blockPos to the present toll gate
+        //if this key has a blockPos that don't correspond to a toll gate anymore (because of destroyed block) we set the blockPos also
+        BlockPos registeredPos = getTGPosition(stack,world);
         if (registeredPos == null){
-            registeredPos = pos;
+            setTGPosition(stack,world,pos);
+            registeredPos = getTGPosition(stack,world);
         }
+
+
         if (!pos.equals(registeredPos)){
             System.out.println("the registered pos is not the pos of this block");
             System.out.println("pos of toll gate key attribute :"+registeredPos);
@@ -102,12 +103,7 @@ public class TollKeyItem extends Item {
 
     }
 
-    @Override
-    public ITextComponent getDisplayName(ItemStack stack) {
-        if (registeredPos != null){
-            int id = Functions.getIdFromBlockPos(registeredPos);
-            return new TranslationTextComponent(this.getTranslationKey(stack)+" nb "+id);
-        }
-        return super.getDisplayName(stack);
-    }
+
+
+
 }

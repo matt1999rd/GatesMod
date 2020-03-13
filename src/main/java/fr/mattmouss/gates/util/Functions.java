@@ -4,6 +4,7 @@ import net.minecraft.entity.LivingEntity;
 import net.minecraft.state.properties.DoorHingeSide;
 import net.minecraft.util.Direction;
 import net.minecraft.util.math.BlockPos;
+import net.minecraft.util.math.MathHelper;
 import net.minecraft.util.math.Vec3d;
 
 public class Functions {
@@ -54,5 +55,15 @@ public class Functions {
         }else {
             return 2*z+1;
         }
+    }
+
+
+
+    public static double Distance3(double[] first_pos, double[] player_pos) {
+        return MathHelper.sqrt(
+                Math.pow(first_pos[0]-player_pos[0],2.0)+
+                        Math.pow(first_pos[1]-player_pos[1],2.0)+
+                        Math.pow(first_pos[2]-player_pos[2],2.0)) ;
+
     }
 }

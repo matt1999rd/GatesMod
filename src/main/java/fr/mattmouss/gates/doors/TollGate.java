@@ -46,19 +46,11 @@ public class TollGate extends Block {
      *
      * ajouter la fonction d'utilisation du block (lorsque le block est ajouté on l'enlève de la main du joueur et
      * on lui ajoute la clé du toll man qui permet de choisir les tarifs du péages) -> fait !
-     *
-     *  finir la fonction getShape() -> fait
-     *
-     *  attention une condition pour le UP block
+
      *
      * petit pliiisss (ref à kaouach hamza)
      *
-     * ajouter le screen de gestion du tarif et de gestion du paiement
-     *
      * ajouter une possibilité de payer un ticket
-     *
-     *
-     * why this fucking block disappear when we put the right hinge toll gate expect for facing south ?
      *
      * */
     public TollGate() {
@@ -245,6 +237,8 @@ public class TollGate extends Block {
 
         TollGateTileEntity tgte = (TollGateTileEntity) world.getTileEntity(pos);
         assert tgte != null;
+        //we reupload the player using the gui
+        tgte.changePlayerId(entity);
         /*
 
         tgte.startAllAnimation();

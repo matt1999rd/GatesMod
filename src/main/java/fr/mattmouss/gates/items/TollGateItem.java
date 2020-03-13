@@ -16,6 +16,7 @@ import net.minecraft.item.ItemUseContext;
 import net.minecraft.state.properties.DoorHingeSide;
 import net.minecraft.util.ActionResultType;
 import net.minecraft.util.Direction;
+import net.minecraft.util.Hand;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
 
@@ -33,13 +34,14 @@ public class TollGateItem extends BlockItem {
     public ActionResultType onItemUse(ItemUseContext context) {
         BlockPos pos =context.getPos();
         World world = context.getWorld();
+        Hand hand = context.getHand();
         PlayerEntity entity=context.getPlayer();
+        ItemStack stack = entity.getHeldItem(hand);
         TollKeyItem key = (TollKeyItem) ModItem.TOLL_GATE_KEY.asItem();
-        key.setRegisteredPos(pos.up());
         System.out.println("item defini : "+key);
-        ItemStack stack = entity.getActiveItemStack();
         if (checkFeasibility(pos.up(),entity,world)){
             ItemStack newStack = new ItemStack(key);
+            key.setTGPosition(newStack,world,pos.up());
             System.out.println("itemstack of new key item : "+newStack);
             entity.setItemStackToSlot(EquipmentSlotType.MAINHAND,ItemStack.EMPTY);
             entity.setItemStackToSlot(EquipmentSlotType.MAINHAND,newStack);
