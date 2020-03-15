@@ -1,9 +1,7 @@
 package fr.mattmouss.gates.doors;
 
 
-import fr.mattmouss.gates.enum_door.TollGPosition;
 import fr.mattmouss.gates.enum_door.TurnSPosition;
-import fr.mattmouss.gates.tileentity.TollGateTileEntity;
 import fr.mattmouss.gates.tileentity.TurnStileTileEntity;
 import fr.mattmouss.gates.tools.VoxelInts;
 import fr.mattmouss.gates.util.Functions;
@@ -12,7 +10,9 @@ import net.minecraft.block.BlockState;
 import net.minecraft.block.Blocks;
 import net.minecraft.block.SoundType;
 import net.minecraft.block.material.Material;
+import net.minecraft.entity.Entity;
 import net.minecraft.entity.LivingEntity;
+import net.minecraft.entity.MoverType;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.ItemStack;
 import net.minecraft.pathfinding.PathType;
@@ -25,6 +25,7 @@ import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.Direction;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Vec3d;
+import net.minecraft.util.math.Vec3i;
 import net.minecraft.util.math.shapes.ISelectionContext;
 import net.minecraft.util.math.shapes.VoxelShape;
 import net.minecraft.util.math.shapes.VoxelShapes;
@@ -34,7 +35,7 @@ import net.minecraft.world.World;
 import javax.annotation.Nullable;
 import java.util.List;
 
-public class TurnSlide extends Block {
+public class TurnStile extends Block {
 
     public static EnumProperty<TurnSPosition> TS_POSITION ;
     public static IntegerProperty ANIMATION;
@@ -47,12 +48,12 @@ public class TurnSlide extends Block {
         ANIMATION = IntegerProperty.create("animation",0,1);
     }
 
-    public TurnSlide() {
+    public TurnStile() {
         super(Properties.create(Material.BARRIER)
                 .hardnessAndResistance(2.0f)
                 .sound(SoundType.METAL)
                 .notSolid());
-        this.setRegistryName("turn_slide");
+        this.setRegistryName("turn_stile");
     }
 
     @Override
@@ -147,5 +148,26 @@ public class TurnSlide extends Block {
             default:
                 return false;
         }
+    }
+
+    @Override
+    public void onEntityWalk(World world, BlockPos pos, Entity entity) {
+        TurnStileTileEntity tste = (TurnStileTileEntity) world.getTileEntity(pos);
+        Direction facing = tste.getBlockState().get(BlockStateProperties.HORIZONTAL_FACING);
+        if (entity instanceof PlayerEntity){
+            boolean isValid = tste.checkPlayer((PlayerEntity) entity);
+            if (isValid){
+                Vec3d movement_vec = getVec3d(facing.getDirectionVec());
+                entity.move(MoverType.PLAYER,movement_vec);
+                tste.changeAllAnim();
+            }
+        }
+    }
+
+    private Vec3d getVec3d(Vec3i directionVec) {
+        int x = directionVec.getX();
+        int y = directionVec.getY();
+        int z = directionVec.getZ();
+        return new Vec3d(x,y,z);
     }
 }

@@ -1,10 +1,70 @@
 package fr.mattmouss.gates.items;
 
-import fr.mattmouss.gates.doors.TurnSlide;
+import fr.mattmouss.gates.doors.TurnStile;
+import fr.mattmouss.gates.setup.ModSetup;
+import fr.mattmouss.gates.util.Functions;
+import net.minecraft.block.AirBlock;
+import net.minecraft.block.Block;
+import net.minecraft.block.BushBlock;
+import net.minecraft.block.LeavesBlock;
+import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.BlockItem;
+import net.minecraft.item.Item;
+import net.minecraft.item.ItemUseContext;
+import net.minecraft.state.properties.DoorHingeSide;
+import net.minecraft.util.ActionResultType;
+import net.minecraft.util.Direction;
+import net.minecraft.util.math.BlockPos;
+import net.minecraft.world.World;
 
-public class TurnSlideItem extends BlockItem {
-    public TurnSlideItem(TurnSlide, Properties p_i48527_2_) {
-        super(p_i48527_1_, p_i48527_2_);
+import java.util.ArrayList;
+import java.util.List;
+
+public class TurnStileItem extends BlockItem {
+    public TurnStileItem(TurnStile stile) {
+        super(stile, new Item.Properties().group(ModSetup.itemGroup));
+        this.setRegistryName("turn_stile");
+    }
+
+    @Override
+    public ActionResultType onItemUse(ItemUseContext context) {
+        BlockPos pos = context.getPos();
+        World world = context.getWorld();
+        PlayerEntity entity = context.getPlayer();
+        if (checkFeasibility(pos.up(),entity,world)){
+            return super.onItemUse(context);
+        }
+        System.out.println("block non fabriqué");
+        return ActionResultType.FAIL;
+    }
+
+    private boolean checkFeasibility(BlockPos pos, PlayerEntity entity, World world) {
+        Direction facing = Functions.getDirectionFromEntity(entity,pos);
+        DoorHingeSide dhs = Functions.getHingeSideFromEntity(entity,pos,facing);
+        List<BlockPos> posList = new ArrayList<>();
+        //block main
+        posList.add(pos);
+        //block right
+        posList.add(pos.offset(facing.rotateYCCW()));
+        //block left
+        posList.add(pos.offset(facing.rotateY()));
+
+        for (BlockPos pos_in : posList){
+            //return false if the position of this future block is occupied by another solid block
+            if (!(world.getBlockState(pos_in).getBlock() instanceof AirBlock)){
+                System.out.println("la blockPos qui fait foirer :"+pos_in);
+                System.out.println("Block qui bloque :"+world.getBlockState(pos_in).getBlock());
+                return false;
+            }
+            //return false if the position of this future block is above a air or bush or leaves block
+            Block underBlock = world.getBlockState(pos_in.down()).getBlock();
+            if (underBlock instanceof AirBlock || underBlock instanceof BushBlock || underBlock instanceof LeavesBlock){
+                System.out.println("la blockPos qui fait foirer :"+pos_in.down());
+                System.out.println("Block qui ne stabilise pas :"+underBlock);
+                return false;
+            }
+        }
+        return true;
+
     }
 }

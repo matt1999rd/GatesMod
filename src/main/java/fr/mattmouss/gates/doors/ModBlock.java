@@ -5,16 +5,10 @@ import fr.mattmouss.gates.gui.TGTechContainer;
 import fr.mattmouss.gates.gui.TGUserContainer;
 import fr.mattmouss.gates.tileentity.GarageTileEntity;
 import fr.mattmouss.gates.tileentity.TollGateTileEntity;
-import net.minecraft.entity.LivingEntity;
+import fr.mattmouss.gates.tileentity.TurnStileTileEntity;
 import net.minecraft.inventory.container.ContainerType;
-import net.minecraft.state.properties.DoorHingeSide;
 import net.minecraft.tileentity.TileEntityType;
-import net.minecraft.util.Direction;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.Vec3d;
 import net.minecraftforge.registries.ObjectHolder;
-
-import java.util.List;
 
 public class ModBlock {
     //enregistrement avec ObjectHolder des blocks qui ne sont pas des portes
@@ -34,7 +28,11 @@ public class ModBlock {
     @ObjectHolder("gates:garage_door")
     public static TileEntityType<GarageTileEntity> GARAGE_TILE_TYPE;
 
+    @ObjectHolder("gates:turn_stile")
+    public static TurnStile TURN_STILE = new TurnStile();
 
+    @ObjectHolder("gates:turn_stile")
+    public static TileEntityType<TurnStileTileEntity> TURNSTILE_TILE_TYPE;
 
 
 }

@@ -17,6 +17,7 @@ public class Functions {
         return d;
     }
 
+    //give the side where the barrier is extending
     public static Direction getDirectionOfExtBlock(Direction direction, DoorHingeSide dhs){
         return  (dhs == DoorHingeSide.RIGHT)?direction.rotateYCCW():direction.rotateY();
     }

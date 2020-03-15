@@ -35,6 +35,8 @@ import java.util.List;
 
 public class TollKeyItem extends KeyItem {
 
+    //TODO : change name of class to make this item usefull for toll gate and turn stile and to open the tech gui -> TechKeyItem
+
     public TollKeyItem(){
         super();
         this.setRegistryName("toll_gate_key");
@@ -72,6 +74,7 @@ public class TollKeyItem extends KeyItem {
             return super.onItemUse(context);
         }
         TollGateTileEntity tgte = (TollGateTileEntity) world.getTileEntity(pos);
+        tgte.changeId();
 
         if (isPlayerFacingTheRightFace(tgte,entity,pos)){
             System.out.println("the player is a technician ");

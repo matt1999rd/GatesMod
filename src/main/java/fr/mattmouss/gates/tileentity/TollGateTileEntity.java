@@ -5,15 +5,14 @@ import fr.mattmouss.gates.animationboolean.AnimationBooleanCapability;
 import fr.mattmouss.gates.animationboolean.IAnimationBoolean;
 import fr.mattmouss.gates.doors.ModBlock;
 import fr.mattmouss.gates.doors.TollGate;
+import fr.mattmouss.gates.energystorage.IdStorage;
 import fr.mattmouss.gates.enum_door.TollGPosition;
 import fr.mattmouss.gates.gui.TGTechContainer;
 import fr.mattmouss.gates.gui.TGUserContainer;
-import fr.mattmouss.gates.gui.TGTechnicianScreen;
 
 import fr.mattmouss.gates.items.CardKeyItem;
 import fr.mattmouss.gates.items.ModItem;
-import fr.mattmouss.gates.items.TollKeyItem;
-import fr.mattmouss.gates.pricecap.PriceStorage;
+import fr.mattmouss.gates.energystorage.PriceStorage;
 
 import fr.mattmouss.gates.util.Functions;
 import net.minecraft.block.*;
@@ -21,6 +20,7 @@ import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.player.PlayerInventory;
 import net.minecraft.inventory.container.Container;
 import net.minecraft.inventory.container.INamedContainerProvider;
+import net.minecraft.item.FilledMapItem;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.Items;
 import net.minecraft.nbt.CompoundNBT;
@@ -33,6 +33,7 @@ import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Vec3d;
 import net.minecraft.util.text.ITextComponent;
 import net.minecraft.util.text.StringTextComponent;
+import net.minecraft.world.dimension.DimensionType;
 import net.minecraftforge.common.capabilities.Capability;
 import net.minecraftforge.common.util.INBTSerializable;
 import net.minecraftforge.common.util.LazyOptional;
@@ -50,8 +51,6 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 public class TollGateTileEntity extends TileEntity implements ITickableTileEntity, INamedContainerProvider {
 
-    //TODO : correct bug with too much emerald given (stop the emerald amount at max size)
-
     public TollGateTileEntity() {
         super(ModBlock.TOLL_GATE_ENTITY_TYPE);
     }
@@ -60,9 +59,9 @@ public class TollGateTileEntity extends TileEntity implements ITickableTileEntit
 
     private LazyOptional<IEnergyStorage> price = LazyOptional.of(this::getPriceValue).cast();
 
-    private static int amount_paid = 0;
+    private LazyOptional<IEnergyStorage> id = LazyOptional.of(this::getIdValue).cast();
 
-    private static int timer = 0;
+    private static int amount_paid = 0;
 
     private static boolean UserGuiOpen = true;
 
@@ -76,8 +75,10 @@ public class TollGateTileEntity extends TileEntity implements ITickableTileEntit
 
     private IEnergyStorage getPriceValue(){ return new PriceStorage(64,0);}
 
+    private IEnergyStorage getIdValue(){ return new IdStorage();}
+
     //true for user gui
-    //false for teechnician gui
+    //false for technician gui
     public void setSide(boolean newSide){
         UserGuiOpen = newSide;
     }
@@ -93,7 +94,7 @@ public class TollGateTileEntity extends TileEntity implements ITickableTileEntit
             @Override
             public boolean isItemValid(int slot, @Nonnull ItemStack stack) {
                 if (slot == 0){
-                    return (stack.getItem() == Items.EMERALD)&& (amount_paid !=0);
+                    return (stack.getItem() == Items.EMERALD);
                 }else {
                     return stack.getItem() == ModItem.CARD_KEY.asItem();
                 }
@@ -174,6 +175,7 @@ public class TollGateTileEntity extends TileEntity implements ITickableTileEntit
             if (Functions.Distance3(block_pos, entity_pos) < 10) {
                 return;
             }
+            last_user_player_id =0;
             System.out.println("end of barrier open");
             startAllAnimation();
         }
@@ -205,6 +207,10 @@ public class TollGateTileEntity extends TileEntity implements ITickableTileEntit
             if (this.getBlockState().get(TollGate.ANIMATION)!=0){
                 return;
             }
+            if (last_user_player_id ==0){
+                return;
+            }
+            PlayerEntity entity = (PlayerEntity) world.getEntityByID(last_user_player_id);
             //when payment is not completely done
             if (stack0.getItem()==Items.EMERALD ){
                 if (number_of_emerald >= this.getRemainingPayment()){
@@ -212,7 +218,14 @@ public class TollGateTileEntity extends TileEntity implements ITickableTileEntit
                     //beginning of open animation
                     startAllAnimation();
                     //we extract the emerald in the slot
-                    h.extractItem(0,price_to_pay,false);
+                    h.extractItem(0,number_of_emerald,false);
+                    ItemStack stack2 = new ItemStack(Items.EMERALD.asItem());
+                    stack2.setCount(number_of_emerald-price_to_pay);
+
+                    //drop extra amount of emerald
+                    if (entity != null) {
+                        entity.dropItem(stack2, false);
+                    }
                     //we reset amound paid for next client
                     amount_paid = 0;
                     markDirty();
@@ -230,6 +243,8 @@ public class TollGateTileEntity extends TileEntity implements ITickableTileEntit
                 }
                 if (pos.equals(key_pos)){
                     h.extractItem(1,1,false);
+                    //drop the card because it will be used later on
+                    entity.dropItem(stack1,false);
                     startAllAnimation();
                     markDirty();
                 }
@@ -255,7 +270,7 @@ public class TollGateTileEntity extends TileEntity implements ITickableTileEntit
         }
     }
 
-    //démarre toute les animation pour tout les blocks
+    //start all animation of all the block that make the toll gate
 
     private void startAllAnimation(){
         startAnimation();
@@ -294,19 +309,12 @@ public class TollGateTileEntity extends TileEntity implements ITickableTileEntit
     }
 
     private void destroyBlock() {
-        //destruction de tout les blocks connectés et du block lui même
+        //destruction of all blocks connected and of the block itself
         for (BlockPos pos1 : getPositionOfBlockConnected()){
             TollGate selecGate = (TollGate) world.getBlockState(pos1).getBlock();
             selecGate.deleteBlock(pos1,world);
         }
     }
-
-    public Direction getDirectionOfExtBlock(){
-        Direction direction = this.getBlockState().get(BlockStateProperties.HORIZONTAL_FACING);
-        DoorHingeSide dhs = this.getBlockState().get(BlockStateProperties.DOOR_HINGE);
-        return  (dhs == DoorHingeSide.RIGHT)?direction.rotateYCCW():direction.rotateY();
-    }
-
 
     private boolean animationOpeningInProcess(){
         return startAnimation.map(IAnimationBoolean::isOpening).orElse(false);
@@ -341,12 +349,24 @@ public class TollGateTileEntity extends TileEntity implements ITickableTileEntit
 
      */
 
+    public void changeId(){
+        id.ifPresent(e->{
+            ((IdStorage)e).changeId(world.getServer().getWorld(DimensionType.OVERWORLD));
+        });
+    }
+
+    public int getId(){
+        AtomicInteger id_in = new AtomicInteger(1);
+        id.ifPresent(e->{
+            id_in.set(e.getEnergyStored());
+        });
+        return id_in.get();
+    }
+
+
     public int getPrice(){
         AtomicInteger price_in = new AtomicInteger(1);
         price.ifPresent(iEnergyStorage -> {
-            if (!world.isRemote) {
-                //System.out.println("price obtenu :" + iEnergyStorage.getEnergyStored());
-            }
             price_in.set(iEnergyStorage.getEnergyStored());
         });
         return price_in.get();
@@ -450,7 +470,8 @@ public class TollGateTileEntity extends TileEntity implements ITickableTileEntit
         Direction direction = this.getBlockState().get(BlockStateProperties.HORIZONTAL_FACING);
         TollGPosition tgp = this.getBlockState().get(TollGate.TG_POSITION);
         List<BlockPos> posList = new ArrayList<>();
-        Direction extDirection = getDirectionOfExtBlock();
+        DoorHingeSide dhs = this.getBlockState().get(BlockStateProperties.DOOR_HINGE);
+        Direction extDirection = Functions.getDirectionOfExtBlock(direction,dhs);
         BlockPos emptyBasePos = getEmptyBasePos(tgp,extDirection,direction);
         //block emptybase
         posList.add(emptyBasePos);
@@ -480,6 +501,10 @@ public class TollGateTileEntity extends TileEntity implements ITickableTileEntit
                 throw new NullPointerException("TollGatePosition of block at position :"+this.pos+"has null attribut for tollgateposition");
         }
 
+    }
+    //this function as public give the position of toll gate registering
+    public BlockPos getCentralPos(){
+        return null;
     }
 
     public boolean isGateOpen(){

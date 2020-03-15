@@ -1,4 +1,4 @@
-package fr.mattmouss.gates.pricecap;
+package fr.mattmouss.gates.energystorage;
 
 import net.minecraft.nbt.CompoundNBT;
 import net.minecraftforge.common.util.INBTSerializable;
