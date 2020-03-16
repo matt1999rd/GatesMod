@@ -1,7 +1,7 @@
 package fr.mattmouss.gates.items;
 
+import fr.mattmouss.gates.tileentity.IControlIdTE;
 import fr.mattmouss.gates.tileentity.TollGateTileEntity;
-import fr.mattmouss.gates.tileentity.TurnStileTileEntity;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.ItemUseContext;
@@ -33,21 +33,21 @@ public class CardKeyItem extends KeyItem {
         ItemStack stack = entity.getHeldItem(hand);
         World world = context.getWorld();
         TileEntity te = world.getTileEntity(pos);
-        if (!(te instanceof TollGateTileEntity) && (!(te instanceof TurnStileTileEntity))) {
+        if (!(te instanceof IControlIdTE)) {
             //we exit the function if it is not a TollGateTileEntity or a TurnStileTileEntity
             return super.onItemUse(context);
         }
-        BlockPos te_pos = te.getPos();
-        CompoundNBT tag = stack.getOrCreateTag();
-        if (!this.isTGPositionReg(tag, world) || !this.isTSPositionReg(tag,world)) {
+        int te_id = ((IControlIdTE)te).getId();
+        CompoundNBT tag = stack.getTag();
+        //if id is not existing we fix it
+        if (tag == null) {
+            tag = new CompoundNBT();
+            System.out.println("registering id of block");
             if (te instanceof TollGateTileEntity) {
-                te_pos =
-                System.out.println("registering pos of block");
-                tag.putInt("pos_x", te_pos.getX());
-                tag.putInt("pos_y", te_pos.getY());
-                tag.putInt("pos_z", te_pos.getZ());
+                tag.putInt("id", te_id);
                 tag.putString("te", "toll_gate");
             } else {
+                tag.putInt("id",te_id);
                 tag.putString("te", "turn_stile");
             }
             return ActionResultType.SUCCESS;

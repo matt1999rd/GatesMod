@@ -16,6 +16,7 @@ import fr.mattmouss.gates.energystorage.PriceStorage;
 
 import fr.mattmouss.gates.util.Functions;
 import net.minecraft.block.*;
+import net.minecraft.client.Minecraft;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.player.PlayerInventory;
 import net.minecraft.inventory.container.Container;
@@ -34,6 +35,7 @@ import net.minecraft.util.math.Vec3d;
 import net.minecraft.util.text.ITextComponent;
 import net.minecraft.util.text.StringTextComponent;
 import net.minecraft.world.dimension.DimensionType;
+import net.minecraft.world.server.ServerWorld;
 import net.minecraftforge.common.capabilities.Capability;
 import net.minecraftforge.common.util.INBTSerializable;
 import net.minecraftforge.common.util.LazyOptional;
@@ -49,7 +51,9 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 
-public class TollGateTileEntity extends TileEntity implements ITickableTileEntity, INamedContainerProvider {
+public class TollGateTileEntity extends TileEntity implements ITickableTileEntity, INamedContainerProvider,IControlIdTE {
+
+
 
     public TollGateTileEntity() {
         super(ModBlock.TOLL_GATE_ENTITY_TYPE);
@@ -75,7 +79,10 @@ public class TollGateTileEntity extends TileEntity implements ITickableTileEntit
 
     private IEnergyStorage getPriceValue(){ return new PriceStorage(64,0);}
 
-    private IEnergyStorage getIdValue(){ return new IdStorage();}
+    public IEnergyStorage getIdValue(){
+        return new IdStorage();
+    }
+
 
     //true for user gui
     //false for technician gui
@@ -349,10 +356,20 @@ public class TollGateTileEntity extends TileEntity implements ITickableTileEntit
 
      */
 
-    public void changeId(){
+
+    @Override
+    public void setId(int id_in) {
         id.ifPresent(e->{
-            ((IdStorage)e).changeId(world.getServer().getWorld(DimensionType.OVERWORLD));
+            ((IdStorage)e).changeId(id_in);
         });
+    }
+
+    public void changeId(){
+        if (!world.isRemote) {
+            id.ifPresent(e -> {
+                ((IdStorage) e).changeId(world.getServer().getWorld(DimensionType.OVERWORLD));
+            });
+        }
     }
 
     public int getId(){
@@ -420,11 +437,9 @@ public class TollGateTileEntity extends TileEntity implements ITickableTileEntit
         CompoundNBT invTag=compound.getCompound("inv");
         CompoundNBT price_tag = compound.getCompound("price");
         CompoundNBT anim_tag = compound.getCompound("anim");
+        CompoundNBT id_tag = compound.getCompound("id");
         price.ifPresent(iPriceValue -> ((INBTSerializable<CompoundNBT>)iPriceValue).deserializeNBT(price_tag));
-        price.ifPresent(iPriceValue -> {
-            int price = price_tag.getInt("price");
-            System.out.println("prix récupéré par la fonction :" + price);
-        });
+        id.ifPresent(e->((INBTSerializable<CompoundNBT>)e).deserializeNBT(id_tag));
         handler.ifPresent(h -> ((INBTSerializable<CompoundNBT>)h).deserializeNBT(invTag));
         startAnimation.ifPresent(animationBoolean -> ((INBTSerializable<CompoundNBT>)animationBoolean).deserializeNBT(anim_tag));
         super.read(compound);
@@ -444,7 +459,10 @@ public class TollGateTileEntity extends TileEntity implements ITickableTileEntit
         price.ifPresent(iPriceValue -> {
             CompoundNBT compoundNBT = ((INBTSerializable<CompoundNBT>) iPriceValue).serializeNBT();
             tag.put("price", compoundNBT);
-
+        });
+        id.ifPresent(e->{
+            CompoundNBT compoundNBT = ((INBTSerializable<CompoundNBT>)e).serializeNBT();
+            tag.put("id",compoundNBT);
         });
         return super.write(tag);
     }

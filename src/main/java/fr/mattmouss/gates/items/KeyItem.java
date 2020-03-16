@@ -5,16 +5,21 @@ import fr.mattmouss.gates.tileentity.TollGateTileEntity;
 
 import fr.mattmouss.gates.tileentity.TurnStileTileEntity;
 import fr.mattmouss.gates.util.Functions;
+import net.minecraft.client.util.ITooltipFlag;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.CompoundNBT;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.text.ITextComponent;
+import net.minecraft.util.text.StringTextComponent;
+import net.minecraft.util.text.Style;
 import net.minecraft.util.text.TranslationTextComponent;
 import net.minecraft.world.World;
 
 import javax.annotation.Nullable;
+import java.util.List;
+import java.util.stream.Stream;
 
 public abstract class KeyItem extends Item {
 
@@ -195,5 +200,12 @@ public abstract class KeyItem extends Item {
 
     }
 
-
+    @Override
+    public void addInformation(ItemStack stack, @Nullable World world, List<ITextComponent> componentList, ITooltipFlag flag) {
+        if (stack.getTag().contains("id")){
+            int id = stack.getTag().getInt("id");
+            componentList.add(new StringTextComponent("Id :"+id));
+        }
+        super.addInformation(stack, world, componentList, flag);
+    }
 }

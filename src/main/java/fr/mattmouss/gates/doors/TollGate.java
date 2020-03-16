@@ -147,6 +147,9 @@ public class TollGate extends Block {
         //on pose le block central au niveau du block selectionné
         //le coté de la barrière sera défini selon la position du joueur vis à vis du block
         if (entity != null){
+            TollGateTileEntity tgte = (TollGateTileEntity) world.getTileEntity(pos);
+
+            System.out.println(tgte);
             //à corriger pour marcher avec le schéma cu en avant et empty_base - main - empty_ext
             Direction direction = Functions.getDirectionFromEntity(entity,pos);
             DoorHingeSide dhs = Functions.getHingeSideFromEntity(entity,pos,direction);

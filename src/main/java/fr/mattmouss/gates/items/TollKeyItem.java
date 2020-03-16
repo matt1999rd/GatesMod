@@ -68,16 +68,15 @@ public class TollKeyItem extends KeyItem {
 
 
         if (!pos.equals(registeredPos)){
-            System.out.println("the registered pos is not the pos of this block");
-            System.out.println("pos of toll gate key attribute :"+registeredPos);
-            System.out.println("pos of toll gate :"+pos);
+            //System.out.println("the registered pos is not the pos of this block");
+            //System.out.println("pos of toll gate key attribute :"+registeredPos);
+            //System.out.println("pos of toll gate :"+pos);
             return super.onItemUse(context);
         }
         TollGateTileEntity tgte = (TollGateTileEntity) world.getTileEntity(pos);
-        tgte.changeId();
 
         if (isPlayerFacingTheRightFace(tgte,entity,pos)){
-            System.out.println("the player is a technician ");
+            //System.out.println("the player is a technician ");
             tgte.setSide(false);
 
             if (!world.isRemote) {

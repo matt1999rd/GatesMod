@@ -2,6 +2,7 @@ package fr.mattmouss.gates.tileentity;
 
 import fr.mattmouss.gates.doors.ModBlock;
 import fr.mattmouss.gates.doors.TurnStile;
+import fr.mattmouss.gates.energystorage.IdStorage;
 import fr.mattmouss.gates.enum_door.TurnSPosition;
 import fr.mattmouss.gates.items.CardKeyItem;
 import fr.mattmouss.gates.items.ModItem;
@@ -15,16 +16,22 @@ import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.Direction;
 import net.minecraft.util.Hand;
 import net.minecraft.util.math.BlockPos;
+import net.minecraft.world.dimension.DimensionType;
+import net.minecraftforge.common.util.LazyOptional;
+import net.minecraftforge.energy.IEnergyStorage;
 import sun.security.timestamp.TSRequest;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicInteger;
 
-public class TurnStileTileEntity extends TileEntity  {
+public class TurnStileTileEntity extends TileEntity implements IControlIdTE {
 
     public TurnStileTileEntity() {
         super(ModBlock.TURNSTILE_TILE_TYPE);
     }
+
+    private LazyOptional<IEnergyStorage> id = LazyOptional.of(this::getIdValue).cast();
 
     public List<BlockPos> getPositionOfBlockConnected() {
         List<BlockPos> posList = new ArrayList<>();
@@ -81,4 +88,33 @@ public class TurnStileTileEntity extends TileEntity  {
         int i = state.get(TurnStile.ANIMATION);
         world.setBlockState(pos,state.with(TurnStile.ANIMATION,1-i));
     }
+
+    @Override
+    public int getId() {
+        AtomicInteger id_in = new AtomicInteger(1);
+        id.ifPresent(e->{
+            id_in.set(e.getEnergyStored());
+        });
+        return id_in.get();
+    }
+
+    @Override
+    public void changeId() {
+        id.ifPresent(e->{
+            ((IdStorage)e).changeId(world.getServer().getWorld(DimensionType.OVERWORLD));
+        });
+    }
+
+    @Override
+    public IEnergyStorage getIdValue() {
+        return new IdStorage();
+    }
+
+    @Override
+    public void setId(int id_in) {
+        id.ifPresent(e->{
+            ((IdStorage)e).changeId(id_in);
+        });
+    }
+
 }

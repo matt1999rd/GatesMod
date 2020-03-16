@@ -32,9 +32,11 @@ public class TGUserScreen extends ContainerScreen<TGUserContainer> {
     protected void drawGuiContainerForegroundLayer(int p_146979_1_, int p_146979_2_) {
         int price = container.getRemainingPayment();
         int id = Functions.getIdFromBlockPos(container.getPos());
+        int control_id = container.getId();
         this.drawString(Minecraft.getInstance().fontRenderer,"Value to pay :",29,48,white);
         this.drawString(Minecraft.getInstance().fontRenderer," "+price,118,49,white);
         this.drawString(Minecraft.getInstance().fontRenderer,"Toll Gate number "+id,47,6,white);
+        this.drawString(Minecraft.getInstance().fontRenderer,"Id :"+control_id,100,20,white);
         super.drawGuiContainerForegroundLayer(p_146979_1_, p_146979_2_);
     }
 

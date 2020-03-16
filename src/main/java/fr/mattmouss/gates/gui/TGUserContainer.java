@@ -6,10 +6,9 @@ import fr.mattmouss.gates.items.ModItem;
 import fr.mattmouss.gates.tileentity.TollGateTileEntity;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.player.PlayerInventory;
-import net.minecraft.inventory.container.CartographyContainer;
 import net.minecraft.inventory.container.Container;
 import net.minecraft.inventory.container.Slot;
-import net.minecraft.item.Item;
+
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.Items;
 
@@ -55,6 +54,10 @@ public class TGUserContainer extends Container {
         layoutPlayerInventorySlots(10,70);
 
 
+    }
+
+    public int getId(){
+        return tileEntity.getId();
     }
 
     public int getRemainingPayment(){

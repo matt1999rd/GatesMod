@@ -9,6 +9,7 @@ import java.util.List;
 import java.util.Random;
 
 public class ControlIdData extends WorldSavedData {
+
     List<Integer> idList = new ArrayList<>();
 
     public ControlIdData() {
@@ -49,7 +50,8 @@ public class ControlIdData extends WorldSavedData {
         //we are searching new Id so we need to chck if the list is containing the id if true this function continue as long as a different id is found
         //NB : there is very poor probability for this loop to operate twice (10^-8 %)
         while (true){
-            newId = random.nextInt();
+            newId = random.nextInt(1000000);
+            System.out.println("new Id created : " +newId);
             if (!idList.contains(newId)){
                 idList.add(newId);
                 return newId;
