@@ -197,7 +197,6 @@ public abstract class KeyItem extends Item {
         }
         int id = Functions.getIdFromBlockPos(registeredPos);
         return new TranslationTextComponent(this.getTranslationKey(stack)+" nb "+id);
-
     }
 
     @Override

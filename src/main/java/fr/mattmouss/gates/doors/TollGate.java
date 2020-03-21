@@ -1,6 +1,9 @@
 package fr.mattmouss.gates.doors;
 
 import fr.mattmouss.gates.enum_door.TollGPosition;
+import fr.mattmouss.gates.network.ChangeIdPacket;
+import fr.mattmouss.gates.network.Networking;
+import fr.mattmouss.gates.network.SetIdPacket;
 import fr.mattmouss.gates.tileentity.TollGateTileEntity;
 import fr.mattmouss.gates.tools.VoxelInts;
 import fr.mattmouss.gates.util.Functions;
@@ -31,7 +34,9 @@ import net.minecraft.util.math.shapes.VoxelShape;
 import net.minecraft.util.math.shapes.VoxelShapes;
 import net.minecraft.world.IBlockReader;
 import net.minecraft.world.World;
+import net.minecraft.world.dimension.DimensionType;
 import net.minecraftforge.fml.network.NetworkHooks;
+import net.minecraftforge.fml.network.PacketDistributor;
 
 import javax.annotation.Nullable;
 import java.util.List;
@@ -147,9 +152,12 @@ public class TollGate extends Block {
         //on pose le block central au niveau du block selectionné
         //le coté de la barrière sera défini selon la position du joueur vis à vis du block
         if (entity != null){
-            TollGateTileEntity tgte = (TollGateTileEntity) world.getTileEntity(pos);
-
-            System.out.println(tgte);
+            //on initialise l'id
+            if (!world.isRemote) {
+                TollGateTileEntity tgte = (TollGateTileEntity) world.getTileEntity(pos);
+                tgte.changeId();
+                Networking.INSTANCE.send(PacketDistributor.PLAYER.with(()-> (ServerPlayerEntity)entity),new SetIdPacket(pos,tgte.getId()));
+            }
             //à corriger pour marcher avec le schéma cu en avant et empty_base - main - empty_ext
             Direction direction = Functions.getDirectionFromEntity(entity,pos);
             DoorHingeSide dhs = Functions.getHingeSideFromEntity(entity,pos,direction);

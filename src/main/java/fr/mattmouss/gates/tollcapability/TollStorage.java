@@ -1,8 +1,11 @@
-package fr.mattmouss.gates.tollfuckingcapability;
+package fr.mattmouss.gates.tollcapability;
 
+import fr.mattmouss.gates.network.Networking;
+import fr.mattmouss.gates.network.SetIdPacket;
+import net.minecraft.entity.player.ServerPlayerEntity;
 import net.minecraft.nbt.CompoundNBT;
-import net.minecraft.util.math.MathHelper;
 import net.minecraftforge.common.util.INBTSerializable;
+import net.minecraftforge.fml.network.PacketDistributor;
 
 import java.util.Random;
 
@@ -18,7 +21,7 @@ public class TollStorage implements ITollStorage, INBTSerializable<CompoundNBT> 
         startClosingAnimation = false;
         startOpeningAnimation = false;
         price = 1;
-        id = MathHelper.abs(random.nextInt());
+        id = -1;
     }
 
     public void raisePrice(){
@@ -46,9 +49,10 @@ public class TollStorage implements ITollStorage, INBTSerializable<CompoundNBT> 
 
     @Override
     public void changeId() {
-        System.out.println("changing id...");
-        int newId= random.nextInt();
-        setId(MathHelper.abs(newId));
+        //trackInt is limited to 16 bit number and there is negative value
+        int newId= random.nextInt((int)Math.pow(2,15))+(int)Math.pow(2,15);
+        System.out.println("changing id... \n newId = "+newId);
+        setId(newId);
     }
 
     @Override

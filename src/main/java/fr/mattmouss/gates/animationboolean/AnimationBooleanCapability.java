@@ -31,8 +31,8 @@ public class AnimationBooleanCapability {
                 CompoundNBT tag = (CompoundNBT)nbt;
                 Boolean open_bool = tag.getBoolean("open");
                 Boolean close_bool = tag.getBoolean("close");
-                ((AnimationBoolean) instance).setBoolOpen(open_bool);
-                ((AnimationBoolean) instance).setBoolClose(close_bool);
+                instance.setBoolOpen(open_bool);
+                instance.setBoolClose(close_bool);
 
             }
         },AnimationBoolean::new);

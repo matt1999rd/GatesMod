@@ -1,27 +1,25 @@
 package fr.mattmouss.gates.tileentity;
 
-import fr.mattmouss.gates.animationboolean.AnimationBoolean;
-import fr.mattmouss.gates.animationboolean.AnimationBooleanCapability;
-import fr.mattmouss.gates.animationboolean.IAnimationBoolean;
 import fr.mattmouss.gates.doors.ModBlock;
 import fr.mattmouss.gates.doors.TollGate;
-import fr.mattmouss.gates.energystorage.IdStorage;
 import fr.mattmouss.gates.enum_door.TollGPosition;
 import fr.mattmouss.gates.gui.TGTechContainer;
+import fr.mattmouss.gates.gui.TGTechnicianScreen;
 import fr.mattmouss.gates.gui.TGUserContainer;
-
 import fr.mattmouss.gates.items.CardKeyItem;
 import fr.mattmouss.gates.items.ModItem;
-import fr.mattmouss.gates.energystorage.PriceStorage;
-
+import fr.mattmouss.gates.network.ChangeClientIdPacket;
+import fr.mattmouss.gates.network.Networking;
+import fr.mattmouss.gates.network.SetIdPacket;
+import fr.mattmouss.gates.tollcapability.TollStorageCapability;
+import fr.mattmouss.gates.tollcapability.ITollStorage;
+import fr.mattmouss.gates.tollcapability.TollStorage;
 import fr.mattmouss.gates.util.Functions;
 import net.minecraft.block.*;
-import net.minecraft.client.Minecraft;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.player.PlayerInventory;
 import net.minecraft.inventory.container.Container;
 import net.minecraft.inventory.container.INamedContainerProvider;
-import net.minecraft.item.FilledMapItem;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.Items;
 import net.minecraft.nbt.CompoundNBT;
@@ -34,17 +32,13 @@ import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Vec3d;
 import net.minecraft.util.text.ITextComponent;
 import net.minecraft.util.text.StringTextComponent;
-import net.minecraft.world.dimension.DimensionType;
-import net.minecraft.world.server.ServerWorld;
 import net.minecraftforge.common.capabilities.Capability;
 import net.minecraftforge.common.util.INBTSerializable;
 import net.minecraftforge.common.util.LazyOptional;
-import net.minecraftforge.energy.CapabilityEnergy;
-import net.minecraftforge.energy.IEnergyStorage;
+import net.minecraftforge.fml.network.PacketDistributor;
 import net.minecraftforge.items.CapabilityItemHandler;
 import net.minecraftforge.items.IItemHandler;
 import net.minecraftforge.items.ItemStackHandler;
-
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.ArrayList;
@@ -53,17 +47,15 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 public class TollGateTileEntity extends TileEntity implements ITickableTileEntity, INamedContainerProvider,IControlIdTE {
 
-
-
     public TollGateTileEntity() {
         super(ModBlock.TOLL_GATE_ENTITY_TYPE);
     }
 
-    private LazyOptional<AnimationBoolean> startAnimation = LazyOptional.of(this::getAnimation).cast();
+    private LazyOptional<TollStorage> storage = LazyOptional.of(this::getStorage).cast();
 
-    private LazyOptional<IEnergyStorage> price = LazyOptional.of(this::getPriceValue).cast();
-
-    private LazyOptional<IEnergyStorage> id = LazyOptional.of(this::getIdValue).cast();
+    private TollStorage getStorage() {
+        return new TollStorage();
+    }
 
     private static int amount_paid = 0;
 
@@ -72,17 +64,6 @@ public class TollGateTileEntity extends TileEntity implements ITickableTileEntit
     private static int last_user_player_id = 0;
 
     private LazyOptional<IItemHandler> handler = LazyOptional.of(this::createHandler).cast();
-
-    private AnimationBoolean getAnimation(){
-        return new AnimationBoolean();
-    }
-
-    private IEnergyStorage getPriceValue(){ return new PriceStorage(64,0);}
-
-    public IEnergyStorage getIdValue(){
-        return new IdStorage();
-    }
-
 
     //true for user gui
     //false for technician gui
@@ -163,28 +144,30 @@ public class TollGateTileEntity extends TileEntity implements ITickableTileEntit
     }
 
     private void checkTimer() {
-        if (this.getBlockState().get(TollGate.ANIMATION)==4) {
-            PlayerEntity entity = (PlayerEntity) world.getEntityByID(last_user_player_id);
-            if (entity == null){
-                return;
-            }
-            double[] entity_pos = new double[3];
-            Vec3d vec3d = entity.getPositionVector();
-            entity_pos[0] = vec3d.x;
-            entity_pos[1] = vec3d.y;
-            entity_pos[2] = vec3d.z;
-            double[] block_pos = new double[3];
-            block_pos[0] = pos.getX();
-            block_pos[1] = pos.getY();
-            block_pos[2] = pos.getZ();
-            System.out.println(Functions.Distance3(block_pos,entity_pos));
+        if (isRightTE()) {
+            if (this.getBlockState().get(TollGate.ANIMATION) == 4) {
+                PlayerEntity entity = (PlayerEntity) world.getEntityByID(last_user_player_id);
+                if (entity == null) {
+                    return;
+                }
+                double[] entity_pos = new double[3];
+                Vec3d vec3d = entity.getPositionVector();
+                entity_pos[0] = vec3d.x;
+                entity_pos[1] = vec3d.y;
+                entity_pos[2] = vec3d.z;
+                double[] block_pos = new double[3];
+                block_pos[0] = pos.getX();
+                block_pos[1] = pos.getY();
+                block_pos[2] = pos.getZ();
+                System.out.println(Functions.Distance3(block_pos, entity_pos));
 
-            if (Functions.Distance3(block_pos, entity_pos) < 10) {
-                return;
+                if (Functions.Distance3(block_pos, entity_pos) < 10) {
+                    return;
+                }
+                last_user_player_id = 0;
+                System.out.println("end of barrier open");
+                startAllAnimation();
             }
-            last_user_player_id =0;
-            System.out.println("end of barrier open");
-            startAllAnimation();
         }
 
         /*
@@ -201,64 +184,84 @@ public class TollGateTileEntity extends TileEntity implements ITickableTileEntit
     }
 
     private void manageEmeraldConsumption() {
-        int price_to_pay = price.map(iEnergyStorage -> {
-            return iEnergyStorage.getEnergyStored();
-        }).orElse(1);
+        if (isRightTE()) {
+            int price_to_pay = storage.map(s -> {
+                return s.getPrice();
+            }).orElse(1);
 
-        handler.ifPresent(h -> {
-            ItemStack stack0 = h.getStackInSlot(0);
-            ItemStack stack1 = h.getStackInSlot(1);
-            int number_of_emerald = stack0.getCount();
-            //System.out.println("remaining payment :"+this.getRemainingPayment());
-            //if the animation is in process or the toll gate is open it will stop the management of payment
-            if (this.getBlockState().get(TollGate.ANIMATION)!=0){
-                return;
-            }
-            if (last_user_player_id ==0){
-                return;
-            }
-            PlayerEntity entity = (PlayerEntity) world.getEntityByID(last_user_player_id);
-            //when payment is not completely done
-            if (stack0.getItem()==Items.EMERALD ){
-                if (number_of_emerald >= this.getRemainingPayment()){
-                    //System.out.println("payment done !");
-                    //beginning of open animation
-                    startAllAnimation();
-                    //we extract the emerald in the slot
-                    h.extractItem(0,number_of_emerald,false);
-                    ItemStack stack2 = new ItemStack(Items.EMERALD.asItem());
-                    stack2.setCount(number_of_emerald-price_to_pay);
-
-                    //drop extra amount of emerald
-                    if (entity != null) {
-                        entity.dropItem(stack2, false);
-                    }
-                    //we reset amound paid for next client
-                    amount_paid = 0;
-                    markDirty();
-                }else{
-                    //System.out.println("payment not done !");
-                    //when the amount paid is not enough we just extract the amount given and we register it
-                    h.extractItem(0,number_of_emerald,false);
-                    this.raiseAmountPaid(number_of_emerald);
-                }
-            }else if (stack1.getItem() == ModItem.CARD_KEY.asItem()){
-                CardKeyItem key = (CardKeyItem)stack1.getItem();
-                BlockPos key_pos = key.getTGPosition(stack1,world);
-                if (key_pos == null){
+            handler.ifPresent(h -> {
+                ItemStack stack0 = h.getStackInSlot(0);
+                ItemStack stack1 = h.getStackInSlot(1);
+                int number_of_emerald = stack0.getCount();
+                //System.out.println("remaining payment :"+this.getRemainingPayment());
+                //if the animation is in process or the toll gate is open it will stop the management of payment
+                if (this.getBlockState().get(TollGate.ANIMATION) != 0) {
                     return;
                 }
-                if (pos.equals(key_pos)){
-                    h.extractItem(1,1,false);
-                    //drop the card because it will be used later on
-                    entity.dropItem(stack1,false);
-                    startAllAnimation();
-                    markDirty();
+                if (last_user_player_id == 0) {
+                    return;
                 }
-            }
+                PlayerEntity entity = (PlayerEntity) world.getEntityByID(last_user_player_id);
+                //when payment is not completely done
+                if (stack0.getItem() == Items.EMERALD) {
+                    if (number_of_emerald >= this.getRemainingPayment()) {
+                        //System.out.println("payment done !");
+                        //beginning of open animation
+                        startAllAnimation();
+                        //we extract the emerald in the slot
+                        h.extractItem(0, number_of_emerald, false);
+                        ItemStack stack2 = new ItemStack(Items.EMERALD.asItem());
+                        stack2.setCount(number_of_emerald - price_to_pay);
 
-        });
+                        //drop extra amount of emerald
+                        if (entity != null) {
+                            entity.dropItem(stack2, false);
+                        }
+                        //we reset amound paid for next client
+                        amount_paid = 0;
+                        markDirty();
+                    } else {
+                        //System.out.println("payment not done !");
+                        //when the amount paid is not enough we just extract the amount given and we register it
+                        h.extractItem(0, number_of_emerald, false);
+                        this.raiseAmountPaid(number_of_emerald);
+                    }
+                } else if (stack1.getItem() == ModItem.CARD_KEY.asItem()) {
+                    int key_id = this.getKeyId();
+                    int tg_id = this.getId();
+                    if (key_id == tg_id && UserGuiOpen){
+                        h.extractItem(1,1,false);
+                        //drop the card because it will be used later on
+                        entity.dropItem(stack1, false);
+                        startAllAnimation();
+                        markDirty();
+                    }
 
+                    /* old implementation of pos id checking
+
+                    BlockPos key_pos = key.getTGPosition(stack1, world);
+                    if (key_pos == null) {
+                        return;
+                    }
+                    if (pos.equals(key_pos)) {
+                        h.extractItem(1, 1, false);
+                        //drop the card because it will be used later on
+                        entity.dropItem(stack1, false);
+                        startAllAnimation();
+                        markDirty();
+                    }
+                     */
+                }
+
+            });
+        }
+
+    }
+
+    //check if this TE is the control unit tile entity to avoid multiple definition of tollstorage that will be of no use
+    public boolean isRightTE() {
+        BlockState state = getBlockState();
+        return state.get(TollGate.TG_POSITION) == TollGPosition.CONTROL_UNIT;
     }
 
 
@@ -324,22 +327,22 @@ public class TollGateTileEntity extends TileEntity implements ITickableTileEntit
     }
 
     private boolean animationOpeningInProcess(){
-        return startAnimation.map(IAnimationBoolean::isOpening).orElse(false);
+        return storage.map(ITollStorage::isOpening).orElse(false);
     }
 
     private boolean animationClosingInProcess(){
-        return startAnimation.map(IAnimationBoolean::isClosing).orElse(false);
+        return storage.map(ITollStorage::isClosing).orElse(false);
     }
 
     private void setBoolOpen(Boolean bool){
-        startAnimation.ifPresent(animationBoolean ->{
-            animationBoolean.setBoolOpen(bool);
+        storage.ifPresent(s ->{
+            s.setBoolOpen(bool);
         });
     }
 
     private void setBoolClose(Boolean bool){
-        startAnimation.ifPresent(animationBoolean -> {
-            animationBoolean.setBoolClose(bool);
+        storage.ifPresent(s -> {
+            s.setBoolClose(bool);
         });
     }
     /*
@@ -351,31 +354,23 @@ public class TollGateTileEntity extends TileEntity implements ITickableTileEntit
                 ((PriceStorage)iEnergyStorage).setValue(common_price);
             });
         }
-
     }
+    */
 
-     */
-
-
-    @Override
     public void setId(int id_in) {
-        id.ifPresent(e->{
-            ((IdStorage)e).changeId(id_in);
+        storage.ifPresent(s->{
+            s.setId(id_in);
         });
     }
 
     public void changeId(){
-        if (!world.isRemote) {
-            id.ifPresent(e -> {
-                ((IdStorage) e).changeId(world.getServer().getWorld(DimensionType.OVERWORLD));
-            });
-        }
+        storage.ifPresent(TollStorage::changeId);
     }
 
     public int getId(){
         AtomicInteger id_in = new AtomicInteger(1);
-        id.ifPresent(e->{
-            id_in.set(e.getEnergyStored());
+        storage.ifPresent(s -> {
+            id_in.set(s.getId());
         });
         return id_in.get();
     }
@@ -383,16 +378,20 @@ public class TollGateTileEntity extends TileEntity implements ITickableTileEntit
 
     public int getPrice(){
         AtomicInteger price_in = new AtomicInteger(1);
-        price.ifPresent(iEnergyStorage -> {
-            price_in.set(iEnergyStorage.getEnergyStored());
+        storage.ifPresent(s -> {
+            price_in.set(s.getPrice());
         });
         return price_in.get();
     }
 
-    public void lowerPrice(){
-        price.ifPresent(e -> {
-            ((PriceStorage) e).lowerPrice();
+    public void setPrice(int price_in){
+        storage.ifPresent(s->{
+            s.setPrice(price_in);
         });
+    }
+
+    public void lowerPrice(){
+        storage.ifPresent(TollStorage::lowerPrice);
         if (getBlockState().get(TollGate.TG_POSITION) == TollGPosition.CONTROL_UNIT) {
             List<BlockPos> posList = getPositionOfBlockConnected();
             for (BlockPos pos1 : posList) {
@@ -410,9 +409,7 @@ public class TollGateTileEntity extends TileEntity implements ITickableTileEntit
 
     public void raisePrice(){
         System.out.println("raising price..");
-        price.ifPresent(e -> {
-            ((PriceStorage)e).raisePrice();
-        });
+        storage.ifPresent(TollStorage::raisePrice);
         if (getBlockState().get(TollGate.TG_POSITION)==TollGPosition.CONTROL_UNIT){
             List<BlockPos> posList = getPositionOfBlockConnected();
             for (BlockPos pos1 : posList){
@@ -434,50 +431,52 @@ public class TollGateTileEntity extends TileEntity implements ITickableTileEntit
 
     @Override
     public void read(CompoundNBT compound) {
-        CompoundNBT invTag=compound.getCompound("inv");
-        CompoundNBT price_tag = compound.getCompound("price");
-        CompoundNBT anim_tag = compound.getCompound("anim");
-        CompoundNBT id_tag = compound.getCompound("id");
-        price.ifPresent(iPriceValue -> ((INBTSerializable<CompoundNBT>)iPriceValue).deserializeNBT(price_tag));
-        id.ifPresent(e->((INBTSerializable<CompoundNBT>)e).deserializeNBT(id_tag));
-        handler.ifPresent(h -> ((INBTSerializable<CompoundNBT>)h).deserializeNBT(invTag));
-        startAnimation.ifPresent(animationBoolean -> ((INBTSerializable<CompoundNBT>)animationBoolean).deserializeNBT(anim_tag));
+        boolean isRightTE = compound.getBoolean("isCU");
+        if (isRightTE) {
+            CompoundNBT invTag = compound.getCompound("inv");
+            CompoundNBT storage_tag = compound.getCompound("storage");
+            getCapability(TollStorageCapability.TOLL_STORAGE).ifPresent(s -> ((INBTSerializable<CompoundNBT>) s).deserializeNBT(storage_tag));
+            getCapability(CapabilityItemHandler.ITEM_HANDLER_CAPABILITY).ifPresent(h -> ((INBTSerializable<CompoundNBT>) h).deserializeNBT(invTag));
+        }
         super.read(compound);
+    }
 
+    private boolean canWrite(){
+        if (world == null){
+            return true;
+        }else {
+            return isRightTE();
+        }
     }
 
     @Override
     public CompoundNBT write(CompoundNBT tag) {
-        startAnimation.ifPresent(animationBoolean -> {
-            CompoundNBT compoundNBT = ((INBTSerializable<CompoundNBT>)animationBoolean).serializeNBT();
-            tag.put("anim",compoundNBT);
-        });
-        handler.ifPresent(h -> {
-            CompoundNBT compoundNBT = ((INBTSerializable<CompoundNBT>)h).serializeNBT();
-            tag.put("inv",compoundNBT);
-        });
-        price.ifPresent(iPriceValue -> {
-            CompoundNBT compoundNBT = ((INBTSerializable<CompoundNBT>) iPriceValue).serializeNBT();
-            tag.put("price", compoundNBT);
-        });
-        id.ifPresent(e->{
-            CompoundNBT compoundNBT = ((INBTSerializable<CompoundNBT>)e).serializeNBT();
-            tag.put("id",compoundNBT);
-        });
+        if (canWrite()) {
+            getCapability(TollStorageCapability.TOLL_STORAGE).ifPresent(storage -> {
+                CompoundNBT compoundNBT = ((INBTSerializable<CompoundNBT>) storage).serializeNBT();
+                tag.put("storage", compoundNBT);
+            });
+            getCapability(CapabilityItemHandler.ITEM_HANDLER_CAPABILITY).ifPresent(h -> {
+                CompoundNBT compoundNBT = ((INBTSerializable<CompoundNBT>) h).serializeNBT();
+                tag.put("inv", compoundNBT);
+            });
+        }
+        if (world != null){
+            tag.putBoolean("isCU",isRightTE());
+        }else{
+            tag.putBoolean("isCU",false);
+        }
         return super.write(tag);
     }
 
     @Nonnull
     @Override
     public <T> LazyOptional<T> getCapability(@Nonnull Capability<T> cap, @Nullable Direction side) {
-        if (cap == AnimationBooleanCapability.ANIMATION_BOOLEAN_CAPABILITY){
-            return startAnimation.cast();
-        }
         if (cap == CapabilityItemHandler.ITEM_HANDLER_CAPABILITY){
             return handler.cast();
         }
-        if (cap == CapabilityEnergy.ENERGY){
-            return price.cast();
+        if (cap == TollStorageCapability.TOLL_STORAGE){
+            return storage.cast();
         }
         return super.getCapability(cap, side);
     }
@@ -541,11 +540,25 @@ public class TollGateTileEntity extends TileEntity implements ITickableTileEntit
         if (UserGuiOpen){
             return new TGUserContainer(i,world,pos,playerInventory,playerEntity);
         }else{
-            return new TGTechContainer(i,world,pos,playerEntity);
+            return new TGTechContainer(i,world,pos,playerInventory,playerEntity);
         }
     }
 
     public int getRemainingPayment() {
         return getPrice()-amount_paid;
+    }
+
+    public int getKeyId(){
+        AtomicInteger id = new AtomicInteger(-1);
+        handler.ifPresent(h -> {
+            ItemStack stack = h.getStackInSlot(1);
+            if (stack.isEmpty()){
+                return;
+            }else {
+                CardKeyItem card = (CardKeyItem)(stack.getItem().asItem());
+                id.set(card.getId(stack));
+            }
+        });
+        return id.get();
     }
 }

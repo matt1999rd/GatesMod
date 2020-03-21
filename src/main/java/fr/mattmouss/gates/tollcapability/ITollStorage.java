@@ -1,4 +1,4 @@
-package fr.mattmouss.gates.tollfuckingcapability;
+package fr.mattmouss.gates.tollcapability;
 
 import fr.mattmouss.gates.animationboolean.IAnimationBoolean;
 

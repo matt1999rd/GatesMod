@@ -3,6 +3,7 @@ package fr.mattmouss.gates.network;
 import fr.mattmouss.gates.GatesMod;
 import net.minecraft.util.ResourceLocation;
 import net.minecraftforge.fml.network.NetworkRegistry;
+import net.minecraftforge.fml.network.PacketDistributor;
 import net.minecraftforge.fml.network.simple.SimpleChannel;
 
 public class Networking {
@@ -25,8 +26,23 @@ public class Networking {
                 PacketRaisePrice::toBytes,
                 PacketRaisePrice::new,
                 PacketRaisePrice::handle);
+        INSTANCE.registerMessage(nextID(),
+                ChangeIdPacket.class,
+                ChangeIdPacket::toBytes,
+                ChangeIdPacket::new,
+                ChangeIdPacket::handle);
 
+        INSTANCE.registerMessage(nextID(),
+                SetIdPacket.class,
+                SetIdPacket::toBytes,
+                SetIdPacket::new,
+                SetIdPacket::handle);
 
+        INSTANCE.registerMessage(nextID(),
+                ChangeClientIdPacket.class,
+                ChangeClientIdPacket::toBytes,
+                ChangeClientIdPacket::new,
+                ChangeClientIdPacket::handle);
 
     }
 

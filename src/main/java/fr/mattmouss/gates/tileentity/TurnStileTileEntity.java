@@ -100,13 +100,12 @@ public class TurnStileTileEntity extends TileEntity implements IControlIdTE {
 
     @Override
     public void changeId() {
-        id.ifPresent(e->{
-            ((IdStorage)e).changeId(world.getServer().getWorld(DimensionType.OVERWORLD));
+        id.ifPresent(e -> {
+            ((IdStorage) e).changeId();
         });
     }
 
-    @Override
-    public IEnergyStorage getIdValue() {
+    public IdStorage getIdValue() {
         return new IdStorage();
     }
 
@@ -115,6 +114,11 @@ public class TurnStileTileEntity extends TileEntity implements IControlIdTE {
         id.ifPresent(e->{
             ((IdStorage)e).changeId(id_in);
         });
+    }
+
+    @Override
+    public int getKeyId() {
+        return 0;
     }
 
 }

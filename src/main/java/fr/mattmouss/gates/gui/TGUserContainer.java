@@ -4,6 +4,8 @@ package fr.mattmouss.gates.gui;
 import fr.mattmouss.gates.doors.ModBlock;
 import fr.mattmouss.gates.items.ModItem;
 import fr.mattmouss.gates.tileentity.TollGateTileEntity;
+import fr.mattmouss.gates.tollcapability.ITollStorage;
+import fr.mattmouss.gates.tollcapability.TollStorageCapability;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.player.PlayerInventory;
 import net.minecraft.inventory.container.Container;
@@ -13,6 +15,7 @@ import net.minecraft.item.ItemStack;
 import net.minecraft.item.Items;
 
 import net.minecraft.util.IWorldPosCallable;
+import net.minecraft.util.IntReferenceHolder;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
 import net.minecraftforge.items.CapabilityItemHandler;
@@ -35,7 +38,32 @@ public class TGUserContainer extends Container {
         tileEntity = (TollGateTileEntity) world.getTileEntity(pos);
         playerEntity= player;
         this.inventory= new InvWrapper(inventory);
+        trackInt(new IntReferenceHolder() {
+            @Override
+            public int get() {
+                return getPrice();
+            }
 
+            @Override
+            public void set(int i) {
+                tileEntity.getCapability(TollStorageCapability.TOLL_STORAGE).ifPresent(s-> s.setPrice(i));
+
+            }
+        });
+
+
+        trackInt(new IntReferenceHolder() {
+            @Override
+            public int get() {
+                return getId();
+            }
+
+            @Override
+            public void set(int i) {
+                tileEntity.getCapability(TollStorageCapability.TOLL_STORAGE).ifPresent(s-> s.setId(i));
+
+            }
+        });
 
         tileEntity.getCapability(CapabilityItemHandler.ITEM_HANDLER_CAPABILITY).ifPresent(h->{
             addSlot(new SlotItemHandler(h,0,64,24){
@@ -54,6 +82,10 @@ public class TGUserContainer extends Container {
         layoutPlayerInventorySlots(10,70);
 
 
+    }
+
+    private int getPrice() {
+        return tileEntity.getCapability(TollStorageCapability.TOLL_STORAGE).map(ITollStorage::getPrice).orElse(1);
     }
 
     public int getId(){

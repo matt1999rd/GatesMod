@@ -1,4 +1,4 @@
-package fr.mattmouss.gates.tollfuckingcapability;
+package fr.mattmouss.gates.tollcapability;
 
 
 import net.minecraft.nbt.CompoundNBT;
@@ -11,7 +11,7 @@ import net.minecraftforge.common.capabilities.CapabilityManager;
 
 import javax.annotation.Nullable;
 
-public class FuckingNonWorkingCapability {
+public class TollStorageCapability {
     @CapabilityInject(ITollStorage.class)
     public static Capability<ITollStorage> TOLL_STORAGE = null;
 

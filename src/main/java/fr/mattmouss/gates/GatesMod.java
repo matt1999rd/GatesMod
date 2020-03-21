@@ -141,6 +141,7 @@ public class GatesMod {
                 return new TGTechContainer(windowId,
                         GatesMod.proxy.getClientWorld(),
                         pos,
+                        inv,
                         GatesMod.proxy.getClientPlayer());
             })).setRegistryName("toll_gate_tech"));
         }
