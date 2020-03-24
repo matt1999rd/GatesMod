@@ -1,9 +1,11 @@
 package fr.mattmouss.gates.items;
 
+import fr.mattmouss.gates.setup.ModSetup;
 import fr.mattmouss.gates.tileentity.IControlIdTE;
 import fr.mattmouss.gates.tileentity.TollGateTileEntity;
 import fr.mattmouss.gates.util.Functions;
 import net.minecraft.entity.player.PlayerEntity;
+import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.ItemUseContext;
 import net.minecraft.nbt.CompoundNBT;
@@ -18,13 +20,10 @@ import net.minecraft.world.World;
 
 
 
-public class CardKeyItem extends KeyItem {
-
-    //TODO :  change the system of authentification : make an id on each TollGate and each TurnStile for cardkeyitem (position registering kept for use in techKeyItem)
-    //TODO : add a system of registering the control id already used (in process)
+public class CardKeyItem extends Item {
 
     public CardKeyItem(){
-        super();
+        super(new Item.Properties().group(ModSetup.itemGroup).maxStackSize(1));
         this.setRegistryName("card_key");
     }
 
@@ -43,20 +42,19 @@ public class CardKeyItem extends KeyItem {
             return super.onItemUse(context);
         }
         int te_id = ((IControlIdTE)te).getId();
+        //if the clicked block is part of the toll gate that is not CU
+        if (te_id == -1){
+            return super.onItemUse(context);
+        }
         CompoundNBT tag = stack.getTag();
         //if id is not existing we fix it
         if (tag == null){
             tag = new CompoundNBT();
         }
-        if (!tag.contains("te")) {
+        if (!tag.contains("id")) {
             System.out.println("registering id of block");
-            if (te instanceof TollGateTileEntity) {
-                tag.putInt("id", te_id);
-                tag.putString("te", "toll_gate");
-            } else {
-                tag.putInt("id",te_id);
-                tag.putString("te", "turn_stile");
-            }
+            tag.putInt("id", te_id);
+            stack.setTag(tag);
             return ActionResultType.SUCCESS;
         }
         return ActionResultType.FAIL;
@@ -69,8 +67,11 @@ public class CardKeyItem extends KeyItem {
         if (id == -1){
             return super.getDisplayName(stack);
         }
-        return new TranslationTextComponent(this.getTranslationKey(stack)+" nb "+id+" for "+getGateClass(stack));
+        String formatedString = "# %1$d";
+        String st =String.format(formatedString,id);
+        return new TranslationTextComponent(this.getDefaultTranslationKey(),st);
     }
+
 
     public int getId(ItemStack stack) {
         CompoundNBT nbt =stack.getTag();
@@ -80,11 +81,4 @@ public class CardKeyItem extends KeyItem {
         return -1;
     }
 
-    public String getGateClass(ItemStack stack) {
-        CompoundNBT nbt =stack.getTag();
-        if (nbt != null && nbt.contains("te")){
-            return nbt.getString("te");
-        }
-        return "";
-    }
 }
