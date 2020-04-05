@@ -1,0 +1,5 @@
+{
+  "loader": "forge:obj",
+  "model": "gates:textures/block/turn_stile_0.obj",
+  "flip-v": true
+}
