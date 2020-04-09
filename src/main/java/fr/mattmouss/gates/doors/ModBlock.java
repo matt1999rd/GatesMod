@@ -3,6 +3,7 @@ package fr.mattmouss.gates.doors;
 
 import fr.mattmouss.gates.gui.TGTechContainer;
 import fr.mattmouss.gates.gui.TGUserContainer;
+import fr.mattmouss.gates.gui.TSContainer;
 import fr.mattmouss.gates.tileentity.GarageTileEntity;
 import fr.mattmouss.gates.tileentity.TollGateTileEntity;
 import fr.mattmouss.gates.tileentity.TurnStileTileEntity;
@@ -24,6 +25,9 @@ public class ModBlock {
 
     @ObjectHolder("gates:toll_gate_tech")
     public static ContainerType<TGTechContainer> TOLLGATE_TECH_CONTAINER;
+
+    @ObjectHolder("gates:turn_stile")
+    public static ContainerType<TSContainer> TURN_STILE_CONTAINER;
 
     @ObjectHolder("gates:garage_door")
     public static TileEntityType<GarageTileEntity> GARAGE_TILE_TYPE;

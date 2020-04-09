@@ -146,7 +146,6 @@ public class TGUserContainer extends Container {
     }
 
     private void layoutPlayerInventorySlots(int leftCol, int topRow) {//player inventory
-
         addSlotBox(inventory,9,leftCol,topRow,9,18,3,18);
         //hotbar
         topRow+=58;
@@ -173,6 +172,8 @@ public class TGUserContainer extends Container {
         }
         return index;
     }
+
+
 
     @Override
     public boolean canInteractWith(PlayerEntity playerIn) {

@@ -3,10 +3,8 @@ package fr.mattmouss.gates;
 import fr.mattmouss.gates.doors.*;
 import fr.mattmouss.gates.gui.TGTechContainer;
 import fr.mattmouss.gates.gui.TGUserContainer;
-import fr.mattmouss.gates.items.CardKeyItem;
-import fr.mattmouss.gates.items.TollGateItem;
-import fr.mattmouss.gates.items.TollKeyItem;
-import fr.mattmouss.gates.items.TurnStileItem;
+import fr.mattmouss.gates.gui.TSContainer;
+import fr.mattmouss.gates.items.*;
 import fr.mattmouss.gates.setup.ClientProxy;
 import fr.mattmouss.gates.setup.IProxy;
 import fr.mattmouss.gates.setup.ModSetup;
@@ -85,6 +83,7 @@ public class GatesMod {
             blockRegistryEvent.getRegistry().register(new TollKeyItem());
             blockRegistryEvent.getRegistry().register(new CardKeyItem());
             blockRegistryEvent.getRegistry().register(new TurnStileItem(ModBlock.TURN_STILE));
+            blockRegistryEvent.getRegistry().register(new TurnStileKeyItem());
         }
 
         @SubscribeEvent
@@ -144,6 +143,15 @@ public class GatesMod {
                         inv,
                         GatesMod.proxy.getClientPlayer());
             })).setRegistryName("toll_gate_tech"));
+
+            event.getRegistry().register(IForgeContainerType.create(((windowId, inv, data) -> {
+                BlockPos pos =data.readBlockPos();
+                return new TSContainer(windowId,
+                        GatesMod.proxy.getClientWorld(),
+                        pos,
+                        inv,
+                        GatesMod.proxy.getClientPlayer());
+            })).setRegistryName("turn_stile"));
         }
     }
 }

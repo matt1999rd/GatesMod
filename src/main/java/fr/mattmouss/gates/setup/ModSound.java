@@ -16,6 +16,8 @@ public class ModSound {
     private static final List<SoundEvent> SOUNDS = new ArrayList();
 
     public static final SoundEvent ANIMATION_GARAGE =  register("gates:block.garage_animation");
+    public static final SoundEvent TOLL_GATE_OPENING = register("gates:block.toll_gate_opening");
+    public static final SoundEvent TOLL_GATE_CLOSING = register("gates:block.toll_gate_closing");
 
 
 

@@ -3,6 +3,7 @@ package fr.mattmouss.gates.items;
 import fr.mattmouss.gates.setup.ModSetup;
 import fr.mattmouss.gates.tileentity.IControlIdTE;
 import fr.mattmouss.gates.tileentity.TollGateTileEntity;
+import fr.mattmouss.gates.tileentity.TurnStileTileEntity;
 import fr.mattmouss.gates.util.Functions;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.Item;
@@ -57,6 +58,12 @@ public class CardKeyItem extends Item {
             stack.setTag(tag);
             return ActionResultType.SUCCESS;
         }
+        int id = tag.getInt("id");
+        //for turn stile we do the test
+        if (te instanceof TurnStileTileEntity && ((TurnStileTileEntity) te).getKeyId() == id){
+            System.out.println("test of th key");
+
+        }
         return ActionResultType.FAIL;
     }
 
@@ -73,6 +80,7 @@ public class CardKeyItem extends Item {
     }
 
 
+
     public int getId(ItemStack stack) {
         CompoundNBT nbt =stack.getTag();
         if (nbt != null && nbt.contains("id")){
@@ -80,5 +88,7 @@ public class CardKeyItem extends Item {
         }
         return -1;
     }
+
+
 
 }

@@ -1,5 +1,6 @@
 package fr.mattmouss.gates.items;
 
+import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import fr.mattmouss.gates.setup.ModSetup;
 import fr.mattmouss.gates.tileentity.TollGateTileEntity;
 
@@ -9,6 +10,7 @@ import net.minecraft.client.util.ITooltipFlag;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.CompoundNBT;
+import net.minecraft.nbt.JsonToNBT;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.text.ITextComponent;
@@ -152,12 +154,12 @@ public abstract class KeyItem extends Item {
 
     //this function also checks that this block in world still exists (if not return false and remove the pos
     protected boolean isTSPositionReg(CompoundNBT nbt, World world){
-        System.out.println("first test in isTSPositionReg(nbt,world) : "+isTGPositionReg(nbt));
-        if (isTGPositionReg(nbt)){
-            System.out.println("pos of tile entity to check : "+getTGPosition(nbt));
-            TileEntity te = world.getTileEntity(getTGPosition(nbt));
+        System.out.println("first test in isTSPositionReg(nbt,world) : "+isTSPositionReg(nbt));
+        if (isTSPositionReg(nbt)){
+            System.out.println("pos of tile entity to check : "+getTSPosition(nbt));
+            TileEntity te = world.getTileEntity(getTSPosition(nbt));
             if (te == null){
-                //System.out.println("***********************removing tag of compound******************");
+                System.out.println("***********************removing tag of compound******************");
                 nbt.remove("te");
                 nbt.remove("pos_x");
                 nbt.remove("pos_y");
@@ -173,7 +175,7 @@ public abstract class KeyItem extends Item {
     public void setTSPosition(ItemStack stack,World world,BlockPos pos){
         CompoundNBT nbt = stack.getOrCreateTag();
         System.out.println("defining new blockPos");
-        if (isTSPositionReg(nbt,world) ||  isTGPositionReg(nbt,world)){
+        if (isTSPositionReg(nbt,world)){
             System.out.println("not working because nbt are already defined ");
             return;
         }
@@ -189,6 +191,7 @@ public abstract class KeyItem extends Item {
     public ITextComponent getDisplayName(ItemStack stack) {
         //this first five line is a filter for when stack has no position stored
         BlockPos registeredPos = getTGPosition(stack,null);
+
         if (registeredPos == null){
             registeredPos = getTSPosition(stack,null);
             if (registeredPos == null){
@@ -196,7 +199,9 @@ public abstract class KeyItem extends Item {
             }
         }
         int id = Functions.getIdFromBlockPos(registeredPos);
-        return new TranslationTextComponent(this.getTranslationKey(stack)+" nb "+id);
+        String formatedString = "# %1$d";
+        String st =String.format(formatedString,id);
+        return new TranslationTextComponent(this.getTranslationKey(stack),st);
     }
 
     @Override

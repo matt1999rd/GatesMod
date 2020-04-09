@@ -36,7 +36,6 @@ public class TollGateItem extends BlockItem {
         World world = context.getWorld();
         Hand hand = context.getHand();
         PlayerEntity entity=context.getPlayer();
-        ItemStack stack = entity.getHeldItem(hand);
         TollKeyItem key = (TollKeyItem) ModItem.TOLL_GATE_KEY.asItem();
         System.out.println("item defini : "+key);
         if (checkFeasibility(pos.up(),entity,world)){

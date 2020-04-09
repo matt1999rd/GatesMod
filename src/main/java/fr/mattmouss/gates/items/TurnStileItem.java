@@ -8,8 +8,10 @@ import net.minecraft.block.Block;
 import net.minecraft.block.BushBlock;
 import net.minecraft.block.LeavesBlock;
 import net.minecraft.entity.player.PlayerEntity;
+import net.minecraft.inventory.EquipmentSlotType;
 import net.minecraft.item.BlockItem;
 import net.minecraft.item.Item;
+import net.minecraft.item.ItemStack;
 import net.minecraft.item.ItemUseContext;
 import net.minecraft.state.properties.DoorHingeSide;
 import net.minecraft.util.ActionResultType;
@@ -31,7 +33,14 @@ public class TurnStileItem extends BlockItem {
         BlockPos pos = context.getPos();
         World world = context.getWorld();
         PlayerEntity entity = context.getPlayer();
+        TurnStileKeyItem key = (TurnStileKeyItem) ModItem.TURN_STILE_KEY.asItem();
         if (checkFeasibility(pos.up(),entity,world)){
+            System.out.println("block successfully put !!");
+            ItemStack newStack = new ItemStack(key);
+            key.setTSPosition(newStack,world,pos.up());
+            System.out.println("itemstack of new key item : "+newStack);
+            entity.setItemStackToSlot(EquipmentSlotType.MAINHAND,ItemStack.EMPTY);
+            entity.setItemStackToSlot(EquipmentSlotType.MAINHAND,newStack);
             return super.onItemUse(context);
         }
         System.out.println("block non fabriqué");

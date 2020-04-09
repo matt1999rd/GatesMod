@@ -5,7 +5,8 @@ import net.minecraft.util.IStringSerializable;
 public enum TurnSPosition implements IStringSerializable {
     MAIN(0,"main"),
     RIGHT_BLOCK(1,"right"),
-    LEFT_BLOCK(2,"left");
+    LEFT_BLOCK(2,"left"),
+    UP_BLOCK(3,"up");
 
     private final int meta;
     private final String name;

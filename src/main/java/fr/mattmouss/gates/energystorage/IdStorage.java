@@ -3,32 +3,27 @@ package fr.mattmouss.gates.energystorage;
 import net.minecraft.nbt.CompoundNBT;
 import net.minecraft.util.math.MathHelper;
 import net.minecraftforge.common.util.INBTSerializable;
+import net.minecraftforge.energy.EnergyStorage;
+import net.minecraftforge.energy.IEnergyStorage;
 
 import java.util.Random;
 
 
-public class IdStorage implements INBTSerializable<CompoundNBT>,IIdStorage {
+public class IdStorage extends EnergyStorage implements INBTSerializable<CompoundNBT> {
 
     private static final Random random = new Random();
-    protected int energy;
 
     public IdStorage() {
-        energy = 0;
-    }
-
-    @Override
-    public int getEnergyStored() {
-        return energy;
+        super(Integer.MAX_VALUE,1,1,-1);
     }
 
     public void changeId(){
-        int newId;
-        newId = random.nextInt();
-        System.out.println("new Id created : " +newId);
-        this.energy = MathHelper.abs(newId);
+        int newId= random.nextInt((int)Math.pow(2,15))+(int)Math.pow(2,15);
+        System.out.println("changing id... \n newId = "+newId);
+        setId(newId);
     }
 
-    public void changeId(int id){
+    public void setId(int id){
         System.out.println("new Id set : "+id);
         this.energy= id;
     }
@@ -37,16 +32,13 @@ public class IdStorage implements INBTSerializable<CompoundNBT>,IIdStorage {
     public CompoundNBT serializeNBT() {
         CompoundNBT tag_id = new CompoundNBT();
         System.out.println("----------------------writing id :"+energy+"-------------");
-        CompoundNBT tag_int = new CompoundNBT();
-        tag_int.putInt("id",energy);
-        tag_id.put("id_tag",tag_int);
+        tag_id.putInt("id",energy);
         return tag_id;
     }
 
     @Override
     public void deserializeNBT(CompoundNBT nbt) {
-        CompoundNBT tag_id = (CompoundNBT) nbt.get("id_tag");
-        System.out.println("--------------------reading id :"+tag_id.getInt("id")+"-------------");
-        changeId(tag_id.getInt("id"));
+        System.out.println("--------------------reading id :"+nbt.getInt("id")+"-------------");
+        setId(nbt.getInt("id"));
     }
 }

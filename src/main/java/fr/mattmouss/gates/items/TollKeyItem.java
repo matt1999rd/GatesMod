@@ -15,6 +15,7 @@ import net.minecraft.item.ItemStack;
 import net.minecraft.item.ItemUseContext;
 import net.minecraft.item.MapItem;
 import net.minecraft.nbt.CompoundNBT;
+import net.minecraft.nbt.JsonToNBT;
 import net.minecraft.state.properties.BlockStateProperties;
 import net.minecraft.state.properties.DoorHingeSide;
 import net.minecraft.util.ActionResultType;
@@ -35,16 +36,9 @@ import java.util.List;
 
 public class TollKeyItem extends KeyItem {
 
-    //TODO : change name of class to make this item usefull for toll gate and turn stile and to open the tech gui -> TechKeyItem
-
     public TollKeyItem(){
         super();
         this.setRegistryName("toll_gate_key");
-    }
-
-    @Override
-    public Item asItem() {
-        return this;
     }
 
     @Override
@@ -78,11 +72,9 @@ public class TollKeyItem extends KeyItem {
         if (isPlayerFacingTheRightFace(tgte,entity,pos)){
             //System.out.println("the player is a technician ");
             tgte.setSide(false);
-
             if (!world.isRemote) {
                 NetworkHooks.openGui((ServerPlayerEntity) entity, tgte, tgte.getPos());
             }
-
         }
         return super.onItemUse(context);
     }

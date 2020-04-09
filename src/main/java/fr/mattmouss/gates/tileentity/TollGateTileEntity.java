@@ -11,11 +11,14 @@ import fr.mattmouss.gates.items.ModItem;
 import fr.mattmouss.gates.network.ChangeClientIdPacket;
 import fr.mattmouss.gates.network.Networking;
 import fr.mattmouss.gates.network.SetIdPacket;
+import fr.mattmouss.gates.setup.ModSound;
 import fr.mattmouss.gates.tollcapability.TollStorageCapability;
 import fr.mattmouss.gates.tollcapability.ITollStorage;
 import fr.mattmouss.gates.tollcapability.TollStorage;
 import fr.mattmouss.gates.util.Functions;
 import net.minecraft.block.*;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.audio.SimpleSound;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.player.PlayerInventory;
 import net.minecraft.inventory.container.Container;
@@ -114,7 +117,7 @@ public class TollGateTileEntity extends TileEntity implements ITickableTileEntit
                 int animationStep = state.get(TollGate.ANIMATION);
                 if (animationStep == 0) {
                     //add the sound of toll gate
-                    //Minecraft.getInstance().getSoundHandler().play(SimpleSound.master(ModSound.ANIMATION_TOLL_GATE, 1.0F));
+                    Minecraft.getInstance().getSoundHandler().play(SimpleSound.master(ModSound.TOLL_GATE_OPENING, 6.0F));
                 }
 
                 if (animationStep == 4) {
@@ -128,7 +131,7 @@ public class TollGateTileEntity extends TileEntity implements ITickableTileEntit
             } else if (animationClosingInProcess()) {
                 int animationStep = state.get(TollGate.ANIMATION);
                 if (animationStep == 4) {
-                    //Minecraft.getInstance().getSoundHandler().play(SimpleSound.master(ModSound.ANIMATION_TOLL_GATE, 1.0F));
+                    Minecraft.getInstance().getSoundHandler().play(SimpleSound.master(ModSound.TOLL_GATE_CLOSING, 6.0F));
                 }
                 if (animationStep == 0) {
                     setBoolClose(false);

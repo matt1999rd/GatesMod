@@ -4,19 +4,49 @@ import net.minecraft.block.Block;
 import net.minecraft.client.renderer.Quaternion;
 import net.minecraft.util.Direction;
 import net.minecraft.util.math.shapes.VoxelShape;
+import net.minecraft.util.math.shapes.VoxelShapes;
 
 import java.util.Random;
 
 //un block d'outillage utilisable pour faciliter  la création de VoxelShape
 public class VoxelInts {
+    public static final VoxelInts EMPTY = new VoxelInts(0,0,0,0,0,0,false);
+    public static final VoxelInts FULL = new VoxelInts(0,0,0,16,16,16,false);
 
-    private int[] plane_val ;
-    public VoxelInts(int x1,int y1,int z1,int x2,int y2,int z2){
+    private double[] plane_val ;
+    public VoxelInts(int x1,int y1,int z1,int x2,int y2,int z2,boolean isSizeUsed){
+        if (isSizeUsed){
+            //we build our voxel on size x y z for second argument
+            if (x1 >16 || x1 + x2>16 || y1>16 || y1+y2>16 || z1>16 ||z1+z2>16){
+                throw new ExceptionInInitializerError("none of this 6 int are greater than 15");
+            }
+            plane_val= new double[]{x1, y1, z1, x1+x2, y1+y2, z1+z2};
+            return;
+        }
+        //we build our voxel on origin and end of the cube
         if (x1>16 || x2>16 || y1>16 || y2>16 || z1>16 ||z2>16){
             throw new ExceptionInInitializerError("none of this 6 int are greater than 15");
         }
-        plane_val= new int[]{x1, y1, z1, x2, y2, z2};
+        plane_val= new double[]{x1, y1, z1, x2, y2, z2};
     }
+
+    public VoxelInts(double x1,double y1,double z1,double x2,double y2,double z2,boolean isSizeUsed){
+        if (isSizeUsed){
+            //we build our voxel on size x y z for second argument
+            if (x1 >16 || x1 + x2>16 || y1>16 || y1+y2>16 || z1>16 ||z1+z2>16){
+                throw new ExceptionInInitializerError("none of this 6 int are greater than 15");
+            }
+            plane_val= new double[]{x1, y1, z1, x1+x2, y1+y2, z1+z2};
+            return;
+        }
+        //we build our voxel on origin and end of the cube
+        if (x1>16 || x2>16 || y1>16 || y2>16 || z1>16 ||z2>16){
+            throw new ExceptionInInitializerError("none of this 6 int are greater than 15");
+        }
+        plane_val= new double[]{x1, y1, z1, x2, y2, z2};
+    }
+
+
 
     //rotate around given axis with angle of 90° * number_of_rotation counter clock wise
     public VoxelInts rotateCCW(int number_of_rotation, Direction.Axis axis){
@@ -27,23 +57,23 @@ public class VoxelInts {
     //rotate around given axis with angle of 90° * number_of_rotation clock wise
     public VoxelInts rotateCW(int number_of_rotation, Direction.Axis axis){
         number_of_rotation = number_of_rotation%4;
-        int x1 = plane_val[0];
-        int y1 = plane_val[1];
-        int z1 = plane_val[2];
-        int x2 = plane_val[3];
-        int y2 = plane_val[4];
-        int z2 = plane_val[5];
+        double x1 = plane_val[0];
+        double y1 = plane_val[1];
+        double z1 = plane_val[2];
+        double x2 = plane_val[3];
+        double y2 = plane_val[4];
+        double z2 = plane_val[5];
         switch (number_of_rotation){
             case 0:
                 return this;
             case 1:
                 switch (axis){
                     case X:
-                        return new VoxelInts(x1,16-z1,y1,x2,16-z2,y2);
+                        return new VoxelInts(x1,16-z1,y1,x2,16-z2,y2,false);
                     case Y:
-                        return new VoxelInts(16-z1,y1,x1,16-z2,y2,x2);
+                        return new VoxelInts(16-z1,y1,x1,16-z2,y2,x2,false);
                     case Z:
-                        return new VoxelInts(y1,16-x1,z1,y2,16-x2,z2);
+                        return new VoxelInts(y1,16-x1,z1,y2,16-x2,z2,false);
                 }
             case 2:
                 return this.rotateCW(1,axis).rotateCW(1,axis);
@@ -109,38 +139,42 @@ public class VoxelInts {
 
 
     //make the symetry around the plane formed by the two axis given if distinct
-    //not functinonning !!
     public VoxelInts makeSymetry(Direction.Axis axis1, Direction.Axis axis2){
         if (axis1 == axis2){
             throw new IllegalArgumentException("The Axis selected are identic no axial symetry can be done");
         }
-        int x1 = plane_val[0];
-        int y1 = plane_val[1];
-        int z1 = plane_val[2];
-        int x2 = plane_val[3];
-        int y2 = plane_val[4];
-        int z2 = plane_val[5];
+        double x1 = plane_val[0];
+        double y1 = plane_val[1];
+        double z1 = plane_val[2];
+        double x2 = plane_val[3];
+        double y2 = plane_val[4];
+        double z2 = plane_val[5];
         //symetrie par rapport au plan XY
         if ((axis1== Direction.Axis.X && axis2== Direction.Axis.Y)
                 ||(axis1== Direction.Axis.Y && axis2== Direction.Axis.X)){
-            return new VoxelInts(x1,y1,16-z2,x2,y2,16-z1);
+            return new VoxelInts(x1,y1,16-z2,x2,y2,16-z1,false);
         }
 
         //symetrie par rapport au plan YZ
         if ((axis1== Direction.Axis.Z && axis2== Direction.Axis.Y)
                 ||(axis1== Direction.Axis.Y && axis2== Direction.Axis.Z)){
-            return new VoxelInts(16-x2,y1,z1,16-x1,y2,z2);
+            return new VoxelInts(16-x2,y1,z1,16-x1,y2,z2,false);
         }
 
         //symetrie par rapport au plan XZ
         if ((axis1== Direction.Axis.X && axis2== Direction.Axis.Z)
                 ||(axis1== Direction.Axis.Z && axis2== Direction.Axis.X)){
-            return new VoxelInts(x1,16-y2,z1,x2,16-y1,z2);
+            return new VoxelInts(x1,16-y2,z1,x2,16-y1,z2,false);
         }
         return null;
     }
 
     public VoxelShape getAssociatedShape(){
+        if (this == EMPTY){
+            return VoxelShapes.empty();
+        }else if (this == FULL){
+            return VoxelShapes.fullCube();
+        }
         return Block.makeCuboidShape(
                 plane_val[0], plane_val[1], plane_val[2],
                 plane_val[3], plane_val[4], plane_val[5]);

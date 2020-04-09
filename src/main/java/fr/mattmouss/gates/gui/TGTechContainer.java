@@ -9,6 +9,7 @@ import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.player.PlayerInventory;
 import net.minecraft.inventory.IInventory;
 import net.minecraft.inventory.container.Container;
+import net.minecraft.inventory.container.Slot;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.Items;
 import net.minecraft.util.IWorldPosCallable;
@@ -85,6 +86,46 @@ public class TGTechContainer extends Container {
                 ModBlock.TOLL_GATE);
     }
 
+    @Override
+    public ItemStack transferStackInSlot(PlayerEntity playerIn, int index) {
+        ItemStack itemStack =ItemStack.EMPTY;
+        Slot slot = this.inventorySlots.get(index);
+        if (slot !=null && slot.getHasStack()) {
+            ItemStack stack = slot.getStack();
+            itemStack = stack.copy();
+            if (index ==1) {
+                if (!this.mergeItemStack(stack,2,37,true)) {
+                    return ItemStack.EMPTY;
+                }
+                slot.onSlotChange(stack,itemStack);
+            }else{
+                if (stack.getItem() == ModItem.CARD_KEY.asItem()){
+                    if (!this.mergeItemStack(stack,1,2,false)){
+                        return ItemStack.EMPTY;
+                    }
+                } else if (index < 28) {
+                    if (!this.mergeItemStack(stack, 28, 37, false)) {
+                        return ItemStack.EMPTY;
+                    }
+                }else if (index < 38 && !this.mergeItemStack(stack, 2, 28, false)) {
+                    return ItemStack.EMPTY;
+                }
+            }
+            if (stack.isEmpty()) {
+                slot.putStack(ItemStack.EMPTY);
+            } else {
+                slot.onSlotChanged();
+            }
+
+            if (stack.getCount() == itemStack.getCount()) {
+                return ItemStack.EMPTY;
+            }
+            slot.onTake(playerIn,stack);
+
+        }
+        return itemStack;
+    }
+
     public int getId(){
         return tileEntity.getCapability(TollStorageCapability.TOLL_STORAGE).map(ITollStorage::getId).orElse(1);
     }
@@ -106,7 +147,6 @@ public class TGTechContainer extends Container {
     }
 
     private void layoutPlayerInventorySlots(int leftCol, int topRow) {//player inventory
-
         addSlotBox(inventory,9,leftCol,topRow,9,18,3,18);
         //hotbar
         topRow+=58;

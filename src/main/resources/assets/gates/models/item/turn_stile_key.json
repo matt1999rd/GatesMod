@@ -1,6 +1,6 @@
 {
     "parent": "item/generated",
     "textures": {
-        "layer0": "gates:item/toll_gate_key"
+        "layer0": "gates:item/turn_stile_key"
     }
 }

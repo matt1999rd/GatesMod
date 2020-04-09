@@ -71,13 +71,13 @@ public class TollGate extends Block {
     private static final VoxelShape CTRLUNITAABB;
     private static final VoxelShape EMPTY_AABB;
 
-    private static final VoxelInts CLOSE_BAR = new VoxelInts(0,9,5,16,10,6);
-    private static final VoxelInts OPEN_BAR = new VoxelInts(3,0,5,4,16,6);
-    private static final VoxelInts PLANE = new VoxelInts(0,0,5,16,16,6);
-    private static final VoxelInts HINGE = new VoxelInts(3,8,5,6,11,6);
-    private static final VoxelInts BASE = new VoxelInts(1,0,0,8,11,5);
-    private static final VoxelInts BEG_BAR = new VoxelInts(4,9,5,16,10,6);
-    private static final VoxelInts BEG_BAR_OPEN = new VoxelInts(3,8,5,4,16,6);
+    private static final VoxelInts CLOSE_BAR = new VoxelInts(0,9,5,16,10,6,false);
+    private static final VoxelInts OPEN_BAR = new VoxelInts(3,0,5,4,16,6,false);
+    private static final VoxelInts PLANE = new VoxelInts(0,0,5,16,16,6,false);
+    private static final VoxelInts HINGE = new VoxelInts(3,8,5,6,11,6,false);
+    private static final VoxelInts BASE = new VoxelInts(1,0,0,8,11,5,false);
+    private static final VoxelInts BEG_BAR = new VoxelInts(4,9,5,16,10,6,false);
+    private static final VoxelInts BEG_BAR_OPEN = new VoxelInts(3,8,5,4,16,6,false);
 
 
     static  {

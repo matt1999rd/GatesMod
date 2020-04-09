@@ -1,11 +1,14 @@
 package fr.mattmouss.gates.util;
 
 import net.minecraft.entity.LivingEntity;
+import net.minecraft.inventory.container.Container;
 import net.minecraft.state.properties.DoorHingeSide;
 import net.minecraft.util.Direction;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.MathHelper;
 import net.minecraft.util.math.Vec3d;
+import net.minecraftforge.items.IItemHandler;
+import net.minecraftforge.items.SlotItemHandler;
 
 public class Functions {
     public static Direction getDirectionFromEntity(LivingEntity placer, BlockPos pos) {
@@ -67,4 +70,5 @@ public class Functions {
                         Math.pow(first_pos[2]-player_pos[2],2.0)) ;
 
     }
+
 }
