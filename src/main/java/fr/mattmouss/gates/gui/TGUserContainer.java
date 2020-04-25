@@ -1,7 +1,7 @@
 package fr.mattmouss.gates.gui;
 
 
-import fr.mattmouss.gates.doors.ModBlock;
+import fr.mattmouss.gates.blocks.ModBlock;
 import fr.mattmouss.gates.items.ModItem;
 import fr.mattmouss.gates.tileentity.TollGateTileEntity;
 import fr.mattmouss.gates.tollcapability.ITollStorage;

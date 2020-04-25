@@ -1,5 +1,6 @@
 package fr.mattmouss.gates.doors;
 
+import fr.mattmouss.gates.energystorage.IdTracker;
 import fr.mattmouss.gates.enum_door.TollGPosition;
 import fr.mattmouss.gates.network.ChangeIdPacket;
 import fr.mattmouss.gates.network.Networking;
@@ -209,6 +210,10 @@ public class TollGate extends Block {
     public void onBlockHarvested(World world, BlockPos pos, BlockState state, PlayerEntity entity) {
         System.out.println("destroying all block of toll gate");
         TollGateTileEntity tgte = (TollGateTileEntity) world.getTileEntity(pos);
+        if (!world.isRemote){
+            IdTracker idTracker = world.getServer().getWorld(DimensionType.OVERWORLD).getSavedData().getOrCreate(IdTracker::new,"idgates");
+            idTracker.removeId(tgte.getId());
+        }
         assert tgte != null;
         ItemStack stack = entity.getHeldItemMainhand();
         List<BlockPos> posList = tgte.getPositionOfBlockConnected();

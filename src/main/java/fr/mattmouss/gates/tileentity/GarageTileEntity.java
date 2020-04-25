@@ -5,7 +5,7 @@ import fr.mattmouss.gates.animationboolean.AnimationBoolean;
 import fr.mattmouss.gates.animationboolean.AnimationBooleanCapability;
 import fr.mattmouss.gates.animationboolean.IAnimationBoolean;
 import fr.mattmouss.gates.doors.GarageDoor;
-import fr.mattmouss.gates.doors.ModBlock;
+import fr.mattmouss.gates.blocks.ModBlock;
 import fr.mattmouss.gates.enum_door.Placing;
 import fr.mattmouss.gates.setup.ModSound;
 import net.minecraft.block.*;

@@ -1,6 +1,7 @@
 package fr.mattmouss.gates.setup;
 
-import fr.mattmouss.gates.doors.ModBlock;
+import fr.mattmouss.gates.blocks.ModBlock;
+import fr.mattmouss.gates.gui.CardGetterScreen;
 import fr.mattmouss.gates.gui.TGTechnicianScreen;
 import fr.mattmouss.gates.gui.TGUserScreen;
 import fr.mattmouss.gates.gui.TSScreen;
@@ -16,6 +17,7 @@ public class ClientProxy implements IProxy {
         ScreenManager.registerFactory(ModBlock.TOLLGATE_USER_CONTAINER, TGUserScreen::new);
         ScreenManager.registerFactory(ModBlock.TOLLGATE_TECH_CONTAINER, TGTechnicianScreen::new);
         ScreenManager.registerFactory(ModBlock.TURN_STILE_CONTAINER, TSScreen::new);
+        ScreenManager.registerFactory(ModBlock.CARD_GETTER_CONTAINER, CardGetterScreen::new);
     }
 
     @Override

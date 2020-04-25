@@ -1,7 +1,7 @@
 package fr.mattmouss.gates.tileentity;
 
 
-import fr.mattmouss.gates.doors.ModBlock;
+import fr.mattmouss.gates.blocks.ModBlock;
 import fr.mattmouss.gates.doors.TurnStile;
 
 import fr.mattmouss.gates.enum_door.TurnSPosition;
@@ -9,10 +9,14 @@ import fr.mattmouss.gates.gui.TSContainer;
 import fr.mattmouss.gates.items.CardKeyItem;
 import fr.mattmouss.gates.items.ModItem;
 
+import fr.mattmouss.gates.network.Networking;
+import fr.mattmouss.gates.network.blockTSPacket;
+import fr.mattmouss.gates.network.movePlayerPacket;
 import fr.mattmouss.gates.tscapability.ITSStorage;
 import fr.mattmouss.gates.tscapability.TSStorage;
 import fr.mattmouss.gates.tscapability.TurnStileCapability;
 import net.minecraft.block.*;
+import net.minecraft.client.entity.player.ClientPlayerEntity;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.player.PlayerInventory;
 import net.minecraft.inventory.container.Container;
@@ -49,7 +53,6 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 public class TurnStileTileEntity extends TileEntity implements IControlIdTE,ITickableTileEntity, INamedContainerProvider {
 
-    //bug observé lors de la pose du block : on peut poser le block sur un block préexistant
     public TurnStileTileEntity() {
         super(ModBlock.TURNSTILE_TILE_TYPE);
     }
@@ -117,22 +120,24 @@ public class TurnStileTileEntity extends TileEntity implements IControlIdTE,ITic
     public void tick() {
         checkStability();
         BlockState state = this.getBlockState();
-        if (this.isRightTSB() && !world.isRemote) {
-            if (state.get(TurnStile.ANIMATION) != 0) {
-                this.changeAllAnim();
+        if (this.isRightTSB()) {
+            if (!world.isRemote && !state.get(TurnStile.WAY_IS_ON)) {
+                findPlayerGoingThrough();
             }
-            if (!state.get(TurnStile.WAY_IS_ON)) findPlayerGoingThrough();
-        }
-        if (this.isRightTSB() && world.isRemote && state.get(TurnStile.WAY_IS_ON)) {
-            BlockPos mainPos = this.getMainPos();
-            double x = mainPos.getX() + 0.5D;
-            double y = mainPos.getY() + 0.5D;
-            double z = mainPos.getZ() + 0.5D;
-            PlayerEntity player = world.getClosestPlayer(x, y, z, 2, false);
-            if (playerIsGoingThrough(player)) {
-                movePlayerGoingThrough(player);
-                //TODO : add sound for movement into turn stile
-
+            if (state.get(TurnStile.WAY_IS_ON)) {
+                BlockPos mainPos = this.getMainPos();
+                double x = mainPos.getX() + 0.5D;
+                double y = mainPos.getY() + 0.5D;
+                double z = mainPos.getZ() + 0.5D;
+                PlayerEntity player = world.getClosestPlayer(x, y, z, 2, false);
+                if (this.isAnimationInWork()){
+                    movePlayerGoingThrough(player);
+                    return;
+                }
+                if (playerIsGoingThrough(player)) {
+                    movePlayerGoingThrough(player);
+                    //TODO : add sound for movement into turn stile
+                }
             }
         }
     }
@@ -169,20 +174,25 @@ public class TurnStileTileEntity extends TileEntity implements IControlIdTE,ITic
 
     //this function is aimed to move the player into the turn stile
     private void movePlayerGoingThrough(PlayerEntity player) {
+        if (player == null){
+            return;
+        }
         this.changeAllAnim();
-        Direction facing = this.getBlockState().get(BlockStateProperties.HORIZONTAL_FACING);
+
         BlockPos pos = getMainPos();
         System.out.println("moving player into turn stile !!");
+
         if (this.isAnimationInWork()){
-            player.moveToBlockPosAndAngles(pos.offset(facing.getOpposite()),0,0);
+            Networking.INSTANCE.sendToServer(new movePlayerPacket(pos, (ClientPlayerEntity) player,true));
             this.endAnimation();
-            this.blockTS();
+            Networking.INSTANCE.sendToServer(new blockTSPacket(pos));
             for (BlockPos pos1 : this.getPositionOfBlockConnected()) {
                 TurnStileTileEntity tste = (TurnStileTileEntity) world.getTileEntity(pos1);
                 tste.blockTS();
             }
         }else {
-            player.moveToBlockPosAndAngles(pos,0,0);
+            Networking.INSTANCE.sendToServer(new movePlayerPacket(pos,(ClientPlayerEntity)player,false));
+            //player.moveToBlockPosAndAngles(pos,rot.y,rot.x);
             this.startAnimation();
         }
     }
@@ -205,8 +215,9 @@ public class TurnStileTileEntity extends TileEntity implements IControlIdTE,ITic
             }
         }
         //System.out.println("no player nearby");
-
     }
+
+
 
     //this return true if ids match between id of card in player hand and id of the tile entity
     //it is also opening the door when it works
@@ -216,16 +227,15 @@ public class TurnStileTileEntity extends TileEntity implements IControlIdTE,ITic
             CardKeyItem key = (CardKeyItem)stack.getItem();
             int key_id = key.getId(stack);
             int te_id = getId();
-            if (te_id == key_id && !getWorld().isRemote){
+            if (te_id == key_id){
                 System.out.println("The way is open");
                 //TODO : add here the sound ok
-                openTS();
                 for (BlockPos pos1 : this.getPositionOfBlockConnected()){
                     TurnStileTileEntity tste = (TurnStileTileEntity) world.getTileEntity(pos1);
                     tste.openTS();
                 }
                 return true;
-            }else if (!getWorld().isRemote ){
+            }else {
                 //TODO : add here the sound not ok
                 System.out.println("the way is not allowed");
             }
@@ -320,12 +330,15 @@ public class TurnStileTileEntity extends TileEntity implements IControlIdTE,ITic
 
     @Override
     public void changeId() {
-        storage.ifPresent(ITSStorage::changeId);
+        storage.ifPresent(ts->ts.changeId(world));
     }
 
     @Override
     public void setId(int id_in) {
-        storage.ifPresent(s-> s.setId(id_in));
+        storage.ifPresent(s-> {
+            if (world.isRemote)s.setId(id_in);
+            else s.setId(id_in,world);
+        });
     }
 
 
@@ -338,7 +351,6 @@ public class TurnStileTileEntity extends TileEntity implements IControlIdTE,ITic
         BlockState state = this.getBlockState();
         world.setBlockState(pos,state.with(TurnStile.WAY_IS_ON,false));
     }
-
 
     @Override
     public int getKeyId() {

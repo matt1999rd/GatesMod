@@ -1,16 +1,12 @@
 package fr.mattmouss.gates.tileentity;
 
-import fr.mattmouss.gates.doors.ModBlock;
+import fr.mattmouss.gates.blocks.ModBlock;
 import fr.mattmouss.gates.doors.TollGate;
 import fr.mattmouss.gates.enum_door.TollGPosition;
 import fr.mattmouss.gates.gui.TGTechContainer;
-import fr.mattmouss.gates.gui.TGTechnicianScreen;
 import fr.mattmouss.gates.gui.TGUserContainer;
 import fr.mattmouss.gates.items.CardKeyItem;
 import fr.mattmouss.gates.items.ModItem;
-import fr.mattmouss.gates.network.ChangeClientIdPacket;
-import fr.mattmouss.gates.network.Networking;
-import fr.mattmouss.gates.network.SetIdPacket;
 import fr.mattmouss.gates.setup.ModSound;
 import fr.mattmouss.gates.tollcapability.TollStorageCapability;
 import fr.mattmouss.gates.tollcapability.ITollStorage;
@@ -38,7 +34,6 @@ import net.minecraft.util.text.StringTextComponent;
 import net.minecraftforge.common.capabilities.Capability;
 import net.minecraftforge.common.util.INBTSerializable;
 import net.minecraftforge.common.util.LazyOptional;
-import net.minecraftforge.fml.network.PacketDistributor;
 import net.minecraftforge.items.CapabilityItemHandler;
 import net.minecraftforge.items.IItemHandler;
 import net.minecraftforge.items.ItemStackHandler;
@@ -362,12 +357,14 @@ public class TollGateTileEntity extends TileEntity implements ITickableTileEntit
 
     public void setId(int id_in) {
         storage.ifPresent(s->{
-            s.setId(id_in);
+            if (!world.isRemote)s.setId(id_in,world);
+            else s.setId(id_in);
         });
     }
 
     public void changeId(){
-        storage.ifPresent(TollStorage::changeId);
+        storage.ifPresent(tollStorage -> tollStorage.changeId(world));
+
     }
 
     public int getId(){
@@ -521,10 +518,6 @@ public class TollGateTileEntity extends TileEntity implements ITickableTileEntit
                 throw new NullPointerException("TollGatePosition of block at position :"+this.pos+"has null attribut for tollgateposition");
         }
 
-    }
-    //this function as public give the position of toll gate registering
-    public BlockPos getCentralPos(){
-        return null;
     }
 
     public boolean isGateOpen(){

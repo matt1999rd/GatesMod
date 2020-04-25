@@ -1,6 +1,10 @@
 package fr.mattmouss.gates.tscapability;
 
+import fr.mattmouss.gates.energystorage.IdTracker;
 import net.minecraft.nbt.CompoundNBT;
+import net.minecraft.world.World;
+import net.minecraft.world.dimension.DimensionType;
+import net.minecraft.world.storage.DimensionSavedDataManager;
 import net.minecraftforge.common.util.INBTSerializable;
 
 import java.util.Random;
@@ -22,16 +26,26 @@ public class TSStorage implements ITSStorage, INBTSerializable<CompoundNBT> {
     }
 
     @Override
-    public void changeId() {
+    public void changeId(World world) {
         //trackInt is limited to 16 bit number and there is negative value
         int newId= random.nextInt((int)Math.pow(2,15))+(int)Math.pow(2,15);
         System.out.println("changing id... \n newId = "+newId);
-        setId(newId);
+        setId(newId,world);
     }
 
     @Override
     public void setId(int newId) {
         id = newId;
+    }
+
+    @Override
+    public void setId(int newId, World world) {
+        DimensionSavedDataManager manager = world.getServer().getWorld(DimensionType.OVERWORLD).getSavedData();
+        if (id != -1){
+            manager.getOrCreate(IdTracker::new,"idgates").removeId(id);
+        }
+        id = newId;
+        manager.getOrCreate(IdTracker::new,"idgates").addNewId(newId);
     }
 
     @Override

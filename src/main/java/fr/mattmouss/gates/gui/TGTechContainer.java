@@ -1,17 +1,15 @@
 package fr.mattmouss.gates.gui;
 
-import fr.mattmouss.gates.doors.ModBlock;
+import fr.mattmouss.gates.blocks.ModBlock;
 import fr.mattmouss.gates.items.ModItem;
 import fr.mattmouss.gates.tileentity.TollGateTileEntity;
 import fr.mattmouss.gates.tollcapability.TollStorageCapability;
 import fr.mattmouss.gates.tollcapability.ITollStorage;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.player.PlayerInventory;
-import net.minecraft.inventory.IInventory;
 import net.minecraft.inventory.container.Container;
 import net.minecraft.inventory.container.Slot;
 import net.minecraft.item.ItemStack;
-import net.minecraft.item.Items;
 import net.minecraft.util.IWorldPosCallable;
 import net.minecraft.util.IntReferenceHolder;
 import net.minecraft.util.math.BlockPos;
@@ -121,7 +119,6 @@ public class TGTechContainer extends Container {
                 return ItemStack.EMPTY;
             }
             slot.onTake(playerIn,stack);
-
         }
         return itemStack;
     }

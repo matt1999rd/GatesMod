@@ -44,6 +44,24 @@ public class Networking {
                 ChangeClientIdPacket::new,
                 ChangeClientIdPacket::handle);
 
+        INSTANCE.registerMessage(nextID(),
+                blockTSPacket.class,
+                blockTSPacket::toBytes,
+                blockTSPacket::new,
+                blockTSPacket::handle);
+
+        INSTANCE.registerMessage(nextID(),
+                movePlayerPacket.class,
+                movePlayerPacket::toBytes,
+                movePlayerPacket::new,
+                movePlayerPacket::handle);
+
+        INSTANCE.registerMessage(nextID(),
+                PutIdsToClientPacket.class,
+                PutIdsToClientPacket::toBytes,
+                PutIdsToClientPacket::new,
+                PutIdsToClientPacket::handle);
+
 
     }
 

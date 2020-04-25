@@ -1,7 +1,6 @@
 package fr.mattmouss.gates.items;
 
 import fr.mattmouss.gates.doors.GarageDoor;
-import fr.mattmouss.gates.doors.ModBlock;
 import fr.mattmouss.gates.setup.ModSetup;
 
 import fr.mattmouss.gates.util.Functions;

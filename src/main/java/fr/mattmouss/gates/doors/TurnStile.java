@@ -1,6 +1,7 @@
 package fr.mattmouss.gates.doors;
 
 
+import fr.mattmouss.gates.energystorage.IdTracker;
 import fr.mattmouss.gates.enum_door.TurnSPosition;
 import fr.mattmouss.gates.network.Networking;
 import fr.mattmouss.gates.network.SetIdPacket;
@@ -31,6 +32,7 @@ import net.minecraft.util.math.shapes.VoxelShape;
 import net.minecraft.util.math.shapes.VoxelShapes;
 import net.minecraft.world.IBlockReader;
 import net.minecraft.world.World;
+import net.minecraft.world.dimension.DimensionType;
 import net.minecraftforge.fml.network.PacketDistributor;
 
 import javax.annotation.Nullable;
@@ -243,6 +245,7 @@ public class TurnStile extends Block {
     @Override
     public void onBlockHarvested(World world, BlockPos pos, BlockState state, PlayerEntity entity) {
         System.out.println("destroying all block of turn stile");
+        //TODO : same as the one in TollGate#onBlockHarvested
         TurnStileTileEntity tste = (TurnStileTileEntity) world.getTileEntity(pos);
         assert tste != null;
         ItemStack stack = entity.getHeldItemMainhand();

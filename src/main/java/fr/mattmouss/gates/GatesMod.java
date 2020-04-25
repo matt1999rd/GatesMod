@@ -1,6 +1,9 @@
 package fr.mattmouss.gates;
 
+import fr.mattmouss.gates.blocks.CardGetter;
+import fr.mattmouss.gates.blocks.ModBlock;
 import fr.mattmouss.gates.doors.*;
+import fr.mattmouss.gates.gui.CardGetterContainer;
 import fr.mattmouss.gates.gui.TGTechContainer;
 import fr.mattmouss.gates.gui.TGUserContainer;
 import fr.mattmouss.gates.gui.TSContainer;
@@ -9,11 +12,13 @@ import fr.mattmouss.gates.setup.ClientProxy;
 import fr.mattmouss.gates.setup.IProxy;
 import fr.mattmouss.gates.setup.ModSetup;
 import fr.mattmouss.gates.setup.ServerProxy;
+import fr.mattmouss.gates.tileentity.CardGetterTileEntity;
 import fr.mattmouss.gates.tileentity.GarageTileEntity;
 import fr.mattmouss.gates.tileentity.TollGateTileEntity;
 import fr.mattmouss.gates.tileentity.TurnStileTileEntity;
 import net.minecraft.block.Block;
 import net.minecraft.inventory.container.ContainerType;
+import net.minecraft.item.BlockItem;
 import net.minecraft.item.Item;
 import net.minecraft.tileentity.TileEntityType;
 import net.minecraft.util.math.BlockPos;
@@ -73,17 +78,19 @@ public class GatesMod {
         public static void onBlockRegistry(final RegistryEvent.Register<Block> blockRegistryEvent) {
             blockRegistryEvent.getRegistry().register(new TollGate());
             blockRegistryEvent.getRegistry().register(new TurnStile());
+            blockRegistryEvent.getRegistry().register(new CardGetter());
         }
 
 
         @SubscribeEvent
         public static void onItemRegistry(final RegistryEvent.Register<Item> blockRegistryEvent) {
-            //Item.Properties properties = new Item.Properties().group(ModSetup.itemGroup);
+            Item.Properties properties = new Item.Properties().group(ModSetup.itemGroup);
             blockRegistryEvent.getRegistry().register(new TollGateItem(ModBlock.TOLL_GATE));
             blockRegistryEvent.getRegistry().register(new TollKeyItem());
             blockRegistryEvent.getRegistry().register(new CardKeyItem());
             blockRegistryEvent.getRegistry().register(new TurnStileItem(ModBlock.TURN_STILE));
             blockRegistryEvent.getRegistry().register(new TurnStileKeyItem());
+            blockRegistryEvent.getRegistry().register(new BlockItem(ModBlock.CARD_GETTER,properties).setRegistryName("card_getter"));
         }
 
         @SubscribeEvent
@@ -123,6 +130,10 @@ public class GatesMod {
                     ModBlock.TURN_STILE)
                     .build(null)
                     .setRegistryName("turn_stile"));
+            event.getRegistry().register(TileEntityType.Builder.create(CardGetterTileEntity::new,
+                    ModBlock.CARD_GETTER)
+                    .build(null)
+                    .setRegistryName("card_getter"));
         }
 
         @SubscribeEvent
@@ -152,6 +163,15 @@ public class GatesMod {
                         inv,
                         GatesMod.proxy.getClientPlayer());
             })).setRegistryName("turn_stile"));
+
+            event.getRegistry().register(IForgeContainerType.create(((windowId, inv, data) -> {
+                BlockPos pos = data.readBlockPos();
+                return new CardGetterContainer(windowId,
+                        GatesMod.proxy.getClientWorld(),
+                        pos,
+                        inv,
+                        GatesMod.proxy.getClientPlayer());
+            })).setRegistryName("card_getter"));
         }
     }
 }

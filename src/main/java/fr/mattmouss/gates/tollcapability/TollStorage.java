@@ -1,9 +1,13 @@
 package fr.mattmouss.gates.tollcapability;
 
+import fr.mattmouss.gates.energystorage.IdTracker;
 import fr.mattmouss.gates.network.Networking;
 import fr.mattmouss.gates.network.SetIdPacket;
 import net.minecraft.entity.player.ServerPlayerEntity;
 import net.minecraft.nbt.CompoundNBT;
+import net.minecraft.world.World;
+import net.minecraft.world.dimension.DimensionType;
+import net.minecraft.world.storage.DimensionSavedDataManager;
 import net.minecraftforge.common.util.INBTSerializable;
 import net.minecraftforge.fml.network.PacketDistributor;
 
@@ -48,17 +52,28 @@ public class TollStorage implements ITollStorage, INBTSerializable<CompoundNBT> 
     }
 
     @Override
-    public void changeId() {
+    public void changeId(World world) {
         //trackInt is limited to 16 bit number and there is negative value
         int newId= random.nextInt((int)Math.pow(2,15))+(int)Math.pow(2,15);
         System.out.println("changing id... \n newId = "+newId);
-        setId(newId);
+        setId(newId,world);
     }
 
     @Override
-    public void setId(int newId) {
+    public void setId(int newId,World world) {
+        DimensionSavedDataManager savedDataManager =
+        world.getServer().getWorld(DimensionType.OVERWORLD).getSavedData();
+        if (id != -1) {
+            savedDataManager.getOrCreate(IdTracker::new, "idgates").removeId(id);
+        }
+        id = newId;
+        savedDataManager.getOrCreate(IdTracker::new,"idgates").addNewId(newId);
+    }
+
+    public void setId(int newId){
         id = newId;
     }
+
 
     @Override
     public boolean isClosing() {
