@@ -2,6 +2,7 @@ package fr.mattmouss.gates.items;
 
 import fr.mattmouss.gates.doors.TollGate;
 import fr.mattmouss.gates.enum_door.TollGPosition;
+import fr.mattmouss.gates.tileentity.CardGetterTileEntity;
 import fr.mattmouss.gates.tileentity.TollGateTileEntity;
 import fr.mattmouss.gates.util.Functions;
 import net.minecraft.block.BlockState;
@@ -11,6 +12,7 @@ import net.minecraft.item.ItemStack;
 import net.minecraft.item.ItemUseContext;
 import net.minecraft.state.properties.BlockStateProperties;
 import net.minecraft.state.properties.DoorHingeSide;
+import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.ActionResultType;
 import net.minecraft.util.Direction;
 import net.minecraft.util.Hand;
@@ -32,28 +34,29 @@ public class TollKeyItem extends KeyItem {
         World world = context.getWorld();
         Hand hand = context.getHand();
         ItemStack stack = entity.getHeldItem(hand);
-        if (!(world.getTileEntity(pos) instanceof TollGateTileEntity)){
+        TileEntity te = world.getTileEntity(pos);
+        if (!(te instanceof TollGateTileEntity)){
             //we exit the function if it is not a TollGateTileEntity
             return super.onItemUse(context);
         }
+        BlockPos registeredPos = getTGPosition(stack, world);
         //if someone takes the key from the creative tab it will not have any BlockPos and we set the blockPos to the present toll gate
         //if this key has a blockPos that don't correspond to a toll gate anymore (because of destroyed block) we set the blockPos also
-        BlockPos registeredPos = getTGPosition(stack,world);
-        if (registeredPos == null){
-            setTGPosition(stack,world,pos);
-            registeredPos = getTGPosition(stack,world);
+        if (registeredPos == null) {
+            setTGPosition(stack, world, pos);
+            registeredPos = getTGPosition(stack, world);
         }
 
 
-        if (!pos.equals(registeredPos)){
+        if (!pos.equals(registeredPos)) {
             //System.out.println("the registered pos is not the pos of this block");
             //System.out.println("pos of toll gate key attribute :"+registeredPos);
             //System.out.println("pos of toll gate :"+pos);
             return super.onItemUse(context);
         }
-        TollGateTileEntity tgte = (TollGateTileEntity) world.getTileEntity(pos);
+        TollGateTileEntity tgte = (TollGateTileEntity) te;
 
-        if (isPlayerFacingTheRightFace(tgte,entity,pos)){
+        if (isPlayerFacingTheRightFace(tgte, entity, pos)) {
             //System.out.println("the player is a technician ");
             tgte.setSide(false);
             if (!world.isRemote) {
@@ -61,6 +64,7 @@ public class TollKeyItem extends KeyItem {
             }
         }
         return super.onItemUse(context);
+
     }
 
     //this function checks if the player is facing the key aperture face

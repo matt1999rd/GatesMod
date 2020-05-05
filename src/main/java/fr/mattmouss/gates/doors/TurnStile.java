@@ -25,6 +25,7 @@ import net.minecraft.state.StateContainer;
 import net.minecraft.state.properties.BlockStateProperties;
 import net.minecraft.state.properties.DoorHingeSide;
 import net.minecraft.tileentity.TileEntity;
+import net.minecraft.util.BlockRenderLayer;
 import net.minecraft.util.Direction;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.shapes.ISelectionContext;
@@ -55,7 +56,9 @@ public class TurnStile extends Block {
         super(Properties.create(Material.BARRIER)
                 .hardnessAndResistance(2.0f)
                 .sound(SoundType.METAL)
-                .notSolid());
+                //1.15 function
+                //.notSolid()
+        );
         this.setRegistryName("turn_stile");
     }
 
@@ -70,6 +73,12 @@ public class TurnStile extends Block {
         }
 
         return getTurnStileShape(state);
+    }
+
+    //1.14.4 function replaced by notSolid()
+    @Override
+    public BlockRenderLayer func_180664_k() {
+        return BlockRenderLayer.CUTOUT_MIPPED;
     }
 
     private VoxelShape getTurnStileShape(BlockState state){
@@ -245,7 +254,7 @@ public class TurnStile extends Block {
     @Override
     public void onBlockHarvested(World world, BlockPos pos, BlockState state, PlayerEntity entity) {
         System.out.println("destroying all block of turn stile");
-        //TODO : same as the one in TollGate#onBlockHarvested
+
         TurnStileTileEntity tste = (TurnStileTileEntity) world.getTileEntity(pos);
         assert tste != null;
         ItemStack stack = entity.getHeldItemMainhand();
@@ -262,6 +271,11 @@ public class TurnStile extends Block {
     }
 
     public void deleteBlock(BlockPos pos, World world){
+        TurnStileTileEntity tste = (TurnStileTileEntity) world.getTileEntity(pos);
+        if (!world.isRemote && tste.isRightTSB()){
+            IdTracker idTracker = world.getServer().getWorld(DimensionType.OVERWORLD).getSavedData().getOrCreate(IdTracker::new,"idgates");
+            idTracker.removeId(tste.getId());
+        }
         world.setBlockState(pos,Blocks.AIR.getDefaultState(),35);
     }
 

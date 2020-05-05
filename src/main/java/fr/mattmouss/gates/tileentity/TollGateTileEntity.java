@@ -43,7 +43,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 
-public class TollGateTileEntity extends TileEntity implements ITickableTileEntity, INamedContainerProvider,IControlIdTE {
+public class TollGateTileEntity extends TileEntity implements ITickableTileEntity, INamedContainerProvider,IControlIdTE,IPriceControllingTE {
 
     public TollGateTileEntity() {
         super(ModBlock.TOLL_GATE_ENTITY_TYPE);
@@ -382,12 +382,6 @@ public class TollGateTileEntity extends TileEntity implements ITickableTileEntit
             price_in.set(s.getPrice());
         });
         return price_in.get();
-    }
-
-    public void setPrice(int price_in){
-        storage.ifPresent(s->{
-            s.setPrice(price_in);
-        });
     }
 
     public void lowerPrice(){

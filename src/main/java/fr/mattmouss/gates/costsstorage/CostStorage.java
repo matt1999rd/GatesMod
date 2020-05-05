@@ -49,6 +49,28 @@ public class CostStorage implements ICostStorage, INBTSerializable<CompoundNBT> 
     }
 
     @Override
+    public void lowerPrice(int id) {
+        if (containsId(id)){
+            int price = cost.get(id);
+            price--;
+            cost.replace(id,price);
+        }else {
+            GatesMod.logger.warning("try to lower price of id that is not register");
+        }
+    }
+
+    @Override
+    public void raisePrice(int id) {
+        if (containsId(id)){
+            int price = cost.get(id);
+            price++;
+            cost.replace(id,price);
+        }else {
+            GatesMod.logger.warning("try to raise price of id that is not register");
+        }
+    }
+
+    @Override
     public void changeCost(int id, int newCost) {
         if (!cost.containsKey(id)){
             cost.put(id,newCost); // define price to 1 emerald

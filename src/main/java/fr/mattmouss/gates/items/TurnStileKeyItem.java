@@ -6,6 +6,7 @@ import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.player.ServerPlayerEntity;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.ItemUseContext;
+import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.ActionResultType;
 import net.minecraft.util.Hand;
 import net.minecraft.util.math.BlockPos;
@@ -25,7 +26,8 @@ public class TurnStileKeyItem extends KeyItem {
         World world = context.getWorld();
         Hand hand = context.getHand();
         ItemStack stack = entity.getHeldItem(hand);
-        if (!(world.getTileEntity(pos) instanceof TurnStileTileEntity)){
+        TileEntity te= world.getTileEntity(pos);
+        if (!(te instanceof TurnStileTileEntity)){
             //we exit the function if it is not a TollGateTileEntity
             return super.onItemUse(context);
         }
@@ -48,7 +50,6 @@ public class TurnStileKeyItem extends KeyItem {
             NetworkHooks.openGui((ServerPlayerEntity) entity, tste, tste.getPos());
         }
         return super.onItemUse(context);
-
 
     }
 

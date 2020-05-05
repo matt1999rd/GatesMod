@@ -63,6 +63,7 @@ public class TollStorage implements ITollStorage, INBTSerializable<CompoundNBT> 
     public void setId(int newId,World world) {
         DimensionSavedDataManager savedDataManager =
         world.getServer().getWorld(DimensionType.OVERWORLD).getSavedData();
+
         if (id != -1) {
             savedDataManager.getOrCreate(IdTracker::new, "idgates").removeId(id);
         }

@@ -1,7 +1,12 @@
 package fr.mattmouss.gates.gui;
 
+import com.mojang.blaze3d.platform.GlStateManager;
 import fr.mattmouss.gates.GatesMod;
+import fr.mattmouss.gates.network.Networking;
+import fr.mattmouss.gates.network.PacketChangeSelectedID;
+import fr.mattmouss.gates.tileentity.CardGetterTileEntity;
 import net.minecraft.client.gui.FontRenderer;
+import net.minecraft.client.gui.IGuiEventListener;
 import net.minecraft.client.gui.screen.inventory.ContainerScreen;
 import net.minecraft.client.gui.widget.button.ImageButton;
 import net.minecraft.entity.player.PlayerInventory;
@@ -12,7 +17,7 @@ import net.minecraft.util.text.ITextComponent;
 import java.util.HashMap;
 import java.util.concurrent.atomic.AtomicInteger;
 
-public class CardGetterScreen extends ContainerScreen<CardGetterContainer> {
+public class CardGetterScreen extends ContainerScreen<CardGetterContainer> implements IGuiEventListener {
     public CardGetterScreen(CardGetterContainer container, PlayerInventory inventory, ITextComponent component) {
         super(container, inventory, component);
     }
@@ -65,16 +70,11 @@ public class CardGetterScreen extends ContainerScreen<CardGetterContainer> {
         //we can go up and down on list if we are with a too much important list of id
         //we then cannot go up if the first element is the first element of hashMap
         //we then cannot go down if the last element of list is th last one of hashMap
-        UpArrow.visible =size>7 && rank_first_element != 0;
-        DownArrow.visible=size>7 && rank_first_element != size-7;
+        UpArrow.visible =size>6 && rank_first_element != 0;
+        DownArrow.visible=size>6 && rank_first_element != size-6;
+        GlStateManager.enableBlend();
     }
 
-
-
-    @Override
-    public boolean isPauseScreen() {
-        return true;
-    }
 
 
     private void selectDownId() {
@@ -90,11 +90,29 @@ public class CardGetterScreen extends ContainerScreen<CardGetterContainer> {
         FontRenderer fontRenderer = this.minecraft.fontRenderer;
         HashMap<Integer,Integer> id_list= this.getContainer().getIdPriceMap();
         AtomicInteger incr = new AtomicInteger(0);
+        if (id_list.size()>=6) {
+            //is done when rank first element increase the size of possible value
+            // when position of window is at the end of a huge list of id and id are deleted
+            while (rank_first_element > id_list.size() - 6) {
+                rank_first_element--;
+            }
+        }
+        CardGetterTileEntity cgte = this.getContainer().getTileEntity();
+
         id_list.forEach((id,price)->{
-            if (incr.get()<rank_first_element || incr.get()>rank_first_element+6){
+            if (incr.get()<rank_first_element || incr.get()>rank_first_element+5){
+                incr.getAndIncrement();
                 return;
             }
-            this.drawString(fontRenderer,"id :"+id+"  price :"+price,6,18+( incr.getAndIncrement() -rank_first_element)*15,white);
+            this.minecraft.getTextureManager().bindTexture(WIDGET);
+            int offset = (incr.getAndIncrement()-rank_first_element)*23;
+            //two first argument are up left coordinate of the button in gui
+            //two second argument are up left coordinate of the button in texture WIDGET
+            //the two last argument are width and height of button
+            int xText = (id == cgte.getSelectedId()) ? 122 : 34; //if it is the right value selected
+            this.blit(4,17+offset,xText,0,88,23);
+            this.drawString(fontRenderer,id+" ",19,28+offset,white);
+            this.drawString(fontRenderer,price+" ",77,28+offset,white);
         });
         super.drawGuiContainerForegroundLayer(p_146979_1_,p_146979_2_);
     }
@@ -106,6 +124,35 @@ public class CardGetterScreen extends ContainerScreen<CardGetterContainer> {
         this.minecraft.getTextureManager().bindTexture(GUI);
         int WIDTH = (this.width - this.xSize) / 2;
         int HEIGHT = (this.height - this.ySize) / 2;
-        blit(WIDTH, HEIGHT, this.getBlitOffset(), 0.0F, 0.0F, this.xSize, this.ySize, 256, 512);
+        //1.15 : replace .blitOffset by getBlitOffset
+        blit(WIDTH, HEIGHT,this.blitOffset , 0.0F, 0.0F, this.xSize, this.ySize, 256, 512);
+
     }
+
+    private int getIdClicked(double mouseX,double mouseY){
+        if (mouseX>guiLeft+91 || mouseX<guiLeft+4 || mouseY<guiTop+17 || mouseY>guiTop+154) return -1;
+        else {
+            int image_order = MathHelper.floor((mouseY-guiTop-17f)/23f);
+            return image_order+rank_first_element;
+        }
+    }
+
+
+    @Override
+    public boolean mouseClicked(double mouseX, double mouseY, int button) {
+
+        //we do something if we clicked a button with left input of mouse
+        int idClicked = getIdClicked(mouseX,mouseY);
+
+        if (idClicked != -1 && button == 0){
+            CardGetterTileEntity cgte = this.getContainer().getTileEntity();
+            cgte.changeSelectedId(idClicked);
+            Networking.INSTANCE.sendToServer(new PacketChangeSelectedID(cgte.getPos(),idClicked));
+        }
+
+        return super.mouseClicked(mouseX,mouseY,button);
+    }
+
+
+
 }

@@ -8,6 +8,8 @@ public interface ICostStorage {
     void addIdWithoutCost(int id);
     void removeId(int id);
     boolean containsId(int id);
+    void lowerPrice(int id);
+    void raisePrice(int id);
     void changeCost(int id,int newCost);
 
 }

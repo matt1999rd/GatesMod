@@ -3,10 +3,7 @@ package fr.mattmouss.gates.blocks;
 
 import fr.mattmouss.gates.doors.TollGate;
 import fr.mattmouss.gates.doors.TurnStile;
-import fr.mattmouss.gates.gui.CardGetterContainer;
-import fr.mattmouss.gates.gui.TGTechContainer;
-import fr.mattmouss.gates.gui.TGUserContainer;
-import fr.mattmouss.gates.gui.TSContainer;
+import fr.mattmouss.gates.gui.*;
 import fr.mattmouss.gates.tileentity.CardGetterTileEntity;
 import fr.mattmouss.gates.tileentity.GarageTileEntity;
 import fr.mattmouss.gates.tileentity.TollGateTileEntity;
@@ -36,6 +33,9 @@ public class ModBlock {
     @ObjectHolder("gates:card_getter")
     public static ContainerType<CardGetterContainer> CARD_GETTER_CONTAINER;
 
+    @ObjectHolder("gates:card_getter_choice")
+    public static ContainerType<CardGetterChoiceContainer> CARD_GETTER_CHOICE_CONTAINER;
+
     @ObjectHolder("gates:garage_door")
     public static TileEntityType<GarageTileEntity> GARAGE_TILE_TYPE;
 
@@ -50,6 +50,8 @@ public class ModBlock {
 
     @ObjectHolder("gates:card_getter")
     public static TileEntityType<CardGetterTileEntity> CARD_GETTER_TILE_TYPE;
+
+
 
 
 }

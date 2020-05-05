@@ -7,11 +7,12 @@ import net.minecraft.block.Block;
 
 import net.minecraft.block.DoorBlock;
 
-import net.minecraft.client.renderer.RenderType;
-import net.minecraft.client.renderer.RenderTypeLookup;
+
 import net.minecraft.item.BlockItem;
 import net.minecraft.item.Item;
 
+import net.minecraft.scoreboard.ScoreCriteria;
+import net.minecraft.util.BlockRenderLayer;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.event.RegistryEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
@@ -27,6 +28,8 @@ public class DoorRegister {
 
     private static final List<DoorBlock> DOORS = new ArrayList<>();
     private static final List<Item> DOOR_ITEMS = new ArrayList<>();
+    private static final List<WindowBlock> WINDOWS = new ArrayList<>();
+    private static final List<Item> WINDOWS_ITEMS = new ArrayList<>();
     private static final List<GarageDoor> GARAGES = new ArrayList<>();
     private static final List<Item> GARAGE_ITEMS = new ArrayList<>();
 
@@ -58,32 +61,32 @@ public class DoorRegister {
     public static final DoorBlock YELLOW_DOOR = register("yellow_door");
 
     //enregistrement des fenêtres classiques
-    public static final DoorBlock SB_WINDOWS = Wregister("stone_bricks_window"); //ok
-    public static final DoorBlock CB_WINDOWS = Wregister("cobblestone_window"); //ok
-    public static final DoorBlock STONE_WINDOWS = Wregister("stone_window"); //ok
-    public static final DoorBlock ANDESITE_WINDOWS = Wregister("andesite_window"); //ok
-    public static final DoorBlock GRANITE_WINDOWS = Wregister("granite_window");  //ok
-    public static final DoorBlock DIORITE_WINDOWS = Wregister("diorite_window"); //ok
-    public static final DoorBlock BRICK_WINDOWS = Wregister("brick_window"); //ok
+    public static final WindowBlock SB_WINDOWS = Wregister("stone_bricks_window"); //ok
+    public static final WindowBlock CB_WINDOWS = Wregister("cobblestone_window"); //ok
+    public static final WindowBlock STONE_WINDOWS = Wregister("stone_window"); //ok
+    public static final WindowBlock ANDESITE_WINDOWS = Wregister("andesite_window"); //ok
+    public static final WindowBlock GRANITE_WINDOWS = Wregister("granite_window");  //ok
+    public static final WindowBlock DIORITE_WINDOWS = Wregister("diorite_window"); //ok
+    public static final WindowBlock BRICK_WINDOWS = Wregister("brick_window"); //ok
 
     //à base de couleur
     //public static final DoorBlock WINDOW = Wregister("_window");
-    public static final DoorBlock BLACK_WINDOW = Wregister("black_window");
-    public static final DoorBlock BLUE_WINDOW = Wregister("blue_window");
-    public static final DoorBlock BROWN_WINDOW = Wregister("brown_window");
-    public static final DoorBlock CYAN_WINDOW = Wregister("cyan_window");
-    public static final DoorBlock GRAY_WINDOW = Wregister("gray_window");
-    public static final DoorBlock GREEN_WINDOW = Wregister("green_window");
-    public static final DoorBlock L_BLUE_WINDOW = Wregister("light_blue_window");
-    public static final DoorBlock L_GRAY_WINDOW = Wregister("light_gray_window");
-    public static final DoorBlock LIME_WINDOW = Wregister("lime_window");
-    public static final DoorBlock MAGENTA_WINDOW = Wregister("magenta_window");
-    public static final DoorBlock ORANGE_WINDOW = Wregister("orange_window");
-    public static final DoorBlock PINK_WINDOW = Wregister("pink_window");
-    public static final DoorBlock PURPLE_WINDOW = Wregister("purple_window");
-    public static final DoorBlock RED_WINDOW = Wregister("red_window");
-    public static final DoorBlock WHITE_WINDOW = Wregister("white_window");
-    public static final DoorBlock YELLOW_WINDOW = Wregister("yellow_window");
+    public static final WindowBlock BLACK_WINDOW = Wregister("black_window");
+    public static final WindowBlock BLUE_WINDOW = Wregister("blue_window");
+    public static final WindowBlock BROWN_WINDOW = Wregister("brown_window");
+    public static final WindowBlock CYAN_WINDOW = Wregister("cyan_window");
+    public static final WindowBlock GRAY_WINDOW = Wregister("gray_window");
+    public static final WindowBlock GREEN_WINDOW = Wregister("green_window");
+    public static final WindowBlock L_BLUE_WINDOW = Wregister("light_blue_window");
+    public static final WindowBlock L_GRAY_WINDOW = Wregister("light_gray_window");
+    public static final WindowBlock LIME_WINDOW = Wregister("lime_window");
+    public static final WindowBlock MAGENTA_WINDOW = Wregister("magenta_window");
+    public static final WindowBlock ORANGE_WINDOW = Wregister("orange_window");
+    public static final WindowBlock PINK_WINDOW = Wregister("pink_window");
+    public static final WindowBlock PURPLE_WINDOW = Wregister("purple_window");
+    public static final WindowBlock RED_WINDOW = Wregister("red_window");
+    public static final WindowBlock WHITE_WINDOW = Wregister("white_window");
+    public static final WindowBlock YELLOW_WINDOW = Wregister("yellow_window");
 
 
     //enregistrement des premiers garages
@@ -129,14 +132,14 @@ public class DoorRegister {
 
     }
 
-    private static DoorBlock Wregister(String key){
+    private static WindowBlock Wregister(String key){
         WindowBlock newWindow = new WindowBlock(key);
         BlockItem item = new BlockItem(newWindow,new Item.Properties().group(ModSetup.itemGroup));
         item.setRegistryName(key);
         System.out.println("-----------------Block "+key+" registered !------------------");
         System.out.println("------------------ Registry Name : "+newWindow.getRegistryName()+"-------------");
-        DOORS.add(newWindow);
-        DOOR_ITEMS.add(item);
+        WINDOWS.add(newWindow);
+        WINDOWS_ITEMS.add(item);
         return newWindow;
     }
 
@@ -156,14 +159,21 @@ public class DoorRegister {
     public static void registerBlocks(RegistryEvent.Register<Block> event){
         DOORS.forEach(doorBlock -> {
             event.getRegistry().register(doorBlock);
+        });
+        WINDOWS.forEach(windowBlock -> {
+            event.getRegistry().register(windowBlock);
+            //1.15 function
+            /*
             if (FMLEnvironment.dist == Dist.CLIENT){
-                RenderTypeLookup.setRenderLayer(doorBlock, RenderType.getCutout()); // pour la transparence des fenetres
+                RenderTypeLookup.setRenderLayer(windowBlock, RenderType.getCutout()); // pour la transparence des fenetres
             }
+             */
         });
         GARAGES.forEach(doorBlock -> {
             event.getRegistry().register(doorBlock);
         });
         DOORS.clear();
+        WINDOWS.clear();
         GARAGES.clear();
     }
 
@@ -172,10 +182,14 @@ public class DoorRegister {
         DOOR_ITEMS.forEach(item -> {
             event.getRegistry().register(item);
         });
+        WINDOWS_ITEMS.forEach(item -> {
+            event.getRegistry().register(item);
+        });
         GARAGE_ITEMS.forEach(item -> {
             event.getRegistry().register(item);
         });
         DOOR_ITEMS.clear();
+        WINDOWS_ITEMS.clear();
         GARAGE_ITEMS.clear();
 
     }

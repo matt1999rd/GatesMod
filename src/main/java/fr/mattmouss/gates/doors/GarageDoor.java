@@ -15,6 +15,7 @@ import net.minecraft.state.StateContainer;
 import net.minecraft.state.properties.BlockStateProperties;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.ActionResultType;
+import net.minecraft.util.BlockRenderLayer;
 import net.minecraft.util.Direction;
 import net.minecraft.util.Hand;
 import net.minecraft.util.math.BlockPos;
@@ -55,7 +56,8 @@ public class GarageDoor extends Block {
         .hardnessAndResistance(3.0f)
         .lightValue(0)
         .sound(SoundType.METAL)
-        .notSolid());
+        //.notSolid()
+        );
         this.setRegistryName(key);
     }
 
@@ -72,6 +74,12 @@ public class GarageDoor extends Block {
     static  {
         GARAGE_PLACING = EnumProperty.create("placing",Placing.class);
         ANIMATION = IntegerProperty.create("animation",0,5);
+    }
+
+    //1.14.4 function replaced by notSolid()
+    @Override
+    public BlockRenderLayer func_180664_k() {
+        return BlockRenderLayer.CUTOUT_MIPPED;
     }
 
     @Override
@@ -251,6 +259,8 @@ public class GarageDoor extends Block {
         world.setBlockState(pos,Blocks.AIR.getDefaultState(),35);
     }
 
+    //1.15 function
+    /*
     @Override
     public ActionResultType onBlockActivated(BlockState state, World world, BlockPos pos, PlayerEntity entity, Hand hand, BlockRayTraceResult blockRayTraceResult) {
         GarageTileEntity gte = (GarageTileEntity) world.getTileEntity(pos);
@@ -266,6 +276,27 @@ public class GarageDoor extends Block {
         }
         gte.startAnimation();
         return ActionResultType.SUCCESS;
+    }
+
+     */
+
+
+    //1.14.4 function for onBlockActivated
+    @Override
+    public boolean func_220051_a(BlockState state, World world, BlockPos pos, PlayerEntity entity, Hand p_220051_5_, BlockRayTraceResult p_220051_6_) {
+        GarageTileEntity gte = (GarageTileEntity) world.getTileEntity(pos);
+        System.out.println("position du block de base :"+pos);
+        assert gte != null;
+        List<BlockPos> posList = gte.getPositionOfBlockConnected();
+        for (BlockPos pos1 : posList){
+            if (!(world.getTileEntity(pos1) instanceof GarageTileEntity)) throw new IllegalArgumentException("No tile entity on this blockPos :"+pos1);
+            System.out.println("position du block animé :"+pos1);
+            GarageTileEntity gte2 = (GarageTileEntity) world.getTileEntity(pos1);
+            assert gte2 != null;
+            gte2.startAnimation();
+        }
+        gte.startAnimation();
+        return true;
     }
 
     public boolean allowsMovement(BlockState state, IBlockReader reader, BlockPos pos, PathType pathType) {

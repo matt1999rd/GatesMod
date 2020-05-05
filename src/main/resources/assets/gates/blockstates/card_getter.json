@@ -1,0 +1,20 @@
+{
+  "variants": {
+    "facing=north": {
+      "model": "gates:block/card_getter"
+
+    },
+    "facing=east": {
+      "model": "gates:block/card_getter",
+      "y": 90
+    },
+    "facing=south": {
+      "model": "gates:block/card_getter",
+      "y": 180
+    },
+    "facing=west": {
+      "model": "gates:block/card_getter",
+      "y": 270
+    }
+  }
+}

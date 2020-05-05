@@ -1,6 +1,7 @@
 package fr.mattmouss.gates.network;
 
 import fr.mattmouss.gates.tileentity.IControlIdTE;
+import fr.mattmouss.gates.tileentity.IPriceControllingTE;
 import fr.mattmouss.gates.tileentity.TollGateTileEntity;
 import net.minecraft.network.PacketBuffer;
 import net.minecraft.tileentity.TileEntity;
@@ -30,8 +31,8 @@ public class PacketLowerPrice {
 
     public void handle(Supplier<NetworkEvent.Context> context){
         context.get().enqueueWork(()->{
-            TollGateTileEntity tgte = (TollGateTileEntity) context.get().getSender().getServerWorld().getTileEntity(pos);
-            tgte.lowerPrice();
+            IPriceControllingTE ipcte = (IPriceControllingTE) context.get().getSender().getServerWorld().getTileEntity(pos);
+            ipcte.lowerPrice();
         });
         context.get().setPacketHandled(true);
     }

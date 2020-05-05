@@ -1,37 +1,37 @@
 package fr.mattmouss.gates.network;
 
-import fr.mattmouss.gates.tileentity.IPriceControllingTE;
+import fr.mattmouss.gates.tileentity.CardGetterTileEntity;
 import fr.mattmouss.gates.tileentity.TollGateTileEntity;
 import net.minecraft.network.PacketBuffer;
 import net.minecraft.util.math.BlockPos;
-import net.minecraft.world.dimension.DimensionType;
 import net.minecraftforge.fml.network.NetworkEvent;
-import net.minecraftforge.fml.network.PacketDistributor;
 
-import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Supplier;
 
-public class PacketRaisePrice {
+public class PacketChangeSelectedID {
     private final BlockPos pos;
+    private final int id;
 
-    public PacketRaisePrice(PacketBuffer buf){
+    public PacketChangeSelectedID(PacketBuffer buf){
         pos = buf.readBlockPos();
+        id = buf.readInt();
     }
 
     public void toBytes(PacketBuffer buf){
         buf.writeBlockPos(pos);
+        buf.writeInt(id);
     }
 
-    public PacketRaisePrice(BlockPos pos_in){
+    public PacketChangeSelectedID(BlockPos pos_in,int sel_id){
         pos = pos_in;
+        this.id = sel_id;
     }
 
     public void handle(Supplier<NetworkEvent.Context> context){
         context.get().enqueueWork(()->{
-            IPriceControllingTE ipcte = (IPriceControllingTE) context.get().getSender().getServerWorld().getTileEntity(pos);
-            ipcte.raisePrice();
+            CardGetterTileEntity cgte = (CardGetterTileEntity) context.get().getSender().getServerWorld().getTileEntity(pos);
+            cgte.changeSelectedId(id);
         });
         context.get().setPacketHandled(true);
     }
-
 }

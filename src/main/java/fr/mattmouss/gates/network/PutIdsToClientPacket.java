@@ -5,8 +5,10 @@ import fr.mattmouss.gates.tileentity.CardGetterTileEntity;
 import net.minecraft.network.PacketBuffer;
 import net.minecraft.util.math.BlockPos;
 import net.minecraftforge.fml.network.NetworkEvent;
+import sun.nio.ch.Net;
 
 import java.util.HashMap;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Supplier;
 
@@ -14,6 +16,7 @@ public class PutIdsToClientPacket {
     private final BlockPos pos;
     private final HashMap<Integer,Integer> ServerCostMap;
 
+    //Pourquoi ce fucking packet ne s'envoie pas systèmatiquement et uniquement quand j'utilise le debugger ?
     public PutIdsToClientPacket(PacketBuffer buf){
         pos = buf.readBlockPos();
         ServerCostMap = new HashMap<>();
@@ -46,8 +49,12 @@ public class PutIdsToClientPacket {
     }
 
     public void handle(Supplier<NetworkEvent.Context> context){
+        AtomicBoolean needToMarkDirty = new AtomicBoolean(false);
         context.get().enqueueWork(()->{
             CardGetterTileEntity cgte = (CardGetterTileEntity) GatesMod.proxy.getClientWorld().getTileEntity(pos);
+            if (cgte==null){
+                needToMarkDirty.set(true);
+            }
             HashMap<Integer,Integer> ClientCostMap = cgte.getIdPriceMap();
             //to remove id that were in toll gate or turn stile that has been destroyed
             ClientCostMap.forEach((id,price)->{
@@ -67,6 +74,8 @@ public class PutIdsToClientPacket {
             System.out.println("packet handled");
         });
         context.get().setPacketHandled(true);
+        //sending of a packet dirty to server
+        Networking.INSTANCE.sendToServer(new PacketMarkDirty(pos,needToMarkDirty.get()));
 
     }
 }

@@ -14,6 +14,7 @@ import net.minecraft.state.StateContainer;
 import net.minecraft.state.properties.BlockStateProperties;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.ActionResultType;
+import net.minecraft.util.BlockRenderLayer;
 import net.minecraft.util.Direction;
 import net.minecraft.util.Hand;
 import net.minecraft.util.math.BlockPos;
@@ -31,11 +32,13 @@ public class CardGetter extends Block {
         super(Properties.create(Material.IRON)
         .hardnessAndResistance(2f)
         .sound(SoundType.METAL)
-        .notSolid());
+        //1.15 function
+        //.notSolid()
+        .lightValue(5));
         this.setRegistryName("card_getter");
     }
 
-    private static final VoxelShape SHAPE = Block.makeCuboidShape(0,0,0,16,14,16);
+    private static final VoxelShape SHAPE = Block.makeCuboidShape(0,0,0,16,32,16);
 
     @Override
     public VoxelShape getShape(BlockState p_220053_1_, IBlockReader p_220053_2_, BlockPos p_220053_3_, ISelectionContext p_220053_4_) {
@@ -60,11 +63,19 @@ public class CardGetter extends Block {
         }
     }
 
+    //1.14.4 function replaced by notSolid()
+    @Override
+    public BlockRenderLayer func_180664_k() {
+        return BlockRenderLayer.CUTOUT_MIPPED;
+    }
+
     @Override
     protected void fillStateContainer(StateContainer.Builder<Block, BlockState> builder) {
         builder.add(BlockStateProperties.HORIZONTAL_FACING);
     }
 
+    //1.15 function
+    /*
     @Override
     public ActionResultType onBlockActivated(BlockState state, World world, BlockPos pos, PlayerEntity player, Hand hand, BlockRayTraceResult result) {
         if (player != null){
@@ -78,5 +89,22 @@ public class CardGetter extends Block {
             }
         }
         return ActionResultType.FAIL;
+    }
+     */
+
+    //1.14.4 function onBlockActivated
+    @Override
+    public boolean func_220051_a(BlockState state, World world, BlockPos pos, PlayerEntity player, Hand p_220051_5_, BlockRayTraceResult p_220051_6_) {
+        if (player != null){
+            Direction looking_direction = Functions.getDirectionFromEntity(player,pos);
+            Direction facing = state.get(BlockStateProperties.HORIZONTAL_FACING);
+            CardGetterTileEntity cgte = (CardGetterTileEntity) world.getTileEntity(pos);
+            if (facing == looking_direction){
+                cgte.setSide(true); // player is a user
+                if (!world.isRemote) NetworkHooks.openGui((ServerPlayerEntity) player,cgte,cgte.getPos());
+                return true;
+            }
+        }
+        return false;
     }
 }

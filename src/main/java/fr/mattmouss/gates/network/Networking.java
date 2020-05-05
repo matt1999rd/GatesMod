@@ -62,6 +62,18 @@ public class Networking {
                 PutIdsToClientPacket::new,
                 PutIdsToClientPacket::handle);
 
+        INSTANCE.registerMessage(nextID(),
+                PacketChangeSelectedID.class,
+                PacketChangeSelectedID::toBytes,
+                PacketChangeSelectedID::new,
+                PacketChangeSelectedID::handle);
+
+        INSTANCE.registerMessage(nextID(),
+                PacketMarkDirty.class,
+                PacketMarkDirty::toBytes,
+                PacketMarkDirty::new,
+                PacketMarkDirty::handle);
+
 
     }
 

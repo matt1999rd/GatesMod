@@ -12,10 +12,13 @@ import fr.mattmouss.gates.items.ModItem;
 import fr.mattmouss.gates.network.Networking;
 import fr.mattmouss.gates.network.blockTSPacket;
 import fr.mattmouss.gates.network.movePlayerPacket;
+import fr.mattmouss.gates.setup.ModSound;
 import fr.mattmouss.gates.tscapability.ITSStorage;
 import fr.mattmouss.gates.tscapability.TSStorage;
 import fr.mattmouss.gates.tscapability.TurnStileCapability;
 import net.minecraft.block.*;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.audio.SimpleSound;
 import net.minecraft.client.entity.player.ClientPlayerEntity;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.player.PlayerInventory;
@@ -136,7 +139,7 @@ public class TurnStileTileEntity extends TileEntity implements IControlIdTE,ITic
                 }
                 if (playerIsGoingThrough(player)) {
                     movePlayerGoingThrough(player);
-                    //TODO : add sound for movement into turn stile
+                    Minecraft.getInstance().getSoundHandler().play(SimpleSound.master(ModSound.TURN_STILE_PASS,1.0F));
                 }
             }
         }
@@ -153,9 +156,10 @@ public class TurnStileTileEntity extends TileEntity implements IControlIdTE,ITic
             Vec3d vec3d = entity.getMotion();
             //the player is going in the direction of the turn stile
             boolean isRightMove = (Direction.getFacingFromVector(vec3d.x,vec3d.y,vec3d.z) == facing.getOpposite());
-            double x_player = entity.getPosX();
-            double y_player = entity.getPosY();
-            double z_player = entity.getPosZ();
+            Vec3d player_pos = entity.getPositionVec();
+            double x_player = player_pos.x;
+            double y_player = player_pos.y;
+            double z_player = player_pos.z;
             boolean isPlayerInFrontOfMainBlock;
             Direction.Axis axis = facing.getAxis();
             double coor_player =axis.getCoordinate(x_player,y_player,z_player);
@@ -250,9 +254,10 @@ public class TurnStileTileEntity extends TileEntity implements IControlIdTE,ITic
         DoorHingeSide dhs = this.getBlockState().get(BlockStateProperties.DOOR_HINGE);
         double x_detect = (increaseXCube(facing,dhs))? pos.getX()+0.5:pos.getX()-0.5;
         double z_detect = (increaseZCube(facing,dhs))? pos.getZ()+0.5:pos.getZ()-0.5;
-        double x_player = entity.getPosX();
-        double y_player = entity.getPosY();
-        double z_player = entity.getPosZ();
+        Vec3d pos = entity.getPositionVec();
+        double x_player = pos.x;
+        double y_player = pos.y;
+        double z_player = pos.z;
         if (x_detect<x_player && x_player<x_detect+1){
             if (y_player<pos.getY()+1){
                 if (z_detect<z_player && z_player<z_detect+1){

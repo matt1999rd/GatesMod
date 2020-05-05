@@ -25,6 +25,7 @@ import net.minecraft.state.properties.BlockStateProperties;
 import net.minecraft.state.properties.DoorHingeSide;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.ActionResultType;
+import net.minecraft.util.BlockRenderLayer;
 import net.minecraft.util.Direction;
 import net.minecraft.util.Hand;
 import net.minecraft.util.math.BlockPos;
@@ -61,7 +62,7 @@ public class TollGate extends Block {
      * */
     public TollGate() {
         super(Properties.create(Material.BARRIER)
-                .notSolid()
+                //.notSolid()
                 .sound(SoundType.METAL)
                 .hardnessAndResistance(2.0f));
         this.setRegistryName("toll_gate");
@@ -84,6 +85,12 @@ public class TollGate extends Block {
     static  {
         TG_POSITION = EnumProperty.create("tg_position",TollGPosition.class);
         ANIMATION = IntegerProperty.create("animation",0,4);
+    }
+
+    //1.14.4 function replaced by notSolid()
+    @Override
+    public BlockRenderLayer func_180664_k() {
+        return BlockRenderLayer.CUTOUT_MIPPED;
     }
 
     @Override
@@ -247,6 +254,8 @@ public class TollGate extends Block {
         }
     }
 
+    /*
+
     @Override
     public ActionResultType onBlockActivated(BlockState state, World world, BlockPos pos, PlayerEntity entity, Hand hand, BlockRayTraceResult blockRayTraceResult) {
         //old functionnality of block
@@ -255,12 +264,7 @@ public class TollGate extends Block {
         assert tgte != null;
         //we reupload the player using the gui
         tgte.changePlayerId(entity);
-        /*
 
-        tgte.startAllAnimation();
-        return ActionResultType.SUCCESS;
-
-         */
         if (state.get(TG_POSITION) != TollGPosition.CONTROL_UNIT){
             return ActionResultType.FAIL;
         }
@@ -280,6 +284,39 @@ public class TollGate extends Block {
             return ActionResultType.SUCCESS;
         }
         return ActionResultType.FAIL;
+    }
+    */
+
+    //1.14.4 function onBlockActivated
+
+    @Override
+    public boolean func_220051_a(BlockState state, World world, BlockPos pos, PlayerEntity player, Hand p_220051_5_, BlockRayTraceResult p_220051_6_) {
+        //old functionnality of block
+
+        TollGateTileEntity tgte = (TollGateTileEntity) world.getTileEntity(pos);
+        assert tgte != null;
+        //we reupload the player using the gui
+        tgte.changePlayerId(player);
+
+        if (state.get(TG_POSITION) != TollGPosition.CONTROL_UNIT){
+            return false;
+        }
+        Direction facing = state.get(BlockStateProperties.HORIZONTAL_FACING);
+        Direction entity_looking_direction = Functions.getDirectionFromEntity(player,pos);
+        DoorHingeSide dhs = state.get(BlockStateProperties.DOOR_HINGE);
+
+        //the player is a user
+        if ((entity_looking_direction==facing.rotateYCCW() && (dhs == DoorHingeSide.RIGHT))||
+                (entity_looking_direction==facing.rotateY() && (dhs == DoorHingeSide.LEFT))){
+            System.out.println("the player is a user ");
+            System.out.println("openning user gui !!");
+            ((TollGateTileEntity) world.getTileEntity(pos)).setSide(true);
+            if (!world.isRemote) {
+                NetworkHooks.openGui((ServerPlayerEntity) player, tgte, tgte.getPos());
+            }
+            return true;
+        }
+        return false;
     }
 
     static {

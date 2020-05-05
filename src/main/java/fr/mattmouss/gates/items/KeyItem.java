@@ -2,22 +2,30 @@ package fr.mattmouss.gates.items;
 
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import fr.mattmouss.gates.setup.ModSetup;
+import fr.mattmouss.gates.tileentity.CardGetterTileEntity;
+import fr.mattmouss.gates.tileentity.IControlIdTE;
 import fr.mattmouss.gates.tileentity.TollGateTileEntity;
 
 import fr.mattmouss.gates.tileentity.TurnStileTileEntity;
 import fr.mattmouss.gates.util.Functions;
 import net.minecraft.client.util.ITooltipFlag;
+import net.minecraft.entity.player.PlayerEntity;
+import net.minecraft.entity.player.ServerPlayerEntity;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
+import net.minecraft.item.ItemUseContext;
 import net.minecraft.nbt.CompoundNBT;
 import net.minecraft.nbt.JsonToNBT;
 import net.minecraft.tileentity.TileEntity;
+import net.minecraft.util.ActionResultType;
+import net.minecraft.util.Hand;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.text.ITextComponent;
 import net.minecraft.util.text.StringTextComponent;
 import net.minecraft.util.text.Style;
 import net.minecraft.util.text.TranslationTextComponent;
 import net.minecraft.world.World;
+import net.minecraftforge.fml.network.NetworkHooks;
 
 import javax.annotation.Nullable;
 import java.util.List;
@@ -211,5 +219,44 @@ public abstract class KeyItem extends Item {
             componentList.add(new StringTextComponent("Id :"+id));
         }
         super.addInformation(stack, world, componentList, flag);
+    }
+
+    private BlockPos getTSorTGPosition(ItemStack stack,World world){
+        Item item = stack.getItem();
+        if (item instanceof TollKeyItem){
+            return getTGPosition(stack,world);
+        }else if (item instanceof TurnStileKeyItem){
+            return getTSPosition(stack, world);
+        }else {
+            return null;
+        }
+    }
+
+    @Override
+    public ActionResultType onItemUse(ItemUseContext context) {
+        BlockPos pos = context.getPos();
+        PlayerEntity entity = context.getPlayer();
+        World world = context.getWorld();
+        Hand hand = context.getHand();
+        TileEntity te= world.getTileEntity(pos);
+        if (te instanceof CardGetterTileEntity) {
+            CardGetterTileEntity cgte = (CardGetterTileEntity) te;
+            ItemStack stack = entity.getHeldItem(hand);
+            //we get the pos of turn stile or toll gate
+            BlockPos registeredPos = getTSorTGPosition(stack, world);
+            if (registeredPos == null){
+                return super.onItemUse(context);
+            }
+            if (world.getTileEntity(registeredPos) instanceof IControlIdTE) {
+                IControlIdTE associated_te = (IControlIdTE) world.getTileEntity(registeredPos);
+                int id = associated_te.getId();
+                //we are technician
+                cgte.setSide(false);
+                //we give to TE our id to modify its price
+                cgte.setTechKeyId(id);
+                if (!world.isRemote) NetworkHooks.openGui((ServerPlayerEntity) entity, cgte, cgte.getPos());
+            }
+        }
+        return super.onItemUse(context);
     }
 }

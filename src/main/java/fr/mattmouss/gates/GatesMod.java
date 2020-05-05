@@ -3,10 +3,7 @@ package fr.mattmouss.gates;
 import fr.mattmouss.gates.blocks.CardGetter;
 import fr.mattmouss.gates.blocks.ModBlock;
 import fr.mattmouss.gates.doors.*;
-import fr.mattmouss.gates.gui.CardGetterContainer;
-import fr.mattmouss.gates.gui.TGTechContainer;
-import fr.mattmouss.gates.gui.TGUserContainer;
-import fr.mattmouss.gates.gui.TSContainer;
+import fr.mattmouss.gates.gui.*;
 import fr.mattmouss.gates.items.*;
 import fr.mattmouss.gates.setup.ClientProxy;
 import fr.mattmouss.gates.setup.IProxy;
@@ -172,6 +169,16 @@ public class GatesMod {
                         inv,
                         GatesMod.proxy.getClientPlayer());
             })).setRegistryName("card_getter"));
+
+            event.getRegistry().register(IForgeContainerType.create(((windowId, inv, data) -> {
+                BlockPos pos =data.readBlockPos();
+                return new CardGetterChoiceContainer(windowId,
+                        GatesMod.proxy.getClientWorld(),
+                        pos,
+                        GatesMod.proxy.getClientPlayer());
+            })).setRegistryName("card_getter_choice"));
+
+
         }
     }
 }

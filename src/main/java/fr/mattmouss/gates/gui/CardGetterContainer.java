@@ -1,12 +1,11 @@
 package fr.mattmouss.gates.gui;
 
 import fr.mattmouss.gates.blocks.ModBlock;
+import fr.mattmouss.gates.items.ModItem;
 import fr.mattmouss.gates.tileentity.CardGetterTileEntity;
-import fr.mattmouss.gates.tileentity.TollGateTileEntity;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.player.PlayerInventory;
 import net.minecraft.inventory.container.Container;
-import net.minecraft.inventory.container.IContainerListener;
 import net.minecraft.inventory.container.Slot;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.Items;
@@ -18,9 +17,7 @@ import net.minecraftforge.items.IItemHandler;
 import net.minecraftforge.items.SlotItemHandler;
 import net.minecraftforge.items.wrapper.InvWrapper;
 import javax.annotation.Nonnull;
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
 
 public class CardGetterContainer extends Container {
 
@@ -49,6 +46,12 @@ public class CardGetterContainer extends Container {
                 @Override
                 public boolean isItemValid(@Nonnull ItemStack stack) {
                     return false;
+                }
+                @Override
+                public ItemStack onTake(PlayerEntity entity, ItemStack stack) {
+                    //we notify te of card taken
+                    tileEntity.onCardTake();
+                    return super.onTake(entity,stack);
                 }
             });
         });
