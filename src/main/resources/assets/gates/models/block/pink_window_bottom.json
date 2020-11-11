@@ -1,0 +1,7 @@
+{
+    "parent": "gates:block/window_bottom",
+    "textures": {
+        "bottom": "gates:block/pink",
+        "top": "gates:block/pink"
+    }
+}

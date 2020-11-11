@@ -1,0 +1,18 @@
+{
+  "block.garage_animation": {
+    "subtitle": "subtitle.gates.garage_animation",
+    "sounds": ["gates:block/garage_animation"]
+  },
+  "block.toll_gate_opening": {
+    "subtitle": "subtitle.gates.toll_gate_opening",
+    "sounds": ["gates:block/toll_gate/opening"]
+  },
+  "block.toll_gate_closing": {
+    "subtitle": "subtitle.gates.toll_gate_closing",
+    "sounds": ["gates:block/toll_gate/closing"]
+  },
+  "block.turn_stile_pass": {
+    "subtitle": "subtitle.gates.turn_stile_pass",
+    "sounds": ["gates:block/turn_stile/pass"]
+  }
+}

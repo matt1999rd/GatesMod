@@ -112,8 +112,11 @@ public class GarageTileEntity extends TileEntity implements ITickableTileEntity 
         List<BlockPos> posList = getPositionOfBlockConnected();
         door.deleteBlock(pos,world);
         posList.forEach(pos_neighbor-> {
-            GarageDoor neighborDoor = (GarageDoor)world.getBlockState(pos_neighbor).getBlock();
-            neighborDoor.deleteBlock(pos_neighbor,world);
+            Block block = world.getBlockState(pos_neighbor).getBlock();
+            if (block instanceof GarageDoor){
+                GarageDoor neighborDoor = (GarageDoor)world.getBlockState(pos_neighbor).getBlock();
+                neighborDoor.deleteBlock(pos_neighbor,world);
+            }
         });
     }
 

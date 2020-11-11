@@ -1,0 +1,22 @@
+{
+	"credit": "Made with Blockbench",
+	"textures": {
+		"0": "gates:block/toll_gate_barrier",
+		"particle": "gates:block/toll_gate_barrier"
+	},
+	"elements": [
+		{
+			"from": [3, 16, 5],
+			"to": [4, 32, 6],
+			"rotation": {"angle": 0, "axis": "z", "origin": [28, 9, 11]},
+			"faces": {
+				"north": {"uv": [8, 0, 16, 2], "rotation": 270, "texture": "#0"},
+				"east": {"uv": [4, 14, 12, 16], "rotation": 90, "texture": "#0"},
+				"south": {"uv": [4, 14, 12, 16], "rotation": 90, "texture": "#0"},
+				"west": {"uv": [4, 14, 12, 16], "rotation": 90, "texture": "#0"},
+				"up": {"uv": [11, 4, 12, 5], "rotation": 90, "texture": "#0"},
+				"down": {"uv": [0, 0, 1, 1], "rotation": 90, "texture": "#0"}
+			}
+		}
+	]
+}

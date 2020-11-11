@@ -305,8 +305,10 @@ public class TurnStileTileEntity extends TileEntity implements IControlIdTE,ITic
     private void destroyBlock() {
         //destruction of all blocks connected and of the block itself
         for (BlockPos pos1 : getPositionOfBlockConnected()){
-            TurnStile selecStile = (TurnStile) world.getBlockState(pos1).getBlock();
-            selecStile.deleteBlock(pos1,world);
+            if (world.getBlockState(pos1).getBlock() instanceof TurnStile) {
+                TurnStile selecStile = (TurnStile) world.getBlockState(pos1).getBlock();
+                selecStile.deleteBlock(pos1, world);
+            }
         }
     }
 

@@ -1,0 +1,6 @@
+{
+    "parent": "gates:block/window_bm_open",
+    "textures": {
+      "material": "gates:block/stone"
+    }
+}

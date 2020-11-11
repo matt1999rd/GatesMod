@@ -17,10 +17,12 @@ public class MoreDoor extends DoorBlock {
         this.setRegistryName(key);
     }
 
+
     //1.14.4 function replaced by notSolid()
     @Override
     public BlockRenderLayer func_180664_k() {
         return BlockRenderLayer.CUTOUT_MIPPED;
     }
+
 
 }

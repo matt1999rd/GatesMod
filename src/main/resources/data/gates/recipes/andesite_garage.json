@@ -1,0 +1,19 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    "iii",
+    "i#i",
+    "iii"
+  ],
+  "key": {
+"#": {
+      "item": "minecraft:andesite"
+    },
+"i": {
+      "item": "minecraft:iron_ingot"
+    }
+ },"result": {
+    "item": "gates:andesite_garage",
+    "count": 16
+  }
+}

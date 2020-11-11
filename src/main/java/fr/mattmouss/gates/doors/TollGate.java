@@ -2,7 +2,6 @@ package fr.mattmouss.gates.doors;
 
 import fr.mattmouss.gates.energystorage.IdTracker;
 import fr.mattmouss.gates.enum_door.TollGPosition;
-import fr.mattmouss.gates.network.ChangeIdPacket;
 import fr.mattmouss.gates.network.Networking;
 import fr.mattmouss.gates.network.SetIdPacket;
 import fr.mattmouss.gates.tileentity.TollGateTileEntity;
@@ -62,6 +61,7 @@ public class TollGate extends Block {
      * */
     public TollGate() {
         super(Properties.create(Material.BARRIER)
+                //1.15
                 //.notSolid()
                 .sound(SoundType.METAL)
                 .hardnessAndResistance(2.0f));
@@ -88,6 +88,7 @@ public class TollGate extends Block {
     }
 
     //1.14.4 function replaced by notSolid()
+
     @Override
     public BlockRenderLayer func_180664_k() {
         return BlockRenderLayer.CUTOUT_MIPPED;
@@ -255,7 +256,7 @@ public class TollGate extends Block {
     }
 
     /*
-
+    //1.15 function
     @Override
     public ActionResultType onBlockActivated(BlockState state, World world, BlockPos pos, PlayerEntity entity, Hand hand, BlockRayTraceResult blockRayTraceResult) {
         //old functionnality of block
@@ -285,7 +286,9 @@ public class TollGate extends Block {
         }
         return ActionResultType.FAIL;
     }
-    */
+
+     */
+
 
     //1.14.4 function onBlockActivated
 
@@ -318,6 +321,8 @@ public class TollGate extends Block {
         }
         return false;
     }
+
+
 
     static {
         //shape vide

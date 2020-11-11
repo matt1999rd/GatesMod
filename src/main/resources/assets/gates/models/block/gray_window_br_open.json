@@ -1,0 +1,6 @@
+{
+    "parent": "gates:block/window_br_open",
+    "textures": {
+      "material": "gates:block/gray"
+    }
+}

@@ -1,0 +1,19 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    "###",
+    "#g#",
+    "###"
+  ],
+  "key": {
+"#": {
+      "item": "minecraft:stone_bricks"
+    },
+"g": {
+      "item": "minecraft:glass"
+    }
+ },"result": {
+    "item": "gates:stone_bricks_window",
+    "count": 16
+  }
+}

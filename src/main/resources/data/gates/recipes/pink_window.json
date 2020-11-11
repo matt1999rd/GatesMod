@@ -1,0 +1,19 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    "###",
+    "#g#",
+    "###"
+  ],
+  "key": {
+"#": {
+      "item": "minecraft:pink_dye"
+    },
+"g": {
+      "item": "minecraft:glass"
+    }
+ },"result": {
+    "item": "gates:pink_window",
+    "count": 16
+  }
+}

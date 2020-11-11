@@ -8,6 +8,7 @@ import net.minecraft.block.AirBlock;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.BlockItem;
 
+import net.minecraft.item.BlockItemUseContext;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemUseContext;
 import net.minecraft.util.ActionResultType;
@@ -26,31 +27,33 @@ public class GarageDoorItem extends BlockItem {
 
     @Override
     public ActionResultType onItemUse(ItemUseContext context) {
-        BlockPos pos =context.getPos();
-        World world = context.getWorld();
-        PlayerEntity entity=context.getPlayer();
-        if (allBlockReplacedisAir(pos.up(),entity,world)){
+        if (allBlockReplacedisAir(new BlockItemUseContext(context))){
             return super.onItemUse(context);
         }
         System.out.println("block non fabriqué");
         return ActionResultType.FAIL;
     }
 
-    private boolean allBlockReplacedisAir(BlockPos pos,PlayerEntity entity,World world){
-        Direction facing = Functions.getDirectionFromEntity(entity,pos);
+    // todo : need to retest this function because bugs occurs when vincent used it
+    // the function is not working  because we need to know where the first block will be created it depends on where the player clicked
+    // need to check the onItemUse function of blockItem to know where it put the first value
+    private boolean allBlockReplacedisAir(BlockItemUseContext context){
+        World world = context.getWorld();
+        PlayerEntity entity=context.getPlayer();
+        BlockPos pos_base =context.getPos();
+        Direction facing = Functions.getDirectionFromEntity(entity,pos_base);
         Direction dir_left_section=facing.rotateY();
         List<BlockPos> posList = new ArrayList<>();
-        posList.add(pos);
-        //block du dessus
-        posList.add(pos.up());
-        //blocks de l'arrière
-        posList.add(pos.up().offset(facing.getOpposite()));
-        posList.add(pos.up()
+        //block where we put the base block
+        posList.add(pos_base);
+        //back blocks
+        posList.add(pos_base.up().offset(facing.getOpposite()));
+        posList.add(pos_base.up()
                 .offset(facing.getOpposite())
                 .offset(dir_left_section));
-        //block à droite
-        posList.add(pos.offset(dir_left_section));
-        posList.add(pos.offset(dir_left_section).up());
+        //left block
+        posList.add(pos_base.offset(dir_left_section));
+        posList.add(pos_base.offset(dir_left_section).up());
 
         for (BlockPos pos_in : posList){
             //si le block n'est pas de l'air on retourne false

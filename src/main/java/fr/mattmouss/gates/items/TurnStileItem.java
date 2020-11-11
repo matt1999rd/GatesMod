@@ -9,10 +9,7 @@ import net.minecraft.block.BushBlock;
 import net.minecraft.block.LeavesBlock;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.inventory.EquipmentSlotType;
-import net.minecraft.item.BlockItem;
-import net.minecraft.item.Item;
-import net.minecraft.item.ItemStack;
-import net.minecraft.item.ItemUseContext;
+import net.minecraft.item.*;
 import net.minecraft.state.properties.DoorHingeSide;
 import net.minecraft.util.ActionResultType;
 import net.minecraft.util.Direction;
@@ -34,7 +31,7 @@ public class TurnStileItem extends BlockItem {
         World world = context.getWorld();
         PlayerEntity entity = context.getPlayer();
         TurnStileKeyItem key = (TurnStileKeyItem) ModItem.TURN_STILE_KEY.asItem();
-        if (checkFeasibility(pos.up(),entity,world)){
+        if (checkFeasibility(new BlockItemUseContext(context))){
             System.out.println("block successfully put !!");
             ItemStack newStack = new ItemStack(key);
             key.setTSPosition(newStack,world,pos.up());
@@ -47,16 +44,20 @@ public class TurnStileItem extends BlockItem {
         return ActionResultType.FAIL;
     }
 
-    private boolean checkFeasibility(BlockPos pos, PlayerEntity entity, World world) {
+    private boolean checkFeasibility(BlockItemUseContext context) {
+        BlockPos pos =context.getPos();
+        World world = context.getWorld();
+        PlayerEntity entity = context.getPlayer();
         Direction facing = Functions.getDirectionFromEntity(entity,pos);
         DoorHingeSide dhs = Functions.getHingeSideFromEntity(entity,pos,facing);
+        Direction dir_other_block = (dhs == DoorHingeSide.RIGHT) ? facing.rotateY() : facing.rotateYCCW();
         List<BlockPos> posList = new ArrayList<>();
-        //block main
+        //block Control Unit
         posList.add(pos);
-        //block right
-        posList.add(pos.offset(facing.rotateYCCW()));
-        //block left
-        posList.add(pos.offset(facing.rotateY()));
+        //block main
+        posList.add(pos.offset(dir_other_block));
+        //block opposite CU
+        posList.add(pos.offset(dir_other_block,2));
 
         for (BlockPos pos_in : posList){
             //return false if the position of this future block is occupied by another solid block

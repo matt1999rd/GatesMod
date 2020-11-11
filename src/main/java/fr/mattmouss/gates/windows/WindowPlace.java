@@ -383,6 +383,22 @@ public enum WindowPlace implements IStringSerializable {
         return this.name;
     }
 
+    public BlockPos getRandNeighborPos(BlockPos pos,Direction facing) {
+        for (int i=0;i<4;i++) {
+            int flag2 = (flag>>4*i);
+            if ((flag2& 1)== 1){
+                //we found a neighbor
+                Direction offsetDir = (i==2)? Direction.UP : Direction.DOWN;
+                if (i<2){
+                    offsetDir = (i==0)? facing.rotateY() : facing.rotateYCCW();
+                }
+                return pos.offset(offsetDir);
+            }
+        }
+        return null;
+    }
+
+
     public static class Places{
         private List<WindowPlace> places;
 

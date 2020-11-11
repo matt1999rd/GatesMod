@@ -1,0 +1,23 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    "ccc",
+    "cts",
+    "ccc"
+  ],
+  "key": {
+    "c": {
+      "item": "minecraft:cobblestone"
+    },
+    "t": {
+      "item": "gates:toll_gate"
+    },
+   "s": {
+      "item": "gates:turn_stile"
+    }
+  },
+  "result": {
+    "item": "gates:card_getter",
+    "count": 5
+  }
+}

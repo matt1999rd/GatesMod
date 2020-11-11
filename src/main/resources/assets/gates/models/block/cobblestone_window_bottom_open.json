@@ -1,0 +1,7 @@
+{
+    "parent": "gates:block/window_bottom_open",
+    "textures": {
+        "bottom": "gates:block/cobblestone",
+        "top": "gates:block/cobblestone"
+    }
+}

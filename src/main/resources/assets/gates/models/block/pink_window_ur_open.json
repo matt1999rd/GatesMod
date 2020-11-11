@@ -1,0 +1,6 @@
+{
+    "parent": "gates:block/window_ur_open",
+    "textures": {
+      "material": "gates:block/pink"
+    }
+}

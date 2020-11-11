@@ -1,0 +1,17 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    "##",
+    "##",
+    "##"
+  ],
+  "key": {
+    "#": {
+      "item": "minecraft:magenta_dye"
+    }
+  },
+  "result": {
+    "item": "gates:magenta_door",
+    "count": 3
+  }
+}

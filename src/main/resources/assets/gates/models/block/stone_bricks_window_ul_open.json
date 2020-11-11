@@ -1,0 +1,6 @@
+{
+    "parent": "gates:block/window_ul_open",
+    "textures": {
+      "material": "gates:block/stone_bricks"
+    }
+}

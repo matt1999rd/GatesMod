@@ -1,0 +1,19 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    "###",
+    "#g#",
+    "###"
+  ],
+  "key": {
+"#": {
+      "item": "minecraft:orange_dye"
+    },
+"g": {
+      "item": "minecraft:glass"
+    }
+ },"result": {
+    "item": "gates:orange_window",
+    "count": 16
+  }
+}

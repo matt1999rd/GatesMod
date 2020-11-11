@@ -1,0 +1,7 @@
+{
+"parent": "gates:block/garage_up_225",
+"textures": {
+"bottom": "gates:block/white_garage_down",
+"top": "gates:block/white_garage_up"
+}
+}

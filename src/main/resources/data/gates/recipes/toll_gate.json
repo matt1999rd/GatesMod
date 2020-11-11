@@ -1,0 +1,26 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    "   ",
+    "crw",
+    "sc "
+  ],
+  "key": {
+    "c": {
+      "item": "minecraft:cobblestone"
+    },
+    "r": {
+      "item": "minecraft:red_dye"
+    },
+   "w": {
+      "item": "minecraft:white_dye"
+    },
+   "s": {
+      "item": "minecraft:redstone"
+    }
+  },
+  "result": {
+    "item": "gates:toll_gate",
+    "count": 16
+  }
+}

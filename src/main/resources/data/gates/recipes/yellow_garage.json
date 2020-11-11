@@ -1,0 +1,19 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    "iii",
+    "i#i",
+    "iii"
+  ],
+  "key": {
+"#": {
+      "item": "minecraft:yellow_dye"
+    },
+"i": {
+      "item": "minecraft:iron_ingot"
+    }
+ },"result": {
+    "item": "gates:yellow_garage",
+    "count": 16
+  }
+}

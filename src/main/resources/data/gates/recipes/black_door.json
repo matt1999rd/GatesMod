@@ -1,0 +1,17 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    "##",
+    "##",
+    "##"
+  ],
+  "key": {
+    "#": {
+      "item": "minecraft:black_dye"
+    }
+  },
+  "result": {
+    "item": "gates:black_door",
+    "count": 3
+  }
+}

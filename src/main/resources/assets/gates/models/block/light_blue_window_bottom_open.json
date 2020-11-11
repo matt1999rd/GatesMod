@@ -1,0 +1,7 @@
+{
+    "parent": "gates:block/window_bottom_open",
+    "textures": {
+        "bottom": "gates:block/light_blue",
+        "top": "gates:block/light_blue"
+    }
+}

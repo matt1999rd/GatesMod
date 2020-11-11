@@ -1,0 +1,6 @@
+{
+    "parent": "gates:block/window_dr",
+    "textures": {
+      "material": "gates:block/green"
+    }
+}

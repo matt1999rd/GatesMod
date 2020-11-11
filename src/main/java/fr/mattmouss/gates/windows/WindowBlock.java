@@ -23,6 +23,7 @@ import net.minecraft.util.math.BlockRayTraceResult;
 import net.minecraft.util.math.MathHelper;
 import net.minecraft.util.math.shapes.ISelectionContext;
 import net.minecraft.util.math.shapes.VoxelShape;
+import net.minecraft.util.math.shapes.VoxelShapes;
 import net.minecraft.world.Explosion;
 import net.minecraft.world.IBlockReader;
 import net.minecraft.world.IWorldReader;
@@ -42,6 +43,17 @@ public class WindowBlock extends Block {
     protected static final VoxelShape NORTH_AABB;
     protected static final VoxelShape WEST_AABB;
     protected static final VoxelShape EAST_AABB;
+    /*
+    protected static final VoxelShape SOUTH_AABB_O;
+    protected static final VoxelShape NORTH_AABB_O;
+    protected static final VoxelShape WEST_AABB_O;
+    protected static final VoxelShape EAST_AABB_O;
+
+     */
+    protected static final VoxelShape SOUTH_AABB_OS;
+    protected static final VoxelShape NORTH_AABB_OS;
+    protected static final VoxelShape WEST_AABB_OS;
+    protected static final VoxelShape EAST_AABB_OS;
 
 
     public WindowBlock(String key) {
@@ -55,8 +67,9 @@ public class WindowBlock extends Block {
         this.setRegistryName(key);
     }
 
-    //todo : add the function for 1.14.4 to replace notSolid
 
+
+    //1.14 notSolid() function
 
     @Override
     public BlockRenderLayer func_180664_k() {
@@ -65,17 +78,57 @@ public class WindowBlock extends Block {
 
     @Override
     public VoxelShape getShape(BlockState state, IBlockReader p_220053_2_, BlockPos p_220053_3_, ISelectionContext p_220053_4_) {
-        Direction lvt_5_1_ = state.get(BlockStateProperties.HORIZONTAL_FACING);
-        switch (lvt_5_1_) {
+        Direction facing = state.get(BlockStateProperties.HORIZONTAL_FACING);
+        boolean isOpen = state.get(BlockStateProperties.OPEN);
+        WindowPlace place = state.get(WINDOW_PLACE);
+        boolean isLeft = place.isLeftPlace();
+        boolean isRight = place.isRightPlace();
+        switch (facing) {
             case EAST:
             default:
-                return EAST_AABB;
+                if (!isOpen){
+                    return EAST_AABB;
+                }
+                if (isLeft){
+                    return NORTH_AABB;
+                }
+                if (isRight){
+                    return SOUTH_AABB;
+                }
+                return VoxelShapes.or(NORTH_AABB_OS,SOUTH_AABB_OS);
             case SOUTH:
-                return SOUTH_AABB;
+                if (!isOpen){
+                    return SOUTH_AABB;
+                }
+                if (isLeft){
+                    return EAST_AABB;
+                }
+                if (isRight){
+                    return WEST_AABB;
+                }
+                return VoxelShapes.or(EAST_AABB_OS,WEST_AABB_OS);
             case WEST:
-                return WEST_AABB;
+                if (!isOpen){
+                    return WEST_AABB;
+                }
+                if (isLeft){
+                    return SOUTH_AABB;
+                }
+                if (isRight){
+                    return NORTH_AABB;
+                }
+                return VoxelShapes.or(NORTH_AABB_OS,SOUTH_AABB_OS);
             case NORTH:
-                return NORTH_AABB;
+                if (!isOpen){
+                    return NORTH_AABB;
+                }
+                if (isLeft){
+                    return WEST_AABB;
+                }
+                if (isRight){
+                    return EAST_AABB;
+                }
+                return VoxelShapes.or(EAST_AABB_OS,WEST_AABB_OS);
         }
     }
 
@@ -107,13 +160,47 @@ public class WindowBlock extends Block {
         if (entity != null){
             Direction facing = Functions.getDirectionFromEntity(entity,pos);
             WindowPlace placement = WindowPlace.getFromNeighboring(world,pos,state,facing);
+            boolean isOpen = getOpenFromNeighbor(world,pos,placement,facing);
             world.setBlockState(pos,state
                     .with(BlockStateProperties.HORIZONTAL_FACING, Functions.getDirectionFromEntity(entity,pos))
-                    .with(BlockStateProperties.OPEN,false)
+                    .with(BlockStateProperties.OPEN,isOpen)
                     .with(WINDOW_PLACE,placement)
             );
             notifyNeighborBlock(placement,facing,world,pos);
+            changeOpenState(placement,facing,world,pos,isOpen);
         }
+    }
+
+    private void changeOpenState(WindowPlace placement, Direction facing, World world,BlockPos pos,boolean newState) {
+        List<WindowDirection> directions = placement.getDirectionOfChangingWindow(facing,world,pos);
+        for (WindowDirection dir : directions){
+            //the blockpos to offset
+            BlockPos ch_block_pos = pos;
+            //get nb_offset int[]
+            int[] offsets = dir.getDirections();
+            //when dir value is 0 this means that all offset has been taken in account
+            for(int i=0;i<6;i++){
+                if (offsets[i] != 0){
+                    ch_block_pos = ch_block_pos.offset(Direction.byIndex(i),offsets[i]);
+                }
+            }
+            Block ch_window = world.getBlockState(ch_block_pos).getBlock();
+            BlockState ch_w_state = world.getBlockState(ch_block_pos);
+            if (this.equals(ch_window)){
+                world.setBlockState(ch_block_pos,ch_w_state.with(BlockStateProperties.OPEN,newState));
+            }
+        }
+    }
+
+    private boolean getOpenFromNeighbor(World world, BlockPos pos, WindowPlace placement,Direction facing) {
+        BlockPos neighborPos =placement.getRandNeighborPos(pos,facing);
+        if (!(neighborPos == null)) {
+            BlockState neighState = world.getBlockState(neighborPos);
+            if (neighState.has(BlockStateProperties.OPEN)){
+                return neighState.get(BlockStateProperties.OPEN);
+            }
+        }
+        return false;
     }
 
     private void notifyNeighborBlock(WindowPlace placement,Direction facing,World world,BlockPos pos){
@@ -143,8 +230,8 @@ public class WindowBlock extends Block {
 
     }
 
-    //1.15 function
     /*
+    //1.15 function
     @Override
     public ActionResultType onBlockActivated(BlockState state, World world, BlockPos pos, PlayerEntity player, Hand hand, BlockRayTraceResult result) {
         if (player != null){
@@ -176,6 +263,12 @@ public class WindowBlock extends Block {
 
      */
 
+    public void openOrCloseOtherWindows(){
+
+    }
+
+
+
     //1.14 function onBlockActivated
     @Override
     public boolean func_220051_a(BlockState state, World world, BlockPos pos, PlayerEntity player, Hand hand, BlockRayTraceResult result) {
@@ -206,11 +299,13 @@ public class WindowBlock extends Block {
         return false;
     }
 
+
+
     private void updatePlacement(World world, BlockPos pos, BlockState state, Direction facing) {
         WindowPlace placement = WindowPlace.getFromNeighboring(world,pos,state,null);
         boolean isOpen = state.get(BlockStateProperties.OPEN);
         world.setBlockState(pos,state.with(WINDOW_PLACE,placement)
-                //we need to have same facing for all block that is in valid position
+                //we need to have same facing for all block that are in valid position
                 .with(BlockStateProperties.HORIZONTAL_FACING,facing)
                 .with(BlockStateProperties.OPEN,isOpen)
         );
@@ -246,5 +341,10 @@ public class WindowBlock extends Block {
         NORTH_AABB = Block.makeCuboidShape(0.0D, 0.0D, 13.0D, 16.0D, 16.0D, 16.0D);
         WEST_AABB = Block.makeCuboidShape(13.0D, 0.0D, 0.0D, 16.0D, 16.0D, 16.0D);
         EAST_AABB = Block.makeCuboidShape(0.0D, 0.0D, 0.0D, 3.0D, 16.0D, 16.0D);
+
+        SOUTH_AABB_OS = Block.makeCuboidShape(0.0D, 2.0D, 2.0D, 7.0D, 14.0D, 3.0D);
+        NORTH_AABB_OS = Block.makeCuboidShape(0.0D, 2.0D, 13.0D, 7.0D, 14.0D, 14.0D);
+        WEST_AABB_OS =  Block.makeCuboidShape(13.0D, 2.0D, 0.0D, 14.0D, 14.0D, 7.0D);
+        EAST_AABB_OS =  Block.makeCuboidShape(2.0D, 2.0D, 0.0D, 3.0D, 14.0D, 7.0D);
     }
 }

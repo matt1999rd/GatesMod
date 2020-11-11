@@ -1,0 +1,20 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    "  c",
+    "ccc",
+    "s c"
+  ],
+  "key": {
+    "c": {
+      "item": "minecraft:cobblestone"
+    },
+   "s": {
+      "item": "minecraft:redstone"
+    }
+  },
+  "result": {
+    "item": "gates:turn_stile",
+    "count": 16
+  }
+}

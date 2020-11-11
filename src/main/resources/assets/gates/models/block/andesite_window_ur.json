@@ -1,0 +1,6 @@
+{
+    "parent": "gates:block/window_ur",
+    "textures": {
+      "material": "gates:block/andesite"
+    }
+}

@@ -64,10 +64,12 @@ public class CardGetter extends Block {
     }
 
     //1.14.4 function replaced by notSolid()
+
     @Override
     public BlockRenderLayer func_180664_k() {
         return BlockRenderLayer.CUTOUT_MIPPED;
     }
+
 
     @Override
     protected void fillStateContainer(StateContainer.Builder<Block, BlockState> builder) {
@@ -75,6 +77,7 @@ public class CardGetter extends Block {
     }
 
     //1.15 function
+
     /*
     @Override
     public ActionResultType onBlockActivated(BlockState state, World world, BlockPos pos, PlayerEntity player, Hand hand, BlockRayTraceResult result) {
@@ -90,9 +93,12 @@ public class CardGetter extends Block {
         }
         return ActionResultType.FAIL;
     }
+
      */
 
+
     //1.14.4 function onBlockActivated
+
     @Override
     public boolean func_220051_a(BlockState state, World world, BlockPos pos, PlayerEntity player, Hand p_220051_5_, BlockRayTraceResult p_220051_6_) {
         if (player != null){
@@ -107,4 +113,5 @@ public class CardGetter extends Block {
         }
         return false;
     }
+
 }

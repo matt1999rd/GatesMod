@@ -1,0 +1,6 @@
+{
+    "parent": "gates:block/window_bm",
+    "textures": {
+      "material": "gates:block/diorite"
+    }
+}

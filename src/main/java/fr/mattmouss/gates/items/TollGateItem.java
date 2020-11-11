@@ -9,10 +9,7 @@ import net.minecraft.block.BushBlock;
 import net.minecraft.block.LeavesBlock;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.inventory.EquipmentSlotType;
-import net.minecraft.item.BlockItem;
-import net.minecraft.item.Item;
-import net.minecraft.item.ItemStack;
-import net.minecraft.item.ItemUseContext;
+import net.minecraft.item.*;
 import net.minecraft.state.properties.DoorHingeSide;
 import net.minecraft.util.ActionResultType;
 import net.minecraft.util.Direction;
@@ -34,11 +31,10 @@ public class TollGateItem extends BlockItem {
     public ActionResultType onItemUse(ItemUseContext context) {
         BlockPos pos =context.getPos();
         World world = context.getWorld();
-        Hand hand = context.getHand();
         PlayerEntity entity=context.getPlayer();
         TollKeyItem key = (TollKeyItem) ModItem.TOLL_GATE_KEY.asItem();
         System.out.println("item defini : "+key);
-        if (checkFeasibility(pos.up(),entity,world)){
+        if (checkFeasibility(new BlockItemUseContext(context))){
             ItemStack newStack = new ItemStack(key);
             key.setTGPosition(newStack,world,pos.up());
             System.out.println("itemstack of new key item : "+newStack);
@@ -50,7 +46,10 @@ public class TollGateItem extends BlockItem {
         return ActionResultType.FAIL;
     }
 
-    private boolean checkFeasibility(BlockPos pos, PlayerEntity entity, World world){
+    private boolean checkFeasibility(BlockItemUseContext context){
+        BlockPos pos =context.getPos();
+        PlayerEntity entity = context.getPlayer();
+        World world = context.getWorld();
         Direction facing = Functions.getDirectionFromEntity(entity,pos);
         DoorHingeSide dhs = Functions.getHingeSideFromEntity(entity,pos,facing);
         Direction extDirection = Functions.getDirectionOfExtBlock(facing,dhs);

@@ -1,0 +1,6 @@
+{
+    "parent": "gates:block/window_f_open",
+    "textures": {
+      "material": "gates:block/cyan"
+    }
+}

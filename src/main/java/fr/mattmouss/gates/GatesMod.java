@@ -47,6 +47,7 @@ public class GatesMod {
         FMLJavaModLoadingContext.get().getModEventBus().addListener(this::setup);
 
         final IEventBus modEventBus = FMLJavaModLoadingContext.get().getModEventBus();
+
         modEventBus.addListener(this::preInit);
 
         MinecraftForge.EVENT_BUS.register(this);

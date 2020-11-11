@@ -81,6 +81,8 @@ public class TurnStile extends Block {
         return BlockRenderLayer.CUTOUT_MIPPED;
     }
 
+
+
     private VoxelShape getTurnStileShape(BlockState state){
         int anim = state.get(ANIMATION);
         Direction facing = state.get(BlockStateProperties.HORIZONTAL_FACING);

@@ -1,0 +1,6 @@
+{
+    "parent": "gates:block/window_bl_open",
+    "textures": {
+      "material": "gates:block/orange"
+    }
+}

@@ -1,0 +1,7 @@
+{
+"parent": "block/door_bottom",
+"textures": {
+"bottom": "gates:block/purple_door_bottom",
+"top": "gates:block/purple_door_top"
+}
+}

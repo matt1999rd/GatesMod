@@ -14,7 +14,8 @@ import net.minecraft.state.IntegerProperty;
 import net.minecraft.state.StateContainer;
 import net.minecraft.state.properties.BlockStateProperties;
 import net.minecraft.tileentity.TileEntity;
-import net.minecraft.util.ActionResultType;
+//import net.minecraft.util.ActionResultType;
+// for 1.14
 import net.minecraft.util.BlockRenderLayer;
 import net.minecraft.util.Direction;
 import net.minecraft.util.Hand;
@@ -81,6 +82,8 @@ public class GarageDoor extends Block {
     public BlockRenderLayer func_180664_k() {
         return BlockRenderLayer.CUTOUT_MIPPED;
     }
+
+
 
     @Override
     public VoxelShape getShape(BlockState state, IBlockReader p_220053_2_, BlockPos p_220053_3_, ISelectionContext p_220053_4_) {
@@ -260,6 +263,7 @@ public class GarageDoor extends Block {
     }
 
     //1.15 function
+
     /*
     @Override
     public ActionResultType onBlockActivated(BlockState state, World world, BlockPos pos, PlayerEntity entity, Hand hand, BlockRayTraceResult blockRayTraceResult) {
@@ -281,6 +285,9 @@ public class GarageDoor extends Block {
      */
 
 
+
+
+
     //1.14.4 function for onBlockActivated
     @Override
     public boolean func_220051_a(BlockState state, World world, BlockPos pos, PlayerEntity entity, Hand p_220051_5_, BlockRayTraceResult p_220051_6_) {
@@ -298,6 +305,7 @@ public class GarageDoor extends Block {
         gte.startAnimation();
         return true;
     }
+
 
     public boolean allowsMovement(BlockState state, IBlockReader reader, BlockPos pos, PathType pathType) {
         switch(pathType) {

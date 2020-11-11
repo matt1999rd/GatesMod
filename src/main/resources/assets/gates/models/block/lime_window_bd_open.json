@@ -1,0 +1,6 @@
+{
+    "parent": "gates:block/window_bd_open",
+    "textures": {
+      "material": "gates:block/lime"
+    }
+}

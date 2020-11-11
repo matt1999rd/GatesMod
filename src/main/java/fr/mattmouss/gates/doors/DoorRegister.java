@@ -7,12 +7,13 @@ import net.minecraft.block.Block;
 
 import net.minecraft.block.DoorBlock;
 
+//1.15 import for windows
+//import net.minecraft.client.renderer.RenderType;
+//import net.minecraft.client.renderer.RenderTypeLookup;
 
 import net.minecraft.item.BlockItem;
 import net.minecraft.item.Item;
 
-import net.minecraft.scoreboard.ScoreCriteria;
-import net.minecraft.util.BlockRenderLayer;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.event.RegistryEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
@@ -163,11 +164,14 @@ public class DoorRegister {
         WINDOWS.forEach(windowBlock -> {
             event.getRegistry().register(windowBlock);
             //1.15 function
+
             /*
             if (FMLEnvironment.dist == Dist.CLIENT){
-                RenderTypeLookup.setRenderLayer(windowBlock, RenderType.getCutout()); // pour la transparence des fenetres
+                RenderTypeLookup.setRenderLayer(windowBlock, RenderType.getCutoutMipped()); // pour la transparence des fenetres
             }
+
              */
+
         });
         GARAGES.forEach(doorBlock -> {
             event.getRegistry().register(doorBlock);

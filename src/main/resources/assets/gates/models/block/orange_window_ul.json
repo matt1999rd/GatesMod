@@ -1,0 +1,6 @@
+{
+    "parent": "gates:block/window_ul",
+    "textures": {
+      "material": "gates:block/orange"
+    }
+}

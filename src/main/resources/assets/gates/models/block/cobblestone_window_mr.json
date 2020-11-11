@@ -1,0 +1,6 @@
+{
+    "parent": "gates:block/window_mr",
+    "textures": {
+      "material": "gates:block/cobblestone"
+    }
+}

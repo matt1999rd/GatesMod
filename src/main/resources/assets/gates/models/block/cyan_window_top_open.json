@@ -1,0 +1,7 @@
+{
+    "parent": "gates:block/window_top_open",
+    "textures": {
+        "bottom": "gates:block/cyan",
+        "top": "gates:block/cyan"
+    }
+}

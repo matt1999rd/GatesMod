@@ -1,0 +1,7 @@
+{
+    "parent": "gates:block/window_bottom",
+    "textures": {
+        "bottom": "gates:block/stone",
+        "top": "gates:block/stone"
+    }
+}

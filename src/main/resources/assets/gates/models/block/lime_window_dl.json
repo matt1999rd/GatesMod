@@ -1,0 +1,6 @@
+{
+    "parent": "gates:block/window_dl",
+    "textures": {
+      "material": "gates:block/lime"
+    }
+}
