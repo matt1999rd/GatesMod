@@ -1,6 +1,5 @@
 package fr.mattmouss.gates.windows;
 
-import com.mojang.datafixers.types.Func;
 import fr.mattmouss.gates.util.Functions;
 import net.minecraft.block.*;
 import net.minecraft.block.material.Material;
@@ -14,26 +13,22 @@ import net.minecraft.state.EnumProperty;
 import net.minecraft.state.StateContainer;
 import net.minecraft.state.properties.BlockStateProperties;
 import net.minecraft.tileentity.TileEntity;
-import net.minecraft.util.ActionResultType;
 import net.minecraft.util.BlockRenderLayer;
 import net.minecraft.util.Direction;
 import net.minecraft.util.Hand;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.BlockRayTraceResult;
-import net.minecraft.util.math.MathHelper;
 import net.minecraft.util.math.shapes.ISelectionContext;
 import net.minecraft.util.math.shapes.VoxelShape;
 import net.minecraft.util.math.shapes.VoxelShapes;
-import net.minecraft.world.Explosion;
 import net.minecraft.world.IBlockReader;
-import net.minecraft.world.IWorldReader;
 import net.minecraft.world.World;
 
 import javax.annotation.Nullable;
 import javax.annotation.ParametersAreNonnullByDefault;
 import java.util.List;
 
-//TODO : change the sound
+
 
 public class WindowBlock extends Block {
 
@@ -43,17 +38,21 @@ public class WindowBlock extends Block {
     protected static final VoxelShape NORTH_AABB;
     protected static final VoxelShape WEST_AABB;
     protected static final VoxelShape EAST_AABB;
-    /*
-    protected static final VoxelShape SOUTH_AABB_O;
-    protected static final VoxelShape NORTH_AABB_O;
-    protected static final VoxelShape WEST_AABB_O;
-    protected static final VoxelShape EAST_AABB_O;
+    //standard : DIRECTION_AABB_OS(D2)
+    //DIRECTION : on what face of the block the glass part of the windows is
+    //OSE : Open Small East
+    //OSN : Open Small North
+    //OSW : Open Small West
+    //OSS : Open Small South
+    protected static final VoxelShape SOUTH_AABB_OSE;
+    protected static final VoxelShape NORTH_AABB_OSE;
+    protected static final VoxelShape WEST_AABB_OSN;
+    protected static final VoxelShape EAST_AABB_OSN;
 
-     */
-    protected static final VoxelShape SOUTH_AABB_OS;
-    protected static final VoxelShape NORTH_AABB_OS;
-    protected static final VoxelShape WEST_AABB_OS;
-    protected static final VoxelShape EAST_AABB_OS;
+    protected static final VoxelShape SOUTH_AABB_OSW;
+    protected static final VoxelShape NORTH_AABB_OSW;
+    protected static final VoxelShape WEST_AABB_OSS;
+    protected static final VoxelShape EAST_AABB_OSS;
 
 
     public WindowBlock(String key) {
@@ -95,7 +94,7 @@ public class WindowBlock extends Block {
                 if (isRight){
                     return SOUTH_AABB;
                 }
-                return VoxelShapes.or(NORTH_AABB_OS,SOUTH_AABB_OS);
+                return VoxelShapes.or(NORTH_AABB_OSE,SOUTH_AABB_OSE);
             case SOUTH:
                 if (!isOpen){
                     return SOUTH_AABB;
@@ -106,7 +105,7 @@ public class WindowBlock extends Block {
                 if (isRight){
                     return WEST_AABB;
                 }
-                return VoxelShapes.or(EAST_AABB_OS,WEST_AABB_OS);
+                return VoxelShapes.or(EAST_AABB_OSS,WEST_AABB_OSS);
             case WEST:
                 if (!isOpen){
                     return WEST_AABB;
@@ -117,7 +116,7 @@ public class WindowBlock extends Block {
                 if (isRight){
                     return NORTH_AABB;
                 }
-                return VoxelShapes.or(NORTH_AABB_OS,SOUTH_AABB_OS);
+                return VoxelShapes.or(NORTH_AABB_OSW,SOUTH_AABB_OSW);
             case NORTH:
                 if (!isOpen){
                     return NORTH_AABB;
@@ -128,7 +127,7 @@ public class WindowBlock extends Block {
                 if (isRight){
                     return EAST_AABB;
                 }
-                return VoxelShapes.or(EAST_AABB_OS,WEST_AABB_OS);
+                return VoxelShapes.or(EAST_AABB_OSN,WEST_AABB_OSN);
         }
     }
 
@@ -158,11 +157,11 @@ public class WindowBlock extends Block {
     @Override
     public void onBlockPlacedBy(World world, BlockPos pos, BlockState state, @Nullable LivingEntity entity, ItemStack stack) {
         if (entity != null){
-            Direction facing = Functions.getDirectionFromEntity(entity,pos);
+            Direction facing = Functions.getDirectionFromEntityAndNeighbor(entity,pos,world);
             WindowPlace placement = WindowPlace.getFromNeighboring(world,pos,state,facing);
             boolean isOpen = getOpenFromNeighbor(world,pos,placement,facing);
             world.setBlockState(pos,state
-                    .with(BlockStateProperties.HORIZONTAL_FACING, Functions.getDirectionFromEntity(entity,pos))
+                    .with(BlockStateProperties.HORIZONTAL_FACING, facing)
                     .with(BlockStateProperties.OPEN,isOpen)
                     .with(WINDOW_PLACE,placement)
             );
@@ -263,9 +262,6 @@ public class WindowBlock extends Block {
 
      */
 
-    public void openOrCloseOtherWindows(){
-
-    }
 
 
 
@@ -342,9 +338,14 @@ public class WindowBlock extends Block {
         WEST_AABB = Block.makeCuboidShape(13.0D, 0.0D, 0.0D, 16.0D, 16.0D, 16.0D);
         EAST_AABB = Block.makeCuboidShape(0.0D, 0.0D, 0.0D, 3.0D, 16.0D, 16.0D);
 
-        SOUTH_AABB_OS = Block.makeCuboidShape(0.0D, 2.0D, 2.0D, 7.0D, 14.0D, 3.0D);
-        NORTH_AABB_OS = Block.makeCuboidShape(0.0D, 2.0D, 13.0D, 7.0D, 14.0D, 14.0D);
-        WEST_AABB_OS =  Block.makeCuboidShape(13.0D, 2.0D, 0.0D, 14.0D, 14.0D, 7.0D);
-        EAST_AABB_OS =  Block.makeCuboidShape(2.0D, 2.0D, 0.0D, 3.0D, 14.0D, 7.0D);
+        SOUTH_AABB_OSE = Block.makeCuboidShape(1.0D, 2.0D, 2.0D, 7.0D, 14.0D, 3.0D);
+        NORTH_AABB_OSE = Block.makeCuboidShape(1.0D, 2.0D, 13.0D, 7.0D, 14.0D, 14.0D);
+        WEST_AABB_OSS =  Block.makeCuboidShape(13.0D, 2.0D, 1.0D, 14.0D, 14.0D, 7.0D);
+        EAST_AABB_OSS =  Block.makeCuboidShape(2.0D, 2.0D, 1.0D, 3.0D, 14.0D, 7.0D);
+
+        SOUTH_AABB_OSW = Block.makeCuboidShape(9.0D, 2.0D, 2.0D, 15.0D, 14.0D, 3.0D);
+        NORTH_AABB_OSW = Block.makeCuboidShape(9.0D, 2.0D, 13.0D, 15.0D, 14.0D, 14.0D);
+        WEST_AABB_OSN =  Block.makeCuboidShape(13.0D, 2.0D, 9.0D, 14.0D, 14.0D, 15.0D);
+        EAST_AABB_OSN =  Block.makeCuboidShape(2.0D, 2.0D, 9.0D, 3.0D, 14.0D, 15.0D);
     }
 }

@@ -1,12 +1,16 @@
 package fr.mattmouss.gates.util;
 
+import fr.mattmouss.gates.windows.WindowBlock;
+import net.minecraft.block.BlockState;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.inventory.container.Container;
+import net.minecraft.state.properties.BlockStateProperties;
 import net.minecraft.state.properties.DoorHingeSide;
 import net.minecraft.util.Direction;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.MathHelper;
 import net.minecraft.util.math.Vec3d;
+import net.minecraft.world.World;
 import net.minecraftforge.items.IItemHandler;
 import net.minecraftforge.items.SlotItemHandler;
 
@@ -18,6 +22,47 @@ public class Functions {
             return Direction.NORTH;
         }
         return d;
+    }
+
+    public static Direction getDirectionFromEntityAndNeighbor(LivingEntity placer, BlockPos pos, World world){
+        Direction defaultDir = getDirectionFromEntity(placer,pos);
+        Vec3d vec3d = placer.getPositionVec();
+        boolean ns = false;
+        boolean ew = false;
+        Direction neiWindowFacing = null;
+        for (int i=0;i<6;i++){
+            Direction dir = Direction.byIndex(i);
+            BlockPos neighPos = pos.offset(dir);
+            BlockState neighState = world.getBlockState(neighPos);
+            if (neighState.getBlock() instanceof WindowBlock){
+                //we need to avoid problems with windows with bad facing
+                if (neighState.get(BlockStateProperties.HORIZONTAL_FACING).getAxis() != dir.getAxis()) {
+                    neiWindowFacing = neighState.get(BlockStateProperties.HORIZONTAL_FACING);
+                    if (i==2 || i==3) {
+                        ns = true;
+                    } else if (i==4 || i==5){
+                        ew = true;
+                    }
+                }
+            }else if (neighState.getMaterial().blocksMovement()) {
+                if (i==2 || i==3){
+                    ns = true;
+                }else if (i==4 || i==5){
+                    ew = true;
+                }
+            }
+        }
+        if (ns == ew){
+            return defaultDir;
+        }else if (neiWindowFacing != null) {
+            return neiWindowFacing;
+        }else if (ns){
+            boolean playerIsInWest = vec3d.x > pos.getX()+0.5F;
+            return (playerIsInWest)? Direction.EAST : Direction.WEST;
+        }else{
+            boolean playerIsInSouth = vec3d.z > pos.getZ()+0.5F;
+            return (playerIsInSouth)? Direction.SOUTH : Direction.NORTH;
+        }
     }
 
     //give the side where the barrier is extending

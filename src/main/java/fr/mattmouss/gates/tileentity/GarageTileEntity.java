@@ -80,10 +80,10 @@ public class GarageTileEntity extends TileEntity implements ITickableTileEntity 
         //droite si à droite et gauche si à gauche
         Direction placing_offset = (placing.isRight())?dir_left_section.getOpposite():dir_left_section;
         BlockPos pos_lat_supp = pos.offset(placing_offset);
-        Block lat_block = world.getBlockState(pos_lat_supp).getBlock();
+        BlockState lat_block_state = world.getBlockState(pos_lat_supp);
         String pos_str = (placing.isRight())?"droite":"gauche";
         //block à droite ou à gauche qui doit être présent et stable
-        if (lat_block instanceof AirBlock || lat_block instanceof BushBlock || lat_block instanceof LeavesBlock){
+        if (!lat_block_state.getMaterial().blocksMovement()){
             System.out.println("pas de block à "+pos_str+" : destruction du block !!");
             destroyBlock();
             //return pour arrêter la fonction
