@@ -1,0 +1,6 @@
+{
+    "parent": "gates:block/window_bl_rot",
+    "textures": {
+      "material": "gates:block/diorite"
+    }
+}

@@ -9,6 +9,7 @@ import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.ItemStack;
 import net.minecraft.pathfinding.PathType;
+import net.minecraft.state.BooleanProperty;
 import net.minecraft.state.EnumProperty;
 import net.minecraft.state.StateContainer;
 import net.minecraft.state.properties.BlockStateProperties;
@@ -33,6 +34,7 @@ import java.util.List;
 public class WindowBlock extends Block {
 
     public static EnumProperty<WindowPlace> WINDOW_PLACE;
+    public static BooleanProperty ROTATED;
 
     protected static final VoxelShape SOUTH_AABB;
     protected static final VoxelShape NORTH_AABB;
@@ -64,7 +66,10 @@ public class WindowBlock extends Block {
                 //.notSolid()
         );
         this.setRegistryName(key);
+        this.setDefaultState(this.getStateContainer().getBaseState().with(ROTATED, Boolean.FALSE).with(WINDOW_PLACE,WindowPlace.FULL));
     }
+
+
 
 
 
@@ -164,6 +169,7 @@ public class WindowBlock extends Block {
                     .with(BlockStateProperties.HORIZONTAL_FACING, facing)
                     .with(BlockStateProperties.OPEN,isOpen)
                     .with(WINDOW_PLACE,placement)
+                    //.with(ROTATED,false)
             );
             notifyNeighborBlock(placement,facing,world,pos);
             changeOpenState(placement,facing,world,pos,isOpen);
@@ -309,7 +315,7 @@ public class WindowBlock extends Block {
 
     @Override
     protected void fillStateContainer(StateContainer.Builder<Block, BlockState> builder) {
-        builder.add(BlockStateProperties.HORIZONTAL_FACING, BlockStateProperties.OPEN, WINDOW_PLACE);
+        builder.add(BlockStateProperties.HORIZONTAL_FACING, BlockStateProperties.OPEN, WINDOW_PLACE, ROTATED);
     }
 
     @Override
@@ -333,6 +339,7 @@ public class WindowBlock extends Block {
 
     static {
         WINDOW_PLACE = EnumProperty.create("window_place",WindowPlace.class);
+        ROTATED = BooleanProperty.create("rotated");
         SOUTH_AABB = Block.makeCuboidShape(0.0D, 0.0D, 0.0D, 16.0D, 16.0D, 3.0D);
         NORTH_AABB = Block.makeCuboidShape(0.0D, 0.0D, 13.0D, 16.0D, 16.0D, 16.0D);
         WEST_AABB = Block.makeCuboidShape(13.0D, 0.0D, 0.0D, 16.0D, 16.0D, 16.0D);

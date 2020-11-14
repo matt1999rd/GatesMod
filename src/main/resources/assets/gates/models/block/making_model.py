@@ -26,6 +26,7 @@ incr = 0.0
 for m in material:
     for wp in window_place:
         Json_write(m,wp)
+        Json_write(m,wp+"_rot")
         incr+= 1
         print("Progress : "+str(int(incr/n*100))+" %")
         

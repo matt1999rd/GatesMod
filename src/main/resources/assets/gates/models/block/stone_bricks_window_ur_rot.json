@@ -1,0 +1,6 @@
+{
+    "parent": "gates:block/window_ur_rot",
+    "textures": {
+      "material": "gates:block/stone_bricks"
+    }
+}

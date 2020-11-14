@@ -1,0 +1,6 @@
+{
+    "parent": "gates:block/window_ml_rot",
+    "textures": {
+      "material": "gates:block/pink"
+    }
+}

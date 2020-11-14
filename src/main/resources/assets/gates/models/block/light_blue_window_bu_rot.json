@@ -1,0 +1,6 @@
+{
+    "parent": "gates:block/window_bu_rot",
+    "textures": {
+      "material": "gates:block/light_blue"
+    }
+}

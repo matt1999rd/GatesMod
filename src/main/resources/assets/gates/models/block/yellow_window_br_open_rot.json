@@ -1,0 +1,6 @@
+{
+    "parent": "gates:block/window_br_open_rot",
+    "textures": {
+      "material": "gates:block/yellow"
+    }
+}

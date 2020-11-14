@@ -1,0 +1,6 @@
+{
+    "parent": "gates:block/window_dl_rot",
+    "textures": {
+      "material": "gates:block/orange"
+    }
+}

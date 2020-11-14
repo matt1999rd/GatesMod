@@ -1,0 +1,6 @@
+{
+    "parent": "gates:block/window_f_open_rot",
+    "textures": {
+      "material": "gates:block/light_gray"
+    }
+}

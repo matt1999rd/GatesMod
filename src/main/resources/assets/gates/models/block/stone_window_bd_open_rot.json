@@ -1,0 +1,6 @@
+{
+    "parent": "gates:block/window_bd_open_rot",
+    "textures": {
+      "material": "gates:block/stone"
+    }
+}

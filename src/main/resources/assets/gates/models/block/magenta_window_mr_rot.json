@@ -1,0 +1,6 @@
+{
+    "parent": "gates:block/window_mr_rot",
+    "textures": {
+      "material": "gates:block/magenta"
+    }
+}

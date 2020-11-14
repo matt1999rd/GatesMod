@@ -1,0 +1,6 @@
+{
+    "parent": "gates:block/window_bl_open_rot",
+    "textures": {
+      "material": "gates:block/lime"
+    }
+}

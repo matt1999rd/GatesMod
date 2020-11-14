@@ -1,0 +1,6 @@
+{
+    "parent": "gates:block/window_bm_open_rot",
+    "textures": {
+      "material": "gates:block/cobblestone"
+    }
+}
