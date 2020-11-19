@@ -1,5 +1,6 @@
 package fr.mattmouss.gates.windows;
 
+import fr.mattmouss.gates.util.ExtendDirection;
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockState;
 import net.minecraft.state.properties.BlockStateProperties;
@@ -7,6 +8,7 @@ import net.minecraft.util.Direction;
 import net.minecraft.util.IStringSerializable;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
+import sun.security.x509.EDIPartyName;
 
 import javax.annotation.Nullable;
 import java.util.ArrayList;
@@ -101,48 +103,62 @@ public enum WindowPlace implements IStringSerializable {
 
 
 
-    public static WindowPlace getFromNeighboring(World world, BlockPos pos, BlockState state,@Nullable Direction future_facing) {
+    public static WindowPlace getFromNeighboring(World world, BlockPos pos, BlockState state,@Nullable ExtendDirection future_facing) {
         //we get direction where there is not a window block
-        List<Direction> notWindowNeighBorFound = getNonWindowNeighbor(world,pos,state,future_facing);
+        List<ExtendDirection> notWindowNeighBorFound = getNonWindowNeighbor(world, pos, state, future_facing);
         Places places = new Places();
-        Direction facing;
-        if (future_facing == null){
-            facing= state.get(BlockStateProperties.HORIZONTAL_FACING);
-        }else {
-            facing = future_facing;
+        ExtendDirection extDirProperty;
+        if (future_facing == null) {
+            boolean isRotated = state.get(WindowBlock.ROTATED);
+            Direction facing = state.get(BlockStateProperties.HORIZONTAL_FACING);
+            extDirProperty = ExtendDirection.getExtendedDirection(facing,isRotated);
+        } else {
+            extDirProperty = future_facing;
         }
 
-        for (Direction dir : notWindowNeighBorFound){
+        for (ExtendDirection dir : notWindowNeighBorFound) {
             //we search in all this direction
-            switch (dir){
+            switch (dir) {
                 case DOWN:
                     //no window underneath this block : remove up block
                     places.filter(WindowPlace::isUpPlace);
                     break;
                 case UP:
-                    //no window above this block : remove up block
+                    //no window above this block : remove down block
                     places.filter(WindowPlace::isDownPlace);
                     break;
                 case NORTH:
                     //the facing direction is the normal to the surface of window in the direction of the player after the placing of the block
                     //two case that are to control : if NORTH is not in the frontal axis
-                    places.filter(windowPlace -> (facing == Direction.EAST) ? windowPlace.isLeftPlace() : windowPlace.isRightPlace());
+                    places.filter(windowPlace -> (extDirProperty == ExtendDirection.EAST) ? windowPlace.isLeftPlace() : windowPlace.isRightPlace());
                     break;
                 case SOUTH:
-                    places.filter(windowPlace -> (facing == Direction.EAST) ? windowPlace.isRightPlace() : windowPlace.isLeftPlace());
+                    places.filter(windowPlace -> (extDirProperty == ExtendDirection.WEST) ? windowPlace.isLeftPlace() : windowPlace.isRightPlace());
                     break;
                 case WEST:
-                    places.filter(windowPlace -> (facing == Direction.SOUTH) ? windowPlace.isRightPlace() : windowPlace.isLeftPlace());
+                    places.filter(windowPlace -> (extDirProperty == ExtendDirection.NORTH) ? windowPlace.isLeftPlace() : windowPlace.isRightPlace());
                     break;
                 case EAST:
-                    places.filter(windowPlace -> (facing == Direction.SOUTH) ? windowPlace.isLeftPlace() : windowPlace.isRightPlace());
+                    places.filter(windowPlace -> (extDirProperty == ExtendDirection.SOUTH) ? windowPlace.isLeftPlace() : windowPlace.isRightPlace());
+                    break;
+                case NORTH_EAST:
+                    places.filter(windowPlace -> (extDirProperty == ExtendDirection.SOUTH_EAST) ?  windowPlace.isLeftPlace() : windowPlace.isRightPlace());
+                    break;
+                case SOUTH_WEST:
+                    places.filter(windowPlace -> (extDirProperty == ExtendDirection.NORTH_WEST) ? windowPlace.isLeftPlace() : windowPlace.isRightPlace());
+                    break;
+                case NORTH_WEST:
+                    places.filter(windowPlace -> (extDirProperty == ExtendDirection.NORTH_EAST) ? windowPlace.isLeftPlace() : windowPlace.isRightPlace());
+                    break;
+                case SOUTH_EAST:
+                    places.filter(windowPlace -> (extDirProperty == ExtendDirection.SOUTH_WEST) ? windowPlace.isLeftPlace() : windowPlace.isRightPlace());
                     break;
             }
         }
-        return getWindowPlaceFromPlaces(places,world,pos,state,facing);
+        return getWindowPlaceFromPlaces(places, world, pos, extDirProperty);
     }
 
-    private static WindowPlace getWindowPlaceFromPlaces(Places places,World world,BlockPos pos,BlockState state,Direction facing){
+    private static WindowPlace getWindowPlaceFromPlaces(Places places,World world,BlockPos pos,ExtendDirection facing){
         //all filter occur
         if (places.getSize() == 1){
             //we get the only windowPlace remaining
@@ -153,7 +169,7 @@ public enum WindowPlace implements IStringSerializable {
             //we have only one possible value with full
             places.filter(windowPlace -> (windowPlace == WindowPlace.FULL));
             //we have only a place of size one
-            return getWindowPlaceFromPlaces(places,world,pos,state,facing);
+            return getWindowPlaceFromPlaces(places,world,pos,facing);
         }
         //two filter occur except for left and right (give then full)
         if (places.getSize() == 4){
@@ -171,12 +187,12 @@ public enum WindowPlace implements IStringSerializable {
                 System.out.println("Places that is not working : "+places);
             }
             //we check the presence of the block (if WP = BOTH_MIDDLE return true)
-            if (complexPlace.checkValidity(world,pos,state,facing)){
+            if (complexPlace.checkValidity(world,pos,facing)){
                 return complexPlace;
             }
             //if it is not valid we get the only both that is on vertical line
             places.filter(windowPlace -> (windowPlace.getMeta()>=3 || windowPlace ==WindowPlace.FULL));
-            return getWindowPlaceFromPlaces(places,world,pos,state,facing);
+            return getWindowPlaceFromPlaces(places,world,pos,facing);
         }
 
         //when we filter only once we take away 1 both 2 corner
@@ -184,7 +200,7 @@ public enum WindowPlace implements IStringSerializable {
         //this lead to 6 in size.
         if (places.getSize() == 6){
             Places complexPlaces = places.getPlace(windowPlace -> windowPlace.getMeta()>5);
-            int flag = getValidityFlag(complexPlaces,world,pos,state,facing);
+            int flag = getValidityFlag(complexPlaces,world,pos,facing);
             //nothing is valid
             if ((flag & 0x01)== 0x01){
                 //arbitrary choice
@@ -194,7 +210,7 @@ public enum WindowPlace implements IStringSerializable {
                 WindowPlace unvalidPlace =complexPlaces.getWindowPlace();
                 //it filter left or right place depending on the unvalidPlace flag (if it is right we filter right and same for left)
                 places.filter(windowPlace -> (windowPlace.flag & (unvalidPlace.flag & 0x0011) ) == (unvalidPlace.flag& 0x0011));
-                return getWindowPlaceFromPlaces(places, world, pos, state,facing);
+                return getWindowPlaceFromPlaces(places, world, pos,facing);
             }
         }
 
@@ -203,7 +219,7 @@ public enum WindowPlace implements IStringSerializable {
         if (places.getSize() == 8){
             //we get the two corner place
             Places cornerPlaces = places.getPlace(windowPlace -> (windowPlace.getMeta()>5 && windowPlace.getMeta()<10));
-            WindowPlace unvalidCorner = getUnvalidCorner(cornerPlaces,world,pos,state,true,facing);
+            WindowPlace unvalidCorner = getUnvalidCorner(cornerPlaces,world,pos,true,facing);
             //if the two corner are valid
             if (unvalidCorner == WindowPlace.FULL){
                 //we get the middle left or right place
@@ -212,7 +228,7 @@ public enum WindowPlace implements IStringSerializable {
             }else if (unvalidCorner != null){
                 //it filter up or down place depending on the unValidCorner flag (if it is down we filter down and same for up)
                 places.filter(windowPlace -> (windowPlace.flag & (unvalidCorner.flag & 0x1100) ) == (unvalidCorner.flag & 0x1100));
-                return getWindowPlaceFromPlaces(places,world,pos,state,facing);
+                return getWindowPlaceFromPlaces(places,world,pos,facing);
             }else {
                 //unvalidCorner is null if the two are both invalid which means that we cannot know which one we need to return
                 return BOTH_MIDDLE;
@@ -221,22 +237,22 @@ public enum WindowPlace implements IStringSerializable {
         //nothing has been filtered
         if (places.getSize() == 12){
             Places cornerPlaces = places.getPlace(windowPlace -> (windowPlace.getMeta()>5 && windowPlace.getMeta()<10));
-            WindowPlace unvalidCorner = getUnvalidCorner(cornerPlaces,world,pos,state,false,facing);
+            WindowPlace unvalidCorner = getUnvalidCorner(cornerPlaces,world,pos,false,facing);
             //it filter left or right place depending on the unvalidPlace flag (if it is right we filter right and same for left)
             //because we need to remove middle_right or left when impossible
             places.filter(windowPlace -> (windowPlace.flag & (unvalidCorner.flag & 0x0011) ) == (unvalidCorner.flag& 0x0011));
-            return getWindowPlaceFromPlaces(places, world, pos, state,facing);
+            return getWindowPlaceFromPlaces(places, world, pos,facing);
         }
         return WindowPlace.FULL;
     }
 
     //flag is a boolean stocker
     //flag = 0xAnA(n-1)...A0 where Ai = (is the i-th WindowPlace valid)
-    private static int getValidityFlag(Places cornerPlaces,World world,BlockPos pos,BlockState state,Direction facing){
+    private static int getValidityFlag(Places cornerPlaces,World world,BlockPos pos,ExtendDirection facing){
         AtomicInteger flag = new AtomicInteger(0);
         AtomicInteger incr = new AtomicInteger(0);
         cornerPlaces.forEach(windowPlace -> {
-            if (windowPlace.checkValidity(world,pos,state,facing)){
+            if (windowPlace.checkValidity(world,pos,facing)){
                 flag.addAndGet((int) Math.pow(2.0,incr.get()));
             }
             incr.incrementAndGet();
@@ -247,13 +263,13 @@ public enum WindowPlace implements IStringSerializable {
     //we will use this function to notify nearby block of changement in this window Block
     //the direction offset of block nearby are stocked within a base 6 integer
     // i = (abcd...)6 where every a b c d represent a direction index (which is between 0 and 5)
-    public List<WindowDirection> getDirectionOfChangingWindow(Direction facing, World world, BlockPos pos){
+    public List<WindowDirection> getDirectionOfChangingWindow(ExtendDirection facing, World world, BlockPos pos){
         List<WindowDirection> directions = new ArrayList<>();
         if (this.isUpPlace()){
-            directions.add(new WindowDirection(1,Direction.DOWN));
+            directions.add(new WindowDirection(1,ExtendDirection.DOWN));
         }
         if (this.isDownPlace()){
-            directions.add(new WindowDirection(1,Direction.UP));
+            directions.add(new WindowDirection(1,ExtendDirection.UP));
         }
         if (this.isRightPlace()){
             directions.add(new WindowDirection(1,facing.rotateY()));
@@ -261,41 +277,41 @@ public enum WindowPlace implements IStringSerializable {
         if (this.isLeftPlace()){
             directions.add(new WindowDirection(1,facing.rotateYCCW()));
         }
-        Direction HorDir = (isRightPlace()) ? facing.rotateY() : facing.rotateYCCW();
-        Direction VerDir = (isUpPlace()) ? Direction.DOWN : Direction.UP;
+        ExtendDirection horDir = (isRightPlace()) ? facing.rotateY() : facing.rotateYCCW();
+        ExtendDirection verDir = (isUpPlace()) ? ExtendDirection.DOWN : ExtendDirection.UP;
         if (this.isCorner()){
-            BlockState state = world.getBlockState(pos.offset(VerDir));
+            BlockState state = world.getBlockState(verDir.offset(pos));
             boolean flag = false;
             if (state.has(WindowBlock.WINDOW_PLACE)){
                 flag = (state.get(WindowBlock.WINDOW_PLACE).isMiddle());
             }
             //we add the opposite corner
-            directions.add(new WindowDirection(1,HorDir,1,VerDir));
+            directions.add(new WindowDirection(1,horDir,1,verDir));
             //the flag specify if we need to add the changement of window block 2 blocks away
             if (flag){
                 //we add the 2 way up/down
-                directions.add(new WindowDirection(2,VerDir));
+                directions.add(new WindowDirection(2,verDir));
                 //we add the 2 way up/down and one way right/left
-                directions.add(new WindowDirection(2,VerDir,1,HorDir));
+                directions.add(new WindowDirection(2,verDir,1,horDir));
             }
         }
         //todo : if possible change the way of getting position and allow us to add offset when multiple middle block
         if (this.isMiddle()){
-            directions.add(new WindowDirection(1,HorDir,1, Direction.UP));
-            directions.add(new WindowDirection(1,HorDir,1,Direction.DOWN));
+            directions.add(new WindowDirection(1,horDir,1, ExtendDirection.UP));
+            directions.add(new WindowDirection(1,horDir,1, ExtendDirection.DOWN));
             int i =1;
             //a code that allow people to make extra high windows
             //if there is middle in up direction
             while (world.getBlockState(pos.offset(Direction.UP,i)).get(WindowBlock.WINDOW_PLACE).isMiddle() && i<32){
-                directions.add(new WindowDirection(1,HorDir,i+1,Direction.UP));
-                directions.add(new WindowDirection(i+1, Direction.UP));
+                directions.add(new WindowDirection(1,horDir,i+1,ExtendDirection.UP));
+                directions.add(new WindowDirection(i+1, ExtendDirection.UP));
                 i++;
             }
             i=1;
             //if there is middle in down direction
             while (world.getBlockState(pos.offset(Direction.DOWN,i)).get(WindowBlock.WINDOW_PLACE).isMiddle() && i<32){
-                directions.add(new WindowDirection(1,HorDir,i+1,Direction.DOWN));
-                directions.add(new WindowDirection(i+1,Direction.DOWN));
+                directions.add(new WindowDirection(1,horDir,i+1,ExtendDirection.DOWN));
+                directions.add(new WindowDirection(i+1,ExtendDirection.DOWN));
                 i++;
             }
         }
@@ -310,11 +326,11 @@ public enum WindowPlace implements IStringSerializable {
 
     //give the unvalid corner if it exist, full if not
     //return null if multiple when boolean is true
-    private static WindowPlace getUnvalidCorner(Places cornerPlaces, World world,BlockPos pos,BlockState state,boolean ifMultipleReturnNull,Direction facing){
+    private static WindowPlace getUnvalidCorner(Places cornerPlaces, World world,BlockPos pos,boolean ifMultipleReturnNull,ExtendDirection facing){
         AtomicReference<WindowPlace> unValidCorner = new AtomicReference<>(WindowPlace.FULL);
         AtomicInteger number_of_def = new AtomicInteger(0);
         cornerPlaces.forEach(windowPlace -> {
-            if (!windowPlace.checkValidity(world,pos,state,facing)){
+            if (!windowPlace.checkValidity(world,pos,facing)){
                 unValidCorner.set(windowPlace);
                 number_of_def.incrementAndGet();
             }
@@ -329,17 +345,17 @@ public enum WindowPlace implements IStringSerializable {
 
     //this function will check if the corner at the opposite position is really there
 
-    private boolean checkValidity(World world, BlockPos pos, BlockState state,Direction facing) {
+    private boolean checkValidity(World world, BlockPos pos,ExtendDirection facing) {
         if (this == WindowPlace.BOTH_MIDDLE){
             return true;
         }
         if (this.isCorner()){
             WindowPlace oppositeCorner = this.getOpposite();
-            Direction verDir,horDir;
+            ExtendDirection verDir,horDir;
             if (oppositeCorner.isUpPlace()){
-                verDir = Direction.UP;
+                verDir = ExtendDirection.UP;
             }else {
-                verDir = Direction.DOWN;
+                verDir = ExtendDirection.DOWN;
             }
             //facing direction is from block to position of player
             if (oppositeCorner.isRightPlace()){
@@ -349,7 +365,7 @@ public enum WindowPlace implements IStringSerializable {
             }
             //we check
             WindowBlock corner_Block = (WindowBlock) world.getBlockState(pos).getBlock();
-            Block other_corner_Block = world.getBlockState(pos.offset(horDir).offset(verDir)).getBlock();
+            Block other_corner_Block = world.getBlockState(verDir.offset(horDir.offset(pos))).getBlock();
             return (corner_Block.equals(other_corner_Block));
         }else {
             return false;
@@ -359,17 +375,20 @@ public enum WindowPlace implements IStringSerializable {
 
 
 
-    private static List<Direction> getNonWindowNeighbor(World world, BlockPos pos, BlockState state,Direction future_facing) {
-        Direction.Axis FrontalAxis;
+    private static List<ExtendDirection> getNonWindowNeighbor(World world, BlockPos pos, BlockState state, ExtendDirection future_facing) {
+        ExtendDirection.Axis FrontalAxis;
         if (future_facing == null) {
-            FrontalAxis = state.get(BlockStateProperties.HORIZONTAL_FACING).getAxis();
+            boolean isRotated = state.get(WindowBlock.ROTATED);
+            Direction facing = state.get(BlockStateProperties.HORIZONTAL_FACING);
+            ExtendDirection dir = ExtendDirection.getExtendedDirection(facing,isRotated);
+            FrontalAxis = dir.getAxis();
         }else {
             FrontalAxis = future_facing.getAxis();
         }
-        List<Direction> NeighborDirs = new ArrayList<>();
-        for (Direction direction : Direction.values()){
-            if (direction.getAxis() != FrontalAxis){
-                Block block = world.getBlockState(pos.offset(direction)).getBlock();
+        List<ExtendDirection> NeighborDirs = new ArrayList<>();
+        for (ExtendDirection direction : ExtendDirection.values()){
+            if (direction.getAxis().isOnPlane(FrontalAxis)){
+                Block block = world.getBlockState(direction.offset(pos)).getBlock();
                 if (!(block instanceof WindowBlock)){
                     NeighborDirs.add(direction);
                 }

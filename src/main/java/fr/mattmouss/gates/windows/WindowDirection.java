@@ -1,16 +1,16 @@
 package fr.mattmouss.gates.windows;
 
-import net.minecraft.util.Direction;
+import fr.mattmouss.gates.util.ExtendDirection;
 
 public class WindowDirection {
-    private int[] dir = new int[6];
+    private int[] dir = new int[10];
 
-    public WindowDirection(int nb_offset,Direction dir){
+    public WindowDirection(int nb_offset, ExtendDirection dir){
         int index = dir.getIndex();
         this.dir[index] = nb_offset;
-    }
+}
 
-    public WindowDirection(int nb_offset,Direction dir,int nb_offset2,Direction dir2){
+    public WindowDirection(int nb_offset,ExtendDirection dir,int nb_offset2,ExtendDirection dir2){
         int index = dir.getIndex();
         this.dir[index] = nb_offset;
         int index2 = dir2.getIndex();

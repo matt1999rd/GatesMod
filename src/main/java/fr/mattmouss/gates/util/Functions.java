@@ -15,20 +15,23 @@ import net.minecraftforge.items.IItemHandler;
 import net.minecraftforge.items.SlotItemHandler;
 
 public class Functions {
-    public static Direction getDirectionFromEntity(LivingEntity placer, BlockPos pos) {
-        Vec3d vec = placer.getPositionVec();
-        Direction d = Direction.getFacingFromVector(vec.x-pos.getX(),vec.y-pos.getY(),vec.z-pos.getZ());
-        if (d==Direction.DOWN || d==Direction.UP){
+    public static Direction getDirectionFromEntity(LivingEntity placer,BlockPos pos){
+        Vec3d vec3d = placer.getPositionVec();
+        Direction d= Direction.getFacingFromVector(vec3d.x-pos.getX(),vec3d.y-pos.getY(),vec3d.z-pos.getZ());
+        if (d== Direction.DOWN || d== Direction.UP){
             return Direction.NORTH;
         }
         return d;
     }
 
-    public static Direction getDirectionFromEntityAndNeighbor(LivingEntity placer, BlockPos pos, World world){
-        Direction defaultDir = getDirectionFromEntity(placer,pos);
+    public static ExtendDirection getDirectionFromEntityAndNeighbor(LivingEntity placer, BlockPos pos, World world){
+        //todo : change getDirectionFromEntity to match with rotated windows
+        ExtendDirection defaultDir = ExtendDirection.getFacingFromPlayer(placer,pos);
         Vec3d vec3d = placer.getPositionVec();
         boolean ns = false;
         boolean ew = false;
+        boolean nwse = false;
+        boolean nesw = false;
         Direction neiWindowFacing = null;
         for (int i=0;i<6;i++){
             Direction dir = Direction.byIndex(i);
@@ -52,16 +55,43 @@ public class Functions {
                 }
             }
         }
+        for (int i=0;i<4;i++){
+            // fd = [SOUTH WEST NORTH EAST]
+            Direction first_dir = Direction.byHorizontalIndex(i);
+            // sd = [WEST NORTH EAST SOUTH]
+            Direction second_dir = Direction.byHorizontalIndex((i+1)%4);
+            BlockPos neighPos = pos.offset(first_dir).offset(second_dir);
+            BlockState neighState = world.getBlockState(neighPos);
+            if (neighState.getMaterial().blocksMovement()){
+                //SW or NE
+                if (i==0 || i==2){
+                    nesw = true;
+                }else{ //NW or SE
+                    nwse = true;
+                }
+            }
+        }
+        //if ns or ew are impossible
         if (ns == ew){
-            return defaultDir;
+            //overfilling of windows surrounding (incompatible places)
+            if (ns || nesw == nwse){
+                return defaultDir;
+            }else if (nesw){
+                boolean playerIsInNorthEast = vec3d.x+vec3d.z < pos.getX()+pos.getZ()+1.0F;
+                return (playerIsInNorthEast)? ExtendDirection.NORTH_WEST : ExtendDirection.SOUTH_EAST;
+            }else {
+                boolean playerIsInNorthWest = vec3d.x-vec3d.z > pos.getX()-pos.getZ();
+                return (playerIsInNorthWest)? ExtendDirection.NORTH_EAST: ExtendDirection.SOUTH_WEST;
+            }
         }else if (neiWindowFacing != null) {
-            return neiWindowFacing;
+            //if we have a near windows (with ew or ns)
+            return ExtendDirection.getExtendedDirection(neiWindowFacing,false);
         }else if (ns){
             boolean playerIsInWest = vec3d.x > pos.getX()+0.5F;
-            return (playerIsInWest)? Direction.EAST : Direction.WEST;
+            return (playerIsInWest)? ExtendDirection.EAST : ExtendDirection.WEST;
         }else{
             boolean playerIsInSouth = vec3d.z > pos.getZ()+0.5F;
-            return (playerIsInSouth)? Direction.SOUTH : Direction.NORTH;
+            return (playerIsInSouth)? ExtendDirection.SOUTH : ExtendDirection.NORTH;
         }
     }
 

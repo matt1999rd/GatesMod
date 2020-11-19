@@ -1,5 +1,6 @@
 package fr.mattmouss.gates.windows;
 
+import fr.mattmouss.gates.util.ExtendDirection;
 import fr.mattmouss.gates.util.Functions;
 import net.minecraft.block.*;
 import net.minecraft.block.material.Material;
@@ -162,40 +163,19 @@ public class WindowBlock extends Block {
     @Override
     public void onBlockPlacedBy(World world, BlockPos pos, BlockState state, @Nullable LivingEntity entity, ItemStack stack) {
         if (entity != null){
-            Direction facing = Functions.getDirectionFromEntityAndNeighbor(entity,pos,world);
+            ExtendDirection facing = Functions.getDirectionFromEntityAndNeighbor(entity,pos,world);
             WindowPlace placement = WindowPlace.getFromNeighboring(world,pos,state,facing);
-            boolean isOpen = getOpenFromNeighbor(world,pos,placement,facing);
+            boolean isOpen = getOpenFromNeighbor(world,pos,placement,facing.getDirection());
             world.setBlockState(pos,state
-                    .with(BlockStateProperties.HORIZONTAL_FACING, facing)
+                    .with(BlockStateProperties.HORIZONTAL_FACING, facing.getDirection())
                     .with(BlockStateProperties.OPEN,isOpen)
                     .with(WINDOW_PLACE,placement)
-                    //.with(ROTATED,false)
+                    .with(ROTATED,facing.isRotated())
             );
-            notifyNeighborBlock(placement,facing,world,pos);
-            changeOpenState(placement,facing,world,pos,isOpen);
+            notifyNeighborBlock(placement,facing,world,pos,false);
         }
     }
 
-    private void changeOpenState(WindowPlace placement, Direction facing, World world,BlockPos pos,boolean newState) {
-        List<WindowDirection> directions = placement.getDirectionOfChangingWindow(facing,world,pos);
-        for (WindowDirection dir : directions){
-            //the blockpos to offset
-            BlockPos ch_block_pos = pos;
-            //get nb_offset int[]
-            int[] offsets = dir.getDirections();
-            //when dir value is 0 this means that all offset has been taken in account
-            for(int i=0;i<6;i++){
-                if (offsets[i] != 0){
-                    ch_block_pos = ch_block_pos.offset(Direction.byIndex(i),offsets[i]);
-                }
-            }
-            Block ch_window = world.getBlockState(ch_block_pos).getBlock();
-            BlockState ch_w_state = world.getBlockState(ch_block_pos);
-            if (this.equals(ch_window)){
-                world.setBlockState(ch_block_pos,ch_w_state.with(BlockStateProperties.OPEN,newState));
-            }
-        }
-    }
 
     private boolean getOpenFromNeighbor(World world, BlockPos pos, WindowPlace placement,Direction facing) {
         BlockPos neighborPos =placement.getRandNeighborPos(pos,facing);
@@ -208,7 +188,7 @@ public class WindowBlock extends Block {
         return false;
     }
 
-    private void notifyNeighborBlock(WindowPlace placement,Direction facing,World world,BlockPos pos){
+    private void notifyNeighborBlock(WindowPlace placement,ExtendDirection facing,World world,BlockPos pos,boolean openingStateOnly){
         List<WindowDirection> directions = placement.getDirectionOfChangingWindow(facing,world,pos);
         for (WindowDirection dir : directions){
             //the blockpos to offset
@@ -216,15 +196,17 @@ public class WindowBlock extends Block {
             //get nb_offset int[]
             int[] offsets = dir.getDirections();
             //when dir value is 0 this means that all offset has been taken in account
-            for(int i=0;i<6;i++){
+            for(int i=0;i<10;i++){
                 if (offsets[i] != 0){
-                    ch_block_pos = ch_block_pos.offset(Direction.byIndex(i),offsets[i]);
+                    ch_block_pos = ExtendDirection.byIndex(i).offset(ch_block_pos,offsets[i]);
                 }
             }
             Block ch_window = world.getBlockState(ch_block_pos).getBlock();
             BlockState ch_w_state = world.getBlockState(ch_block_pos);
             if (this.equals(ch_window)){
-                ((WindowBlock)ch_window).updatePlacement(world,ch_block_pos,ch_w_state,facing);
+                WindowBlock window = (WindowBlock)ch_window;
+                if (openingStateOnly) window.openOrCloseWindow(ch_w_state,ch_block_pos,world);
+                else window.updatePlacement(world,ch_block_pos,ch_w_state,facing);
             }
         }
     }
@@ -243,24 +225,9 @@ public class WindowBlock extends Block {
             openOrCloseWindow(state,pos,world);
             WindowPlace placement = state.get(WINDOW_PLACE);
             Direction facing = state.get(BlockStateProperties.HORIZONTAL_FACING);
-            List<WindowDirection> directions = placement.getDirectionOfChangingWindow(facing,world,pos);
-            for (WindowDirection dir : directions){
-                //the blockpos to offset
-                BlockPos ch_block_pos = pos;
-                //get nb_offset int[]
-                int[] offsets = dir.getDirections();
-                //when dir value is 0 this means that all offset has been taken in account
-                for(int i=0;i<6;i++){
-                    if (offsets[i] != 0){
-                        ch_block_pos = ch_block_pos.offset(Direction.byIndex(i),offsets[i]);
-                    }
-                }
-                Block ch_window = world.getBlockState(ch_block_pos).getBlock();
-                BlockState ch_w_state = world.getBlockState(ch_block_pos);
-                if (this.equals(ch_window)){
-                    ((WindowBlock)ch_window).openOrCloseWindow(ch_w_state,ch_block_pos,world);
-                }
-            }
+            boolean isRotated = state.get(ROTATED);
+            ExtendDirection extDir = ExtendDirection.getExtendedDirection(facing,isRotated);
+            notifyNeighborBlock(placement,extDir,world,pos,true);
             return ActionResultType.SUCCESS;
         }
         return ActionResultType.PASS;
@@ -278,24 +245,9 @@ public class WindowBlock extends Block {
             openOrCloseWindow(state,pos,world);
             WindowPlace placement = state.get(WINDOW_PLACE);
             Direction facing = state.get(BlockStateProperties.HORIZONTAL_FACING);
-            List<WindowDirection> directions = placement.getDirectionOfChangingWindow(facing,world,pos);
-            for (WindowDirection dir : directions){
-                //the blockpos to offset
-                BlockPos ch_block_pos = pos;
-                //get nb_offset int[]
-                int[] offsets = dir.getDirections();
-                //when dir value is 0 this means that all offset has been taken in account
-                for(int i=0;i<6;i++){
-                    if (offsets[i] != 0){
-                        ch_block_pos = ch_block_pos.offset(Direction.byIndex(i),offsets[i]);
-                    }
-                }
-                Block ch_window = world.getBlockState(ch_block_pos).getBlock();
-                BlockState ch_w_state = world.getBlockState(ch_block_pos);
-                if (this.equals(ch_window)){
-                    ((WindowBlock)ch_window).openOrCloseWindow(ch_w_state,ch_block_pos,world);
-                }
-            }
+            boolean isRotated = state.get(ROTATED);
+            ExtendDirection extDir = ExtendDirection.getExtendedDirection(facing,isRotated);
+            notifyNeighborBlock(placement,extDir,world,pos,true);
             return true;
         }
         return false;
@@ -303,13 +255,14 @@ public class WindowBlock extends Block {
 
 
 
-    private void updatePlacement(World world, BlockPos pos, BlockState state, Direction facing) {
+    private void updatePlacement(World world, BlockPos pos, BlockState state, ExtendDirection facing) {
         WindowPlace placement = WindowPlace.getFromNeighboring(world,pos,state,null);
         boolean isOpen = state.get(BlockStateProperties.OPEN);
         world.setBlockState(pos,state.with(WINDOW_PLACE,placement)
                 //we need to have same facing for all block that are in valid position
-                .with(BlockStateProperties.HORIZONTAL_FACING,facing)
+                .with(BlockStateProperties.HORIZONTAL_FACING,facing.getDirection())
                 .with(BlockStateProperties.OPEN,isOpen)
+                .with(ROTATED,facing.isRotated())
         );
     }
 
@@ -328,13 +281,15 @@ public class WindowBlock extends Block {
     public void onBlockHarvested(World world, BlockPos pos, BlockState state, PlayerEntity player) {
         WindowPlace wp = state.get(WINDOW_PLACE);
         Direction facing = state.get(BlockStateProperties.HORIZONTAL_FACING);
+        boolean isRotated = state.get(ROTATED);
+        ExtendDirection extDir = ExtendDirection.getExtendedDirection(facing,isRotated);
         super.onBlockHarvested(world,pos,state,player);
         world.setBlockState(pos, Blocks.AIR.getDefaultState(),35);
         ItemStack stack = player.getHeldItemMainhand();
         if (!world.isRemote && !player.isCreative() && player.canHarvestBlock(state)) {
             Block.spawnDrops(state, world, pos, null, player, stack);
         }
-        notifyNeighborBlock(wp,facing,world,pos);
+        notifyNeighborBlock(wp,extDir,world,pos,false);
     }
 
     static {
