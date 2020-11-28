@@ -1,5 +1,6 @@
 package fr.mattmouss.gates.windows;
 
+import fr.mattmouss.gates.tools.VoxelInts;
 import fr.mattmouss.gates.util.ExtendDirection;
 import fr.mattmouss.gates.util.Functions;
 import net.minecraft.block.*;
@@ -83,57 +84,66 @@ public class WindowBlock extends Block {
 
     @Override
     public VoxelShape getShape(BlockState state, IBlockReader p_220053_2_, BlockPos p_220053_3_, ISelectionContext p_220053_4_) {
-        Direction facing = state.get(BlockStateProperties.HORIZONTAL_FACING);
-        boolean isOpen = state.get(BlockStateProperties.OPEN);
-        WindowPlace place = state.get(WINDOW_PLACE);
-        boolean isLeft = place.isLeftPlace();
-        boolean isRight = place.isRightPlace();
-        switch (facing) {
-            case EAST:
-            default:
-                if (!isOpen){
-                    return EAST_AABB;
-                }
-                if (isLeft){
-                    return NORTH_AABB;
-                }
-                if (isRight){
-                    return SOUTH_AABB;
-                }
-                return VoxelShapes.or(NORTH_AABB_OSE,SOUTH_AABB_OSE);
-            case SOUTH:
-                if (!isOpen){
-                    return SOUTH_AABB;
-                }
-                if (isLeft){
-                    return EAST_AABB;
-                }
-                if (isRight){
-                    return WEST_AABB;
-                }
-                return VoxelShapes.or(EAST_AABB_OSS,WEST_AABB_OSS);
-            case WEST:
-                if (!isOpen){
-                    return WEST_AABB;
-                }
-                if (isLeft){
-                    return SOUTH_AABB;
-                }
-                if (isRight){
-                    return NORTH_AABB;
-                }
-                return VoxelShapes.or(NORTH_AABB_OSW,SOUTH_AABB_OSW);
-            case NORTH:
-                if (!isOpen){
-                    return NORTH_AABB;
-                }
-                if (isLeft){
-                    return WEST_AABB;
-                }
-                if (isRight){
-                    return EAST_AABB;
-                }
-                return VoxelShapes.or(EAST_AABB_OSN,WEST_AABB_OSN);
+        boolean isRotated = state.get(ROTATED);
+        if (!isRotated) {
+            Direction facing = state.get(BlockStateProperties.HORIZONTAL_FACING);
+            boolean isOpen = state.get(BlockStateProperties.OPEN);
+            WindowPlace place = state.get(WINDOW_PLACE);
+            boolean isLeft = place.isLeftPlace();
+            boolean isRight = place.isRightPlace();
+            switch (facing) {
+                case EAST:
+                default:
+                    if (!isOpen) {
+                        return EAST_AABB;
+                    }
+                    if (isLeft) {
+                        return NORTH_AABB;
+                    }
+                    if (isRight) {
+                        return SOUTH_AABB;
+                    }
+                    return VoxelShapes.or(NORTH_AABB_OSE, SOUTH_AABB_OSE);
+                case SOUTH:
+                    if (!isOpen) {
+                        return SOUTH_AABB;
+                    }
+                    if (isLeft) {
+                        return EAST_AABB;
+                    }
+                    if (isRight) {
+                        return WEST_AABB;
+                    }
+                    return VoxelShapes.or(EAST_AABB_OSS, WEST_AABB_OSS);
+                case WEST:
+                    if (!isOpen) {
+                        return WEST_AABB;
+                    }
+                    if (isLeft) {
+                        return SOUTH_AABB;
+                    }
+                    if (isRight) {
+                        return NORTH_AABB;
+                    }
+                    return VoxelShapes.or(NORTH_AABB_OSW, SOUTH_AABB_OSW);
+                case NORTH:
+                    if (!isOpen) {
+                        return NORTH_AABB;
+                    }
+                    if (isLeft) {
+                        return WEST_AABB;
+                    }
+                    if (isRight) {
+                        return EAST_AABB;
+                    }
+                    return VoxelShapes.or(EAST_AABB_OSN, WEST_AABB_OSN);
+            }
+        }else {
+            boolean isOpen = state.get(BlockStateProperties.OPEN);
+            Direction facing = state.get(BlockStateProperties.HORIZONTAL_FACING);
+            WindowPlace place = state.get(WINDOW_PLACE);
+            VoxelShape usedVoxels = place.getVoxels(isOpen,facing);
+            return usedVoxels;
         }
     }
 

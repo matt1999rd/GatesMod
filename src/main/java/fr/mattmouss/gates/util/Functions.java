@@ -1,5 +1,6 @@
 package fr.mattmouss.gates.util;
 
+import fr.mattmouss.gates.tools.VoxelInts;
 import fr.mattmouss.gates.windows.WindowBlock;
 import net.minecraft.block.BlockState;
 import net.minecraft.entity.LivingEntity;
@@ -10,6 +11,8 @@ import net.minecraft.util.Direction;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.MathHelper;
 import net.minecraft.util.math.Vec3d;
+import net.minecraft.util.math.shapes.VoxelShape;
+import net.minecraft.util.math.shapes.VoxelShapes;
 import net.minecraft.world.World;
 import net.minecraftforge.items.IItemHandler;
 import net.minecraftforge.items.SlotItemHandler;
@@ -144,6 +147,14 @@ public class Functions {
                         Math.pow(first_pos[1]-player_pos[1],2.0)+
                         Math.pow(first_pos[2]-player_pos[2],2.0)) ;
 
+    }
+
+    public static VoxelShape getShapeFromVoxelIntsTab(VoxelInts[] usedVoxels,Direction facing,VoxelShape shape){
+        for (VoxelInts vi : usedVoxels){
+            vi = vi.rotate(Direction.EAST,facing);
+            shape = VoxelShapes.or(shape,vi.getAssociatedShape());
+        }
+        return shape;
     }
 
 }

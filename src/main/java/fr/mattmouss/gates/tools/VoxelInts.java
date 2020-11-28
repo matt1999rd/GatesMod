@@ -17,32 +17,20 @@ public class VoxelInts {
     public VoxelInts(int x1,int y1,int z1,int x2,int y2,int z2,boolean isSizeUsed){
         if (isSizeUsed){
             //we build our voxel on size x y z for second argument
-            if (x1 >16 || x1 + x2>16 || y1>16 || y1+y2>16 || z1>16 ||z1+z2>16){
-                throw new ExceptionInInitializerError("none of this 6 int are greater than 15");
-            }
             plane_val= new double[]{x1, y1, z1, x1+x2, y1+y2, z1+z2};
             return;
         }
         //we build our voxel on origin and end of the cube
-        if (x1>16 || x2>16 || y1>16 || y2>16 || z1>16 ||z2>16){
-            throw new ExceptionInInitializerError("none of this 6 int are greater than 15");
-        }
         plane_val= new double[]{x1, y1, z1, x2, y2, z2};
     }
 
     public VoxelInts(double x1,double y1,double z1,double x2,double y2,double z2,boolean isSizeUsed){
         if (isSizeUsed){
             //we build our voxel on size x y z for second argument
-            if (x1 >16 || x1 + x2>16 || y1>16 || y1+y2>16 || z1>16 ||z1+z2>16){
-                throw new ExceptionInInitializerError("none of this 6 int are greater than 15");
-            }
             plane_val= new double[]{x1, y1, z1, x1+x2, y1+y2, z1+z2};
             return;
         }
         //we build our voxel on origin and end of the cube
-        if (x1>16 || x2>16 || y1>16 || y2>16 || z1>16 ||z2>16){
-            throw new ExceptionInInitializerError("none of this 6 int are greater than 15");
-        }
         plane_val= new double[]{x1, y1, z1, x2, y2, z2};
     }
 

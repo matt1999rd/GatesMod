@@ -95,7 +95,7 @@
 "facing=north,open=false,window_place=middle_left,rotated=true":  { "model": "gates:block/green_window_ml_rot", "y":270 },
 "facing=north,open=false,window_place=middle_left,rotated=false":  { "model": "gates:block/green_window_ml", "y":270 },
 "facing=north,open=false,window_place=middle_right,rotated=true":  { "model": "gates:block/green_window_mr_rot", "y":270 },
-"facing=north,open=false,window_place=middle_right,rotated=false":  { "model": "gates:block/green_window_mr", "y":270 },,
+"facing=north,open=false,window_place=middle_right,rotated=false":  { "model": "gates:block/green_window_mr", "y":270 },
 "facing=south,open=true,window_place=full,rotated=true":  { "model": "gates:block/green_window_f_open_rot", "y":90 },
 "facing=south,open=true,window_place=full,rotated=false":  { "model": "gates:block/green_window_f_open", "y":90 },
 "facing=south,open=true,window_place=both_up,rotated=true":  { "model": "gates:block/green_window_bu_open_rot", "y":90 },
