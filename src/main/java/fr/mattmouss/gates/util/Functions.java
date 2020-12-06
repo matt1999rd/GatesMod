@@ -2,6 +2,7 @@ package fr.mattmouss.gates.util;
 
 import fr.mattmouss.gates.tools.VoxelInts;
 import fr.mattmouss.gates.windows.WindowBlock;
+import fr.mattmouss.gates.windows.WindowPlace;
 import net.minecraft.block.BlockState;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.inventory.container.Container;
@@ -28,7 +29,7 @@ public class Functions {
     }
 
     public static ExtendDirection getDirectionFromEntityAndNeighbor(LivingEntity placer, BlockPos pos, World world){
-        //todo : change getDirectionFromEntity to match with rotated windows
+        WindowBlock window = (WindowBlock)world.getBlockState(pos).getBlock();
         ExtendDirection defaultDir = ExtendDirection.getFacingFromPlayer(placer,pos);
         Vec3d vec3d = placer.getPositionVec();
         boolean ns = false;
@@ -40,14 +41,17 @@ public class Functions {
             Direction dir = Direction.byIndex(i);
             BlockPos neighPos = pos.offset(dir);
             BlockState neighState = world.getBlockState(neighPos);
-            if (neighState.getBlock() instanceof WindowBlock){
-                //we need to avoid problems with windows with bad facing
-                if (neighState.get(BlockStateProperties.HORIZONTAL_FACING).getAxis() != dir.getAxis()) {
-                    neiWindowFacing = neighState.get(BlockStateProperties.HORIZONTAL_FACING);
-                    if (i==2 || i==3) {
-                        ns = true;
-                    } else if (i==4 || i==5){
-                        ew = true;
+            if (window.equals(neighState.getBlock())){
+                //check for problem in neighbor block that are rotated (future non rotated block here)
+                if (neighState.get(WindowBlock.WINDOW_PLACE) == WindowPlace.FULL || !neighState.get(WindowBlock.ROTATED)) {
+                    //we need to avoid problems with windows with bad facing
+                    if (neighState.get(BlockStateProperties.HORIZONTAL_FACING).getAxis() != dir.getAxis()) {
+                        neiWindowFacing = neighState.get(BlockStateProperties.HORIZONTAL_FACING);
+                        if (i == 2 || i == 3) {
+                            ns = true;
+                        } else if (i == 4 || i == 5) {
+                            ew = true;
+                        }
                     }
                 }
             }else if (neighState.getMaterial().blocksMovement()) {

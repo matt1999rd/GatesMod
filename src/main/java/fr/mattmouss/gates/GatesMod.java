@@ -9,10 +9,7 @@ import fr.mattmouss.gates.setup.ClientProxy;
 import fr.mattmouss.gates.setup.IProxy;
 import fr.mattmouss.gates.setup.ModSetup;
 import fr.mattmouss.gates.setup.ServerProxy;
-import fr.mattmouss.gates.tileentity.CardGetterTileEntity;
-import fr.mattmouss.gates.tileentity.GarageTileEntity;
-import fr.mattmouss.gates.tileentity.TollGateTileEntity;
-import fr.mattmouss.gates.tileentity.TurnStileTileEntity;
+import fr.mattmouss.gates.tileentity.*;
 import net.minecraft.block.Block;
 import net.minecraft.inventory.container.ContainerType;
 import net.minecraft.item.BlockItem;
@@ -62,7 +59,6 @@ public class GatesMod {
     private void setup(final FMLCommonSetupEvent event) {
 
         proxy.init();
-
         setup.init();
 
     }
@@ -77,6 +73,7 @@ public class GatesMod {
             blockRegistryEvent.getRegistry().register(new TollGate());
             blockRegistryEvent.getRegistry().register(new TurnStile());
             blockRegistryEvent.getRegistry().register(new CardGetter());
+            blockRegistryEvent.getRegistry().register(new WindowDoor());
         }
 
 
@@ -89,6 +86,7 @@ public class GatesMod {
             blockRegistryEvent.getRegistry().register(new TurnStileItem(ModBlock.TURN_STILE));
             blockRegistryEvent.getRegistry().register(new TurnStileKeyItem());
             blockRegistryEvent.getRegistry().register(new BlockItem(ModBlock.CARD_GETTER,properties).setRegistryName("card_getter"));
+            blockRegistryEvent.getRegistry().register(new BlockItem(ModBlock.WINDOW_DOOR,properties).setRegistryName("window_door"));
         }
 
         @SubscribeEvent
@@ -132,6 +130,10 @@ public class GatesMod {
                     ModBlock.CARD_GETTER)
                     .build(null)
                     .setRegistryName("card_getter"));
+            event.getRegistry().register(TileEntityType.Builder.create(WindowDoorTileEntity::new,
+                    ModBlock.WINDOW_DOOR)
+                    .build(null)
+                    .setRegistryName("window_door"));
         }
 
         @SubscribeEvent

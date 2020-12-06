@@ -1,13 +1,13 @@
-list_bs = ["facing","open","window_place","rotated"]
-list_pv = [["east","north","south","west"],[True,False],["full","both_up","both_down","both_right","both_left","both_middle","down_left","down_right","up_left","up_right","middle_left","middle_right"],[True,False]]
-material = ["andesite","black","blue","brick","brown","cobblestone","cyan","diorite","granite","gray","green","light_blue","light_gray","lime","magenta","orange","pink","purple","red","stone_bricks","stone","white","yellow"]
+#list_bs = ["facing","open","window_place","rotated"]
+#list_pv = [["east","north","south","west"],[True,False],["full","both_up","both_down","both_right","both_left","both_middle","down_left","down_right","up_left","up_right","middle_left","middle_right"],[True,False]]
+#material = ["andesite","black","blue","brick","brown","cobblestone","cyan","diorite","granite","gray","green","light_blue","light_gray","lime","magenta","orange","pink","purple","red","stone_bricks","stone","white","yellow"]
 
 #file_name="andesite_window"
 
-def createBlockStateJson(facing,open_val,window_place,rotated_val,file_name):
+def createBlockStateJson(facing,animation,position,file_name):
     begining = '{\n"variants": {\n'
     end = '  }\n}'
-    center_string = create_center_string(facing,open_val,window_place,rotated_val,file_name)
+    center_string = create_center_string(facing,animation,position,file_name)
     with open(file_name+".json","w") as json_file:
         json_file.write(begining)
         json_file.write(center_string)
@@ -16,46 +16,35 @@ def createBlockStateJson(facing,open_val,window_place,rotated_val,file_name):
     print("blockstate json written !! ")
                 
 
-def create_center_string(facing,open_val,window_place,rotated_val,file_name):
+def create_center_string(facing,animation,position,file_name):
     center_string=""
     incr = 0
-    n = len(facing)*len(open_val)*len(window_place)
+    n = len(facing)*len(animation)*len(position)
     for f in facing:
-        for ov in open_val:
-            for wp in window_place:
-                for rv in rotated_val:
-                    ov_str=''
-                    if ov:
-                        ov_str = 'true'
-                    else:
-                        ov_str = 'false'
-                    rv_str=''
-                    if rv:
-                        rv_str = 'true'
-                    else:
-                        rv_str = 'false'
-                    line='"facing='+f+",open="+ov_str+",window_place="+wp+",rotated="+rv_str+'":  { "model": "'+getModel(file_name,ov,wp,rv)+'"'
-                    if f!="east":
-                        line += ', "y":'
-                    if f=="west":
-                        line +='180'
-                    elif f=="north":
-                        line +='270'
-                    elif f=="south":
-                        line +='90'
-                    line+=' }'
-                    incr += 1
-                    if (incr != n):
-                        line +=','
-                    center_string += line + "\n"
+        for anim in animation:
+            for pos in position:
+                line='"facing='+f+",animation="+anim+",position="+pos+'":  { "model": "'+getModel(file_name,pos,anim)+'"'
+                if f!="north":
+                    line += ', "y":'
+                if f=="west":
+                    line +='270'
+                elif f=="east":
+                    line +='90'
+                elif f=="south":
+                    line +='180'
+                line+=' }'
+                incr += 1
+                if (incr != n):
+                    line +=','
+                center_string += line + "\n"
     return center_string
     
-def getModel(file_name,open_val,window_place,rotated_val):
-    model_str= "gates:block/"+file_name+"_"+getInitial(window_place)
-    if (open_val):
-        model_str += "_open"
-    if (rotated_val):
-        model_str += "_rot"
+def getModel(file_name,position,animation):
+    if (position == "center_down" or position == "center_up"):
+        model_str = "block/air"
+    else:
+        model_str= "gates:block/"+file_name+"_"+getInitial(position)
+        model_str+="_"+animation
     return model_str 
    
 
@@ -75,6 +64,8 @@ def getInitial(st):
         i+=1
     return initial
 
+createBlockStateJson(["east","north","south","west"],["0","1","2","3","4"],["left_down","left_up","center_down","center_up","right_down","right_up"],"window_door")
+'''
 n= float(len(material))
 incr=0.0
 for m in material:
@@ -82,6 +73,7 @@ for m in material:
     print("Creating json blockstate file : "+m+"_window.json !")
     print("Progress : "+str(incr/n*100)+" %")
     incr+=1
+'''
             
             
         

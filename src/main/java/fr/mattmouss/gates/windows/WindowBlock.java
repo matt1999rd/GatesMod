@@ -175,7 +175,7 @@ public class WindowBlock extends Block {
         if (entity != null){
             ExtendDirection facing = Functions.getDirectionFromEntityAndNeighbor(entity,pos,world);
             WindowPlace placement = WindowPlace.getFromNeighboring(world,pos,state,facing);
-            boolean isOpen = getOpenFromNeighbor(world,pos,placement,facing.getDirection());
+            boolean isOpen = getOpenFromNeighbor(world,pos,placement,facing);
             world.setBlockState(pos,state
                     .with(BlockStateProperties.HORIZONTAL_FACING, facing.getDirection())
                     .with(BlockStateProperties.OPEN,isOpen)
@@ -187,7 +187,7 @@ public class WindowBlock extends Block {
     }
 
 
-    private boolean getOpenFromNeighbor(World world, BlockPos pos, WindowPlace placement,Direction facing) {
+    private boolean getOpenFromNeighbor(World world, BlockPos pos, WindowPlace placement,ExtendDirection facing) {
         BlockPos neighborPos =placement.getRandNeighborPos(pos,facing);
         if (!(neighborPos == null)) {
             BlockState neighState = world.getBlockState(neighborPos);
@@ -266,7 +266,7 @@ public class WindowBlock extends Block {
 
 
     private void updatePlacement(World world, BlockPos pos, BlockState state, ExtendDirection facing) {
-        WindowPlace placement = WindowPlace.getFromNeighboring(world,pos,state,null);
+        WindowPlace placement = WindowPlace.getFromNeighboring(world,pos,state,facing);
         boolean isOpen = state.get(BlockStateProperties.OPEN);
         world.setBlockState(pos,state.with(WINDOW_PLACE,placement)
                 //we need to have same facing for all block that are in valid position

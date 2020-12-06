@@ -3,11 +3,9 @@ package fr.mattmouss.gates.blocks;
 
 import fr.mattmouss.gates.doors.TollGate;
 import fr.mattmouss.gates.doors.TurnStile;
+import fr.mattmouss.gates.doors.WindowDoor;
 import fr.mattmouss.gates.gui.*;
-import fr.mattmouss.gates.tileentity.CardGetterTileEntity;
-import fr.mattmouss.gates.tileentity.GarageTileEntity;
-import fr.mattmouss.gates.tileentity.TollGateTileEntity;
-import fr.mattmouss.gates.tileentity.TurnStileTileEntity;
+import fr.mattmouss.gates.tileentity.*;
 import net.minecraft.inventory.container.ContainerType;
 import net.minecraft.tileentity.TileEntityType;
 import net.minecraftforge.registries.ObjectHolder;
@@ -50,6 +48,12 @@ public class ModBlock {
 
     @ObjectHolder("gates:card_getter")
     public static TileEntityType<CardGetterTileEntity> CARD_GETTER_TILE_TYPE;
+
+    @ObjectHolder("gates:window_door")
+    public static WindowDoor WINDOW_DOOR = new WindowDoor();
+
+    @ObjectHolder("gates:window_door")
+    public static TileEntityType<WindowDoorTileEntity> WINDOW_DOOR_TILE_TYPE;
 
 
 

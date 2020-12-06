@@ -396,6 +396,9 @@ public enum WindowPlace implements IStringSerializable {
 
     private static List<ExtendDirection> getNonWindowNeighbor(World world, BlockPos pos, BlockState state, ExtendDirection future_facing) {
         ExtendDirection.Axis FrontalAxis;
+        BlockState windowState =  world.getBlockState(pos);
+        WindowBlock windowBlock = (WindowBlock)windowState.getBlock();
+
         if (future_facing == null) {
             boolean isRotated = state.get(WindowBlock.ROTATED);
             Direction facing = state.get(BlockStateProperties.HORIZONTAL_FACING);
@@ -407,9 +410,13 @@ public enum WindowPlace implements IStringSerializable {
         List<ExtendDirection> NeighborDirs = new ArrayList<>();
         for (ExtendDirection direction : ExtendDirection.values()){
             if (direction.getAxis().isOnPlane(FrontalAxis)){
-                Block block = world.getBlockState(direction.offset(pos)).getBlock();
-                if (!(block instanceof WindowBlock)){
+                BlockState neiState = world.getBlockState(direction.offset(pos));
+                Block block = neiState.getBlock();
+                if (!(windowBlock.equals(block))){
                     NeighborDirs.add(direction);
+                }else if ((neiState.get(WindowBlock.ROTATED) != future_facing.isRotated()) ||
+                            (neiState.get(BlockStateProperties.HORIZONTAL_FACING) !=future_facing.getDirection())) {
+                        NeighborDirs.add(direction);
                 }
             }
         }
@@ -421,16 +428,16 @@ public enum WindowPlace implements IStringSerializable {
         return this.name;
     }
 
-    public BlockPos getRandNeighborPos(BlockPos pos,Direction facing) {
+    public BlockPos getRandNeighborPos(BlockPos pos,ExtendDirection facing) {
         for (int i=0;i<4;i++) {
             int flag2 = (flag>>4*i);
             if ((flag2& 1)== 1){
                 //we found a neighbor
-                Direction offsetDir = (i==2)? Direction.UP : Direction.DOWN;
+                ExtendDirection offsetDir = (i==2)? ExtendDirection.UP : ExtendDirection.DOWN;
                 if (i<2){
                     offsetDir = (i==0)? facing.rotateY() : facing.rotateYCCW();
                 }
-                return pos.offset(offsetDir);
+                return offsetDir.offset(pos);
             }
         }
         return null;
