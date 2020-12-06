@@ -2,7 +2,7 @@ package fr.mattmouss.gates.enum_door;
 
 import net.minecraft.util.IStringSerializable;
 
-public enum WindowDoorPlacing implements IStringSerializable {
+public enum DoorPlacing implements IStringSerializable {
     LEFT_UP(0,"left_up"),
     RIGHT_UP(1,"right_up"),
     CENTER_UP(2,"center_up"),
@@ -11,7 +11,7 @@ public enum WindowDoorPlacing implements IStringSerializable {
     CENTER_DOWN(5,"center_down");
     int meta;
     String name;
-    WindowDoorPlacing(int meta,String name){
+    DoorPlacing(int meta, String name){
         this.meta = meta;
         this.name = name;
     }
@@ -23,5 +23,12 @@ public enum WindowDoorPlacing implements IStringSerializable {
 
     public boolean isSide() {
         return meta % 3 != 2; // is not center place
+    }
+
+    public boolean isUp(){
+        return meta<3;
+    }
+    public boolean isLeft(){
+        return meta % 3 == 0;
     }
 }

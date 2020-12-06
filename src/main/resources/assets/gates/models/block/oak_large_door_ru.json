@@ -1,0 +1,6 @@
+{
+"parent": "gates:block/large_door_ru",
+"textures": {
+"wood": "block/oak_planks"
+}
+}

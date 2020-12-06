@@ -1,7 +1,7 @@
 package fr.mattmouss.gates.doors;
 
 import com.google.common.collect.Lists;
-import fr.mattmouss.gates.enum_door.WindowDoorPlacing;
+import fr.mattmouss.gates.enum_door.DoorPlacing;
 import fr.mattmouss.gates.tileentity.WindowDoorTileEntity;
 import fr.mattmouss.gates.util.Functions;
 import net.minecraft.block.Block;
@@ -11,6 +11,7 @@ import net.minecraft.block.material.Material;
 import net.minecraft.block.material.MaterialColor;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.player.PlayerEntity;
+import net.minecraft.item.BlockItemUseContext;
 import net.minecraft.item.ItemStack;
 import net.minecraft.state.EnumProperty;
 import net.minecraft.state.IntegerProperty;
@@ -26,12 +27,11 @@ import net.minecraft.util.math.shapes.VoxelShapes;
 import net.minecraft.world.IBlockReader;
 import net.minecraft.world.World;
 import javax.annotation.Nullable;
-import java.util.ArrayList;
 import java.util.List;
 
 public class WindowDoor extends Block {
 
-    public static EnumProperty<WindowDoorPlacing> PLACING = EnumProperty.create("position",WindowDoorPlacing.class);
+    public static EnumProperty<DoorPlacing> PLACING = EnumProperty.create("position", DoorPlacing.class);
     public static IntegerProperty ANIMATION = IntegerProperty.create("animation",0,4);
 
     protected static final VoxelShape NORTH_AABB = Block.makeCuboidShape(0.0D, 0.0D, 0.0D, 16.0D, 16.0D, 1.0D);
@@ -82,6 +82,29 @@ public class WindowDoor extends Block {
         return new WindowDoorTileEntity();
     }
 
+    @Nullable
+    @Override
+    public BlockState getStateForPlacement(BlockItemUseContext context) {
+        BlockPos pos = context.getPos();
+        BlockPos upPos = pos.up();
+        Direction facing = context.getPlacementHorizontalFacing();
+        BlockPos rightPos = pos.offset(facing.rotateYCCW());
+        BlockPos rightUpPos = pos.offset(facing.rotateYCCW()).up();
+        BlockPos leftPos = pos.offset(facing.rotateY());
+        BlockPos leftUpPos = pos.offset(facing.rotateY()).up();
+        if (
+                context.getWorld().getBlockState(upPos).isReplaceable(context) &&
+                context.getWorld().getBlockState(rightPos).isReplaceable(context) &&
+                context.getWorld().getBlockState(rightUpPos).isReplaceable(context) &&
+                context.getWorld().getBlockState(leftPos).isReplaceable(context) &&
+                context.getWorld().getBlockState(leftUpPos).isReplaceable(context)
+        ){
+            return super.getStateForPlacement(context);
+        }else {
+            return null;
+        }
+    }
+
     @Override
     public void onBlockPlacedBy(World world, BlockPos pos, BlockState state, @Nullable LivingEntity entity, ItemStack stack) {
         if (entity != null){
@@ -89,37 +112,37 @@ public class WindowDoor extends Block {
             //center block down
             world.setBlockState(pos,
                     state.with(BlockStateProperties.HORIZONTAL_FACING,direction)
-                            .with(PLACING, WindowDoorPlacing.CENTER_DOWN)
+                            .with(PLACING, DoorPlacing.CENTER_DOWN)
                             .with(ANIMATION,0)
             );
             //center block up
             world.setBlockState(pos.up(),
                     state.with(BlockStateProperties.HORIZONTAL_FACING,direction)
-                            .with(PLACING, WindowDoorPlacing.CENTER_UP)
+                            .with(PLACING, DoorPlacing.CENTER_UP)
                             .with(ANIMATION,0)
             );
             //left block down
             world.setBlockState(pos.offset(direction.rotateY()),
                     state.with(BlockStateProperties.HORIZONTAL_FACING,direction)
-                            .with(PLACING,WindowDoorPlacing.LEFT_DOWN)
+                            .with(PLACING, DoorPlacing.LEFT_DOWN)
                             .with(ANIMATION,0)
             );
             //left block up
             world.setBlockState(pos.offset(direction.rotateY()).up(),
                     state.with(BlockStateProperties.HORIZONTAL_FACING,direction)
-                            .with(PLACING,WindowDoorPlacing.LEFT_UP)
+                            .with(PLACING, DoorPlacing.LEFT_UP)
                             .with(ANIMATION,0)
             );
             //right block down
             world.setBlockState(pos.offset(direction.rotateYCCW()),
                     state.with(BlockStateProperties.HORIZONTAL_FACING,direction)
-                            .with(PLACING,WindowDoorPlacing.RIGHT_DOWN)
+                            .with(PLACING, DoorPlacing.RIGHT_DOWN)
                             .with(ANIMATION,0)
             );
             //right block up
             world.setBlockState(pos.offset(direction.rotateYCCW()).up(),
                     state.with(BlockStateProperties.HORIZONTAL_FACING,direction)
-                            .with(PLACING,WindowDoorPlacing.RIGHT_UP)
+                            .with(PLACING, DoorPlacing.RIGHT_UP)
                             .with(ANIMATION,0)
             );
         }
@@ -132,7 +155,7 @@ public class WindowDoor extends Block {
 
     @Override
     public void onBlockHarvested(World worldIn, BlockPos pos, BlockState state, PlayerEntity player) {
-        WindowDoorPlacing placing = state.get(PLACING);
+        DoorPlacing placing = state.get(PLACING);
         Direction facing = state.get(BlockStateProperties.HORIZONTAL_FACING);
         List<BlockPos> otherBlockToDestroy = Lists.newArrayList();
         switch (placing){

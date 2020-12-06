@@ -2,7 +2,7 @@ package fr.mattmouss.gates.tileentity;
 
 import fr.mattmouss.gates.blocks.ModBlock;
 import fr.mattmouss.gates.doors.WindowDoor;
-import fr.mattmouss.gates.enum_door.WindowDoorPlacing;
+import fr.mattmouss.gates.enum_door.DoorPlacing;
 import net.minecraft.block.BlockState;
 import net.minecraft.entity.player.ServerPlayerEntity;
 import net.minecraft.state.properties.BlockStateProperties;
@@ -25,7 +25,7 @@ public class WindowDoorTileEntity extends TileEntity implements ITickableTileEnt
 
     @Override
     public void tick() {
-        if (this.getBlockState().get(WindowDoor.PLACING) == WindowDoorPlacing.CENTER_DOWN && !world.isRemote ){
+        if (this.getBlockState().get(WindowDoor.PLACING) == DoorPlacing.CENTER_DOWN && !world.isRemote ){
             int animation = getBlockState().get(WindowDoor.ANIMATION);
             if (animation == 0 || animation == 4) {
                 ServerWorld world = (ServerWorld) getWorld();

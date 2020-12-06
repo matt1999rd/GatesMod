@@ -103,7 +103,7 @@ public class GarageTileEntity extends TileEntity implements ITickableTileEntity 
             //return pour arrêter la fonction
             return;
         }
-        System.out.println("stability checked for block at position :"+placing.getName());
+        //System.out.println("stability checked for block at position :"+placing.getName());
 
     }
 

@@ -14,11 +14,9 @@ import net.minecraft.block.DoorBlock;
 import net.minecraft.item.BlockItem;
 import net.minecraft.item.Item;
 
-import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.event.RegistryEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
-import net.minecraftforge.fml.loading.FMLEnvironment;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -29,6 +27,8 @@ public class DoorRegister {
 
     private static final List<DoorBlock> DOORS = new ArrayList<>();
     private static final List<Item> DOOR_ITEMS = new ArrayList<>();
+    private static final List<LargeDoor> LARGE_DOORS = new ArrayList<>();
+    private static final List<Item> LARGE_DOOR_ITEMS = new ArrayList<>();
     private static final List<WindowBlock> WINDOWS = new ArrayList<>();
     private static final List<Item> WINDOWS_ITEMS = new ArrayList<>();
     private static final List<GarageDoor> GARAGES = new ArrayList<>();
@@ -118,8 +118,14 @@ public class DoorRegister {
     public static final GarageDoor WHITE_GARAGE = Gregister("white_garage");
     public static final GarageDoor YELLOW_GARAGE = Gregister("yellow_garage");
 
-
-
+    //enregistrement des grandes portes de taille 2x2
+    public static final LargeDoor IRON_LARGE_DOOR = LDregister("iron_large_door");
+    public static final LargeDoor OAK_LARGE_DOOR = LDregister("oak_large_door");
+    public static final LargeDoor BIRCH_LARGE_DOOR = LDregister("birch_large_door");
+    public static final LargeDoor DARK_OAK_LARGE_DOOR = LDregister("dark_oak_large_door");
+    public static final LargeDoor ACACIA_LARGE_DOOR = LDregister("acacia_large_door");
+    public static final LargeDoor SPRUCE_LARGE_DOOR = LDregister("spruce_large_door");
+    public static final LargeDoor JUNGLE_LARGE_DOOR = LDregister("jungle_large_door");
 
     private static DoorBlock register(String key){
         MoreDoor newDoor = new MoreDoor(key);
@@ -155,6 +161,17 @@ public class DoorRegister {
         return garageDoor;
     }
 
+    private static LargeDoor LDregister(String key){
+        LargeDoor largeDoor = new LargeDoor(key);
+        BlockItem item = new BlockItem(largeDoor,new Item.Properties().group(ModSetup.itemGroup));
+        item.setRegistryName(key);
+        System.out.println("-----------------Block "+key+" registered !------------------");
+        System.out.println("------------------ Registry Name : "+largeDoor.getRegistryName()+"-------------");
+        LARGE_DOORS.add(largeDoor);
+        LARGE_DOOR_ITEMS.add(item);
+        return largeDoor;
+    }
+
 
     @SubscribeEvent
     public static void registerBlocks(RegistryEvent.Register<Block> event){
@@ -176,9 +193,13 @@ public class DoorRegister {
         GARAGES.forEach(doorBlock -> {
             event.getRegistry().register(doorBlock);
         });
+        LARGE_DOORS.forEach(largeDoor -> {
+            event.getRegistry().register(largeDoor);
+        });
         DOORS.clear();
         WINDOWS.clear();
         GARAGES.clear();
+        LARGE_DOORS.clear();
     }
 
     @SubscribeEvent
@@ -192,10 +213,13 @@ public class DoorRegister {
         GARAGE_ITEMS.forEach(item -> {
             event.getRegistry().register(item);
         });
+        LARGE_DOOR_ITEMS.forEach(item -> {
+            event.getRegistry().register(item);
+        });
         DOOR_ITEMS.clear();
         WINDOWS_ITEMS.clear();
         GARAGE_ITEMS.clear();
-
+        LARGE_DOOR_ITEMS.clear();
     }
 
 }
