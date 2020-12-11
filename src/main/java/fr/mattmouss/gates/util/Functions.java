@@ -6,6 +6,7 @@ import fr.mattmouss.gates.windows.WindowPlace;
 import net.minecraft.block.BlockState;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.inventory.container.Container;
+import net.minecraft.item.BlockItemUseContext;
 import net.minecraft.state.properties.BlockStateProperties;
 import net.minecraft.state.properties.DoorHingeSide;
 import net.minecraft.util.Direction;
@@ -159,6 +160,14 @@ public class Functions {
             shape = VoxelShapes.or(shape,vi.getAssociatedShape());
         }
         return shape;
+    }
+
+    public static boolean testReplaceable(BlockItemUseContext context,BlockPos... positions){
+        boolean isReplaceable = true;
+        for (BlockPos pos : positions){
+            isReplaceable = isReplaceable && context.getWorld().getBlockState(pos).isReplaceable(context);
+        }
+        return isReplaceable;
     }
 
 }

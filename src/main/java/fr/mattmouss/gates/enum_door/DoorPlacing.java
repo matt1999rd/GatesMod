@@ -8,7 +8,10 @@ public enum DoorPlacing implements IStringSerializable {
     CENTER_UP(2,"center_up"),
     LEFT_DOWN(3,"left_down"),
     RIGHT_DOWN(4,"right_down"),
-    CENTER_DOWN(5,"center_down");
+    CENTER_DOWN(5,"center_down"),
+    LEFT_CENTER(6,"left_center"),
+    RIGHT_CENTER(7,"right_center");
+
     int meta;
     String name;
     DoorPlacing(int meta, String name){
@@ -27,6 +30,10 @@ public enum DoorPlacing implements IStringSerializable {
 
     public boolean isUp(){
         return meta<3;
+    }
+
+    public boolean isCenterY(){
+        return meta >5;
     }
     public boolean isLeft(){
         return meta % 3 == 0;

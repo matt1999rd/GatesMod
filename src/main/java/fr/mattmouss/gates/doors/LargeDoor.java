@@ -46,13 +46,13 @@ public class LargeDoor extends Block {
     @Override
     public BlockState getStateForPlacement(BlockItemUseContext context) {
         BlockPos pos = context.getPos();
-        BlockPos upPos = pos.up();
+        BlockPos centerPos = pos.up();
+        BlockPos upPos = pos.up(2);
         Direction facing = context.getPlacementHorizontalFacing();
         BlockPos rightPos = pos.offset(facing.rotateYCCW());
-        BlockPos rightUpPos = pos.offset(facing.rotateYCCW()).up();
-        if (context.getWorld().getBlockState(upPos).isReplaceable(context) &&
-                context.getWorld().getBlockState(rightPos).isReplaceable(context) &&
-                context.getWorld().getBlockState(rightUpPos).isReplaceable(context)){
+        BlockPos rightCenterPos = pos.offset(facing.rotateYCCW()).up();
+        BlockPos rightUpPos = pos.offset(facing.rotateYCCW()).up(2);
+        if (Functions.testReplaceable(context,pos,centerPos,upPos,rightPos,rightCenterPos,rightUpPos)){
             BlockState state = getDefaultState();
             return state.with(BlockStateProperties.HORIZONTAL_FACING,facing).with(BlockStateProperties.OPEN,false).with(PLACING,DoorPlacing.LEFT_DOWN);
         }else {
@@ -63,9 +63,11 @@ public class LargeDoor extends Block {
     @Override
     public void onBlockPlacedBy(World worldIn, BlockPos pos, BlockState state, @Nullable LivingEntity placer, ItemStack stack) {
         Direction facing = state.get(BlockStateProperties.HORIZONTAL_FACING);
-        worldIn.setBlockState(pos.up(), state.with(PLACING, DoorPlacing.LEFT_UP), 3);
+        worldIn.setBlockState(pos.up(), state.with(PLACING, DoorPlacing.LEFT_CENTER), 3);
+        worldIn.setBlockState(pos.up(2), state.with(PLACING, DoorPlacing.LEFT_UP), 3);
         worldIn.setBlockState(pos.offset(facing.rotateYCCW()),state.with(PLACING,DoorPlacing.RIGHT_DOWN),3);
-        worldIn.setBlockState(pos.offset(facing.rotateYCCW()).up(),state.with(PLACING,DoorPlacing.RIGHT_UP),3);
+        worldIn.setBlockState(pos.offset(facing.rotateYCCW()).up(),state.with(PLACING,DoorPlacing.RIGHT_CENTER),3);
+        worldIn.setBlockState(pos.offset(facing.rotateYCCW()).up(2),state.with(PLACING,DoorPlacing.RIGHT_UP),3);
     }
 
     public void onBlockHarvested(World worldIn, BlockPos pos, BlockState state, PlayerEntity player) {
@@ -124,20 +126,34 @@ public class LargeDoor extends Block {
     private List<BlockPos> getPosOfNeighborBlock(BlockPos pos,DoorPlacing placing,Direction facing){
         List<BlockPos> blockToDestroy = Lists.newArrayList();
         BlockPos offsetPos;
+        BlockPos offsetPos2;
         if (placing.isUp()){
             offsetPos = pos.down();
+            offsetPos2 = pos.down(2);
             blockToDestroy.add(pos.down());
-        }else {
+            blockToDestroy.add(pos.down(2));
+        }else if (placing.isCenterY()){
             offsetPos = pos.up();
+            offsetPos2 = pos.down();
             blockToDestroy.add(pos.up());
+            blockToDestroy.add(pos.down());
+        } else {
+            offsetPos = pos.up();
+            offsetPos2 = pos.up(2);
+            blockToDestroy.add(pos.up());
+            blockToDestroy.add(pos.up(2));
         }
         if (placing.isLeft()){
             offsetPos = offsetPos.offset(facing.rotateYCCW());
             blockToDestroy.add(offsetPos);
+            offsetPos2 = offsetPos2.offset(facing.rotateYCCW());
+            blockToDestroy.add(offsetPos2);
             blockToDestroy.add(pos.offset(facing.rotateYCCW()));
         }else {
             offsetPos = offsetPos.offset(facing.rotateY());
             blockToDestroy.add(offsetPos);
+            offsetPos2 = offsetPos2.offset(facing.rotateY());
+            blockToDestroy.add(offsetPos2);
             blockToDestroy.add(pos.offset(facing.rotateY()));
         }
         return blockToDestroy;
@@ -160,7 +176,7 @@ public class LargeDoor extends Block {
     }
 
     private boolean isInternUpdate(DoorPlacing placing,Direction facingUpdate,Direction blockFacing){
-        return (placing.isUp() && facingUpdate == Direction.DOWN) ||
+        return ( (placing.isUp()|| placing.isCenterY()) && facingUpdate == Direction.DOWN) ||
                 (!placing.isUp() && facingUpdate == Direction.UP) ||
                 (placing.isLeft() && facingUpdate == blockFacing.rotateYCCW()) ||
                 (!placing.isLeft() && facingUpdate == blockFacing.rotateY());
