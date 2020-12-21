@@ -31,7 +31,9 @@ import java.util.List;
 
 public class WindowDoor extends Block {
 
-    public static EnumProperty<DoorPlacing> PLACING = EnumProperty.create("position", DoorPlacing.class);
+    public static EnumProperty<DoorPlacing> PLACING = EnumProperty.create("position", DoorPlacing.class,placing -> {
+        return !placing.isCenterY();
+    });
     public static IntegerProperty ANIMATION = IntegerProperty.create("animation",0,4);
 
     protected static final VoxelShape NORTH_AABB = Block.makeCuboidShape(0.0D, 0.0D, 0.0D, 16.0D, 16.0D, 1.0D);

@@ -6,7 +6,7 @@ import fr.mattmouss.gates.enum_door.TurnSPosition;
 import fr.mattmouss.gates.network.Networking;
 import fr.mattmouss.gates.network.SetIdPacket;
 import fr.mattmouss.gates.tileentity.TurnStileTileEntity;
-import fr.mattmouss.gates.tools.VoxelInts;
+import fr.mattmouss.gates.voxels.VoxelInts;
 import fr.mattmouss.gates.util.Functions;
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockState;

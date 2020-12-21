@@ -10,5 +10,5 @@ def create_item_json(list_item):
         print("Progress : "+ str(int(i*100/len(list_item)*100)/100.0)+"%" )
         
 
-create_item_json(["white_garage","orange_garage","magenta_garage","light_blue_garage","yellow_garage","lime_garage","pink_garage","gray_garage","light_gray_garage","cyan_garage","purple_garage","blue_garage","brown_garage","green_garage","red_garage","black_garage"])
+create_item_json(["oak_large_door","dark_oak_large_door","spruce_large_door","birch_large_door","jungle_large_door","acacia_large_door"])
     

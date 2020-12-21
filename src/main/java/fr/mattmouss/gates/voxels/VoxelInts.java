@@ -1,12 +1,9 @@
-package fr.mattmouss.gates.tools;
+package fr.mattmouss.gates.voxels;
 
 import net.minecraft.block.Block;
-import net.minecraft.client.renderer.Quaternion;
 import net.minecraft.util.Direction;
 import net.minecraft.util.math.shapes.VoxelShape;
 import net.minecraft.util.math.shapes.VoxelShapes;
-
-import java.util.Random;
 
 //un block d'outillage utilisable pour faciliter  la création de VoxelShape
 public class VoxelInts {

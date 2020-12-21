@@ -19,6 +19,10 @@ public enum DoorPlacing implements IStringSerializable {
         this.name = name;
     }
 
+    public int getMeta() {
+        return meta;
+    }
+
     @Override
     public String getName() {
         return name;

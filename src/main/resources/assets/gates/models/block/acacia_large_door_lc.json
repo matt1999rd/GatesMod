@@ -1,0 +1,5 @@
+{
+"parent": "gates:block/large_door_lc",
+"textures": {
+"wood": "gates:block/acacia_large_door"}
+}

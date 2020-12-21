@@ -2,6 +2,8 @@ package fr.mattmouss.gates.doors;
 
 import com.google.common.collect.Lists;
 import fr.mattmouss.gates.enum_door.DoorPlacing;
+import fr.mattmouss.gates.voxels.VoxelDefinition;
+import fr.mattmouss.gates.voxels.VoxelInts;
 import fr.mattmouss.gates.util.Functions;
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockState;
@@ -21,6 +23,10 @@ import net.minecraft.util.Direction;
 import net.minecraft.util.Hand;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.BlockRayTraceResult;
+import net.minecraft.util.math.shapes.ISelectionContext;
+import net.minecraft.util.math.shapes.VoxelShape;
+import net.minecraft.util.math.shapes.VoxelShapes;
+import net.minecraft.world.IBlockReader;
 import net.minecraft.world.IWorld;
 import net.minecraft.world.IWorldReader;
 import net.minecraft.world.World;
@@ -31,9 +37,32 @@ import java.util.List;
 public class LargeDoor extends Block {
     public static EnumProperty<DoorPlacing> PLACING = EnumProperty.create("position",DoorPlacing.class,DoorPlacing::isSide);
 
-    public LargeDoor(String key) {
-        super(Properties.create(Material.ROCK, MaterialColor.BLACK));
+    public LargeDoor(String key,Material material) {
+        super(Properties.create(material, MaterialColor.BLACK));
         this.setRegistryName(key);
+    }
+
+    @Override
+    public VoxelShape getShape(BlockState state, IBlockReader worldIn, BlockPos pos, ISelectionContext context) {
+        Material material = this.material;
+        if (material == Material.WOOD){
+            return getCircleShape(state);
+        }else {
+            return getSquareShape(state);
+        }
+    }
+
+    private VoxelShape getSquareShape(BlockState state) {
+        //change it for square large door
+        return VoxelShapes.fullCube();
+    }
+
+    private VoxelShape getCircleShape(BlockState state) {
+        DoorPlacing placing = state.get(PLACING);
+        Direction facing = state.get(BlockStateProperties.HORIZONTAL_FACING);
+        boolean isOpen = state.get(BlockStateProperties.OPEN);
+        int index = placing.getMeta()*8+facing.getHorizontalIndex()*2+ ((isOpen)?1:0);
+        return VoxelDefinition.largeDoorShape[index];
     }
 
     //1.14.4 function replaced by notSolid()

@@ -1,6 +1,5 @@
 package fr.mattmouss.gates.windows;
 
-import fr.mattmouss.gates.tools.VoxelInts;
 import fr.mattmouss.gates.util.ExtendDirection;
 import fr.mattmouss.gates.util.Functions;
 import net.minecraft.block.*;

@@ -67,6 +67,14 @@
   "block.gates.red_garage": "Garage rouge",
   "block.gates.white_garage": "Garage blanc",
   "block.gates.yellow_garage": "Garage jaune",
+
+  "block.gates.oak_large_door": "Grande Porte en chêne",
+  "block.gates.dark_oak_large_door": "Grande Porte en chêne noir",
+  "block.gates.birch_large_door": "Grande Porte en bouleau",
+  "block.gates.jungle_large_door": "Grande Porte en acajou",
+  "block.gates.spruce_large_door": "Grande Porte en sapin",
+  "block.gates.acacia_large_door": "Grande Porte en acacia",
+
   "block.gates.toll_gate": "Peage",
   "block.gates.turn_stile": "Tourniquet",
   "block.gates.card_getter": "Distributeur de Carte",

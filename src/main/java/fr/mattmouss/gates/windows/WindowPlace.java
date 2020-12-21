@@ -1,6 +1,6 @@
 package fr.mattmouss.gates.windows;
 
-import fr.mattmouss.gates.tools.VoxelInts;
+import fr.mattmouss.gates.voxels.VoxelInts;
 import fr.mattmouss.gates.util.ExtendDirection;
 import fr.mattmouss.gates.util.Functions;
 import net.minecraft.block.Block;
@@ -21,7 +21,6 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Consumer;
 import java.util.function.Predicate;
-import java.util.function.Supplier;
 
 public enum WindowPlace implements IStringSerializable {
     //a one block window

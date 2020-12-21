@@ -1,0 +1,6 @@
+{
+"parent": "gates:block/large_door_rc_open",
+"textures": {
+"wood": "gates:block/oak_large_door"
+}
+}

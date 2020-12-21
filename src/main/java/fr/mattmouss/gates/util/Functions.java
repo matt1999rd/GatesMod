@@ -1,11 +1,12 @@
 package fr.mattmouss.gates.util;
 
-import fr.mattmouss.gates.tools.VoxelInts;
+import com.google.common.collect.Lists;
+import fr.mattmouss.gates.enum_door.DoorPlacing;
+import fr.mattmouss.gates.voxels.VoxelInts;
 import fr.mattmouss.gates.windows.WindowBlock;
 import fr.mattmouss.gates.windows.WindowPlace;
 import net.minecraft.block.BlockState;
 import net.minecraft.entity.LivingEntity;
-import net.minecraft.inventory.container.Container;
 import net.minecraft.item.BlockItemUseContext;
 import net.minecraft.state.properties.BlockStateProperties;
 import net.minecraft.state.properties.DoorHingeSide;
@@ -16,8 +17,8 @@ import net.minecraft.util.math.Vec3d;
 import net.minecraft.util.math.shapes.VoxelShape;
 import net.minecraft.util.math.shapes.VoxelShapes;
 import net.minecraft.world.World;
-import net.minecraftforge.items.IItemHandler;
-import net.minecraftforge.items.SlotItemHandler;
+
+import java.util.List;
 
 public class Functions {
     public static Direction getDirectionFromEntity(LivingEntity placer,BlockPos pos){
@@ -169,5 +170,92 @@ public class Functions {
         }
         return isReplaceable;
     }
+
+    public static VoxelShape makeCircleShape(DoorPlacing placing,Direction facing,boolean isOpen) {
+        List<VoxelInts> voxels = Lists.newArrayList();
+        //voxels for right place
+        if (!isOpen){
+            //a unique voxels is added
+            voxels.add(new VoxelInts(0,0,0,3,16,16,true));
+            if (placing == DoorPlacing.RIGHT_DOWN || placing == DoorPlacing.LEFT_DOWN) {
+                //handle on 2 sides
+                //handle on out side
+                //horizontal part
+                voxels.add(new VoxelInts(-1, 15, 12, 1, 1, 2, true));
+                voxels.add(new VoxelInts(-1, 12, 12, 1, 1, 2, true));
+                //vertical part
+                voxels.add(new VoxelInts(-1, 13, 11, 1, 2, 1, true));
+                voxels.add(new VoxelInts(-1, 13, 14, 1, 2, 1, true));
+                //handle on in side
+                //horizontal part
+                voxels.add(new VoxelInts(3, 15, 12, 1, 1, 2, true));
+                voxels.add(new VoxelInts(3, 12, 12, 1, 1, 2, true));
+                //vertical part
+                voxels.add(new VoxelInts(3, 13, 11, 1, 2, 1, true));
+                voxels.add(new VoxelInts(3, 13, 14, 1, 2, 1, true));
+            }
+        }else {
+            //not moving part for all right part
+            voxels.add(new VoxelInts(0, 0, 0, 3, 16, 4, true));
+            if (placing == DoorPlacing.RIGHT_DOWN || placing == DoorPlacing.LEFT_DOWN) {
+                //handle on 2 sides
+                //handle on out side
+                //horizontal part
+                voxels.add(new VoxelInts(11, 15, 7, 2, 1, 1, true));
+                voxels.add(new VoxelInts(11, 12, 7, 2, 1, 1, true));
+                //vertical part
+                voxels.add(new VoxelInts(10, 13, 7, 1, 2, 1, true));
+                voxels.add(new VoxelInts(13, 13, 7, 1, 2, 1, true));
+                //handle on in side
+                //horizontal part
+                voxels.add(new VoxelInts(11, 15, 3, 2, 1, 1, true));
+                voxels.add(new VoxelInts(11, 12, 3, 2, 1, 1, true));
+                //vertical part
+                voxels.add(new VoxelInts(10, 13, 3, 1, 2, 1, true));
+                voxels.add(new VoxelInts(13, 13, 3, 1, 2, 1, true));
+            }
+            if (placing.isUp()) {
+                //when up right position
+                //above door shape
+                voxels.add(new VoxelInts(0, 11, 4, 3, 5, 11, true));
+                //circle not moving shape
+                voxels.add(new VoxelInts(0, 10, 4, 3, 1, 11, true));
+                voxels.add(new VoxelInts(0, 9, 4, 3, 1, 8, true));
+                voxels.add(new VoxelInts(0, 8, 4, 3, 1, 6, true));
+                voxels.add(new VoxelInts(0, 7, 4, 3, 1, 5, true));
+                voxels.add(new VoxelInts(0, 6, 4, 3, 1, 4, true));
+                voxels.add(new VoxelInts(0, 5, 4, 3, 1, 3, true));
+                voxels.add(new VoxelInts(0, 3, 4, 3, 2, 2, true));
+                voxels.add(new VoxelInts(0, 0, 4, 3, 3, 1, true));
+                //open door part
+                voxels.add(new VoxelInts(14, 10, 4, 1, 1, 3, true));
+                voxels.add(new VoxelInts(11, 9, 4, 4, 1, 3, true));
+                voxels.add(new VoxelInts(9, 8, 4, 6, 1, 3, true));
+                voxels.add(new VoxelInts(8, 7, 4, 7, 1, 3, true));
+                voxels.add(new VoxelInts(7, 6, 4, 8, 1, 3, true));
+                voxels.add(new VoxelInts(6, 5, 4, 9, 1, 3, true));
+                voxels.add(new VoxelInts(5, 3, 4, 10, 2, 3, true));
+                voxels.add(new VoxelInts(4, 0, 4, 11, 3, 3, true));
+            } else {
+                //moving part
+                voxels.add(new VoxelInts(3, 0, 4, 12, 16, 3, true));
+            }
+        }
+
+        if (placing.isLeft()){
+            int len = voxels.size();
+            for (int i=0;i<len;i++){
+                VoxelInts oldVoxel = voxels.get(i);
+                VoxelInts symVoxel = oldVoxel.makeSymetry(Direction.Axis.X, Direction.Axis.Y);
+                voxels.set(i,symVoxel);
+            }
+        }
+        VoxelShape shape = VoxelShapes.empty();
+        for (VoxelInts vi : voxels){
+            shape = VoxelShapes.or(shape, vi.rotate(Direction.EAST, facing).getAssociatedShape());
+        }
+        return shape;
+    }
+
 
 }

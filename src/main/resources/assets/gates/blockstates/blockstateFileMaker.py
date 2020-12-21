@@ -16,22 +16,22 @@ def createBlockStateJson(facing,animation,position,file_name):
     print("blockstate json written !! ")
                 
 
-def create_center_string(facing,animation,position,file_name):
+def create_center_string(facing,position,open_tab,file_name):
     center_string=""
     incr = 0
-    n = len(facing)*len(animation)*len(position)
+    n = len(facing)*len(position)*len(open_tab)
     for f in facing:
-        for anim in animation:
-            for pos in position:
-                line='"facing='+f+",animation="+anim+",position="+pos+'":  { "model": "'+getModel(file_name,pos,anim)+'"'
-                if f!="north":
+        for pos in position:
+            for open_bool in open_tab:
+                line='"facing='+f+",position="+pos+",open="+open_bool+'":  { "model": "'+getModel(file_name,pos,open_bool)+'"'
+                if f!="east":
                     line += ', "y":'
                 if f=="west":
-                    line +='270'
-                elif f=="east":
-                    line +='90'
-                elif f=="south":
                     line +='180'
+                elif f=="north":
+                    line +='270'
+                elif f=="south":
+                    line +='90'
                 line+=' }'
                 incr += 1
                 if (incr != n):
@@ -39,12 +39,10 @@ def create_center_string(facing,animation,position,file_name):
                 center_string += line + "\n"
     return center_string
     
-def getModel(file_name,position,animation):
-    if (position == "center_down" or position == "center_up"):
-        model_str = "block/air"
-    else:
-        model_str= "gates:block/"+file_name+"_"+getInitial(position)
-        model_str+="_"+animation
+def getModel(file_name,position,open_bool):
+    model_str= "gates:block/"+file_name+"_"+getInitial(position)
+    if (open_bool == "true"):
+        model_str+="_open"
     return model_str 
    
 
@@ -64,7 +62,7 @@ def getInitial(st):
         i+=1
     return initial
 
-createBlockStateJson(["east","north","south","west"],["0","1","2","3","4"],["left_down","left_up","center_down","center_up","right_down","right_up"],"window_door")
+createBlockStateJson(["east","north","south","west"],["left_down","left_center","left_up","right_down","right_center","right_up"],["true","false"],"oak_large_door")
 '''
 n= float(len(material))
 incr=0.0

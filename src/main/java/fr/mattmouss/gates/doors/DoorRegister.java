@@ -11,6 +11,7 @@ import net.minecraft.block.DoorBlock;
 //import net.minecraft.client.renderer.RenderType;
 //import net.minecraft.client.renderer.RenderTypeLookup;
 
+import net.minecraft.block.material.Material;
 import net.minecraft.item.BlockItem;
 import net.minecraft.item.Item;
 
@@ -118,14 +119,14 @@ public class DoorRegister {
     public static final GarageDoor WHITE_GARAGE = Gregister("white_garage");
     public static final GarageDoor YELLOW_GARAGE = Gregister("yellow_garage");
 
-    //enregistrement des grandes portes de taille 2x2
-    public static final LargeDoor IRON_LARGE_DOOR = LDregister("iron_large_door");
-    public static final LargeDoor OAK_LARGE_DOOR = LDregister("oak_large_door");
-    public static final LargeDoor BIRCH_LARGE_DOOR = LDregister("birch_large_door");
-    public static final LargeDoor DARK_OAK_LARGE_DOOR = LDregister("dark_oak_large_door");
-    public static final LargeDoor ACACIA_LARGE_DOOR = LDregister("acacia_large_door");
-    public static final LargeDoor SPRUCE_LARGE_DOOR = LDregister("spruce_large_door");
-    public static final LargeDoor JUNGLE_LARGE_DOOR = LDregister("jungle_large_door");
+    //enregistrement des grandes portes de taille 3x2
+    public static final LargeDoor IRON_LARGE_DOOR = LDregister("iron_large_door",Material.IRON);
+    public static final LargeDoor OAK_LARGE_DOOR = LDregister("oak_large_door",Material.WOOD);
+    public static final LargeDoor BIRCH_LARGE_DOOR = LDregister("birch_large_door",Material.WOOD);
+    public static final LargeDoor DARK_OAK_LARGE_DOOR = LDregister("dark_oak_large_door",Material.WOOD);
+    public static final LargeDoor ACACIA_LARGE_DOOR = LDregister("acacia_large_door",Material.WOOD);
+    public static final LargeDoor SPRUCE_LARGE_DOOR = LDregister("spruce_large_door",Material.WOOD);
+    public static final LargeDoor JUNGLE_LARGE_DOOR = LDregister("jungle_large_door",Material.WOOD);
 
     private static DoorBlock register(String key){
         MoreDoor newDoor = new MoreDoor(key);
@@ -161,8 +162,8 @@ public class DoorRegister {
         return garageDoor;
     }
 
-    private static LargeDoor LDregister(String key){
-        LargeDoor largeDoor = new LargeDoor(key);
+    private static LargeDoor LDregister(String key,Material material){
+        LargeDoor largeDoor = new LargeDoor(key, material);
         BlockItem item = new BlockItem(largeDoor,new Item.Properties().group(ModSetup.itemGroup));
         item.setRegistryName(key);
         System.out.println("-----------------Block "+key+" registered !------------------");

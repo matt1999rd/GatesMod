@@ -67,6 +67,14 @@
   "block.gates.red_garage": "Red Garage",
   "block.gates.white_garage": "White Garage",
   "block.gates.yellow_garage": "Yellow Garage",
+
+  "block.gates.oak_large_door": "Oak Large Door",
+  "block.gates.dark_oak_large_door": "Dark Oak Large Door",
+  "block.gates.birch_large_door": "Birch Large Door",
+  "block.gates.jungle_large_door": "Jungle Large Door",
+  "block.gates.spruce_large_door": "Spruce Large Door",
+  "block.gates.acacia_large_door": "Acacia Large Door",
+
   "block.gates.toll_gate": "Toll Gate",
   "block.gates.turn_stile": "Turn Stile",
   "block.gates.card_getter": "Card Getter",
