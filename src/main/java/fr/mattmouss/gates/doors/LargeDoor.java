@@ -108,11 +108,6 @@ public class LargeDoor extends Block {
             if (blockstate.getBlock() == this && blockstate.get(PLACING) != placing) {
                 worldIn.setBlockState(pos1, Blocks.AIR.getDefaultState(), 35);
                 worldIn.playEvent(player, 2001, pos1, Block.getStateId(blockstate));
-                ItemStack itemstack = player.getHeldItemMainhand();
-                if (!worldIn.isRemote && !player.isCreative()) {
-                    Block.spawnDrops(state, worldIn, pos, (TileEntity)null, player, itemstack);
-                    Block.spawnDrops(blockstate, worldIn, pos1, (TileEntity)null, player, itemstack);
-                }
             }
         }
         super.onBlockHarvested(worldIn, pos, state, player);

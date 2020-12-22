@@ -1,0 +1,17 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    "##",
+    "##",
+    "##"
+  ],
+  "key": {
+    "#": {
+      "item": "minecraft:oak_door"
+    }
+  },
+  "result": {
+    "item": "gates:oak_large_door",
+    "count": 3
+  }
+}

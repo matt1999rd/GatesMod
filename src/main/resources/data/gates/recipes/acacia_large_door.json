@@ -1,0 +1,17 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    "##",
+    "##",
+    "##"
+  ],
+  "key": {
+    "#": {
+      "item": "minecraft:acacia_door"
+    }
+  },
+  "result": {
+    "item": "gates:acacia_large_door",
+    "count": 3
+  }
+}
