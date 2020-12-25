@@ -103,11 +103,18 @@ public class LargeDoor extends Block {
         DoorPlacing placing = state.get(PLACING);
         Direction facing = state.get(BlockStateProperties.HORIZONTAL_FACING);
         List<BlockPos> blockToDestroy = getPosOfNeighborBlock(pos,placing,facing);
+        ItemStack itemstack = player.getHeldItemMainhand();
+        if (!worldIn.isRemote && !player.isCreative()) {
+            Block.spawnDrops(state, worldIn, pos, null, player, itemstack);
+        }
         for (BlockPos pos1 : blockToDestroy){
             BlockState blockstate = worldIn.getBlockState(pos1);
             if (blockstate.getBlock() == this && blockstate.get(PLACING) != placing) {
                 worldIn.setBlockState(pos1, Blocks.AIR.getDefaultState(), 35);
                 worldIn.playEvent(player, 2001, pos1, Block.getStateId(blockstate));
+                if (!worldIn.isRemote && !player.isCreative()) {
+                    Block.spawnDrops(blockstate, worldIn, pos1, null, player, itemstack);
+                }
             }
         }
         super.onBlockHarvested(worldIn, pos, state, player);
@@ -119,7 +126,7 @@ public class LargeDoor extends Block {
 
     @Override
     protected void fillStateContainer(StateContainer.Builder<Block, BlockState> builder) {
-        builder.add(BlockStateProperties.HORIZONTAL_FACING,BlockStateProperties.OPEN,PLACING);
+        builder.add(BlockStateProperties.HORIZONTAL_FACING,BlockStateProperties.OPEN,PLACING,BlockStateProperties.POWERED);
     }
 
     //1.14 onBlockActivated
@@ -184,6 +191,29 @@ public class LargeDoor extends Block {
     }
 
     @Override
+    public void neighborChanged(BlockState state, World worldIn, BlockPos pos, Block blockIn, BlockPos fromPos, boolean isMoving) {
+        boolean flag = isNeighBorDoorBlockPowered(pos,state,worldIn);
+        if (blockIn != this && flag != state.get(BlockStateProperties.POWERED)){
+            worldIn.setBlockState(pos, state.with(BlockStateProperties.POWERED, flag).with(BlockStateProperties.OPEN, flag), 2);
+        }
+    }
+
+    private boolean isNeighBorDoorBlockPowered(BlockPos pos,BlockState state,World world) {
+        DoorPlacing placing = state.get(PLACING);
+        Direction facing = state.get(BlockStateProperties.HORIZONTAL_FACING);
+        List<BlockPos> blockPosList = getPosOfNeighborBlock(pos,placing,facing);
+        if (world.isBlockPowered(pos)){
+            return true;
+        }
+        for (BlockPos neiPos : blockPosList){
+            if (world.isBlockPowered(neiPos)){
+                return true;
+            }
+        }
+        return false;
+    }
+
+    @Override
     public BlockState updatePostPlacement(BlockState stateIn, Direction facing, BlockState facingState, IWorld worldIn, BlockPos currentPos, BlockPos facingPos) {
         DoorPlacing placing= stateIn.get(PLACING);
         Direction blockFacing = stateIn.get(BlockStateProperties.HORIZONTAL_FACING);
@@ -191,6 +221,7 @@ public class LargeDoor extends Block {
             return (facingState.getBlock() == this && facingState.get(PLACING) != placing) ?
                     stateIn.with(BlockStateProperties.HORIZONTAL_FACING,facingState.get(BlockStateProperties.HORIZONTAL_FACING))
                             .with(BlockStateProperties.OPEN,facingState.get(BlockStateProperties.OPEN))
+                            .with(BlockStateProperties.POWERED,facingState.get(BlockStateProperties.POWERED))
                     :Blocks.AIR.getDefaultState();
         }
         if (!placing.isUp() && facing == Direction.DOWN && !stateIn.isValidPosition(worldIn,currentPos)){

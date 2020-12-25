@@ -7,6 +7,15 @@
       "entries": [
         {
           "type": "minecraft:item",
+          "conditions": [
+            {
+              "condition": "minecraft:block_state_property",
+              "block": "gates:jungle_large_door",
+              "properties": {
+                "position": "right_down"
+              }
+            }
+          ],
           "name": "gates:jungle_large_door"
         }
       ],
