@@ -6,7 +6,15 @@
       "rolls": 1,
       "entries": [
         {
-          "type": "minecraft:item",
+          "type": "minecraft:item","conditions": [
+            {
+              "condition": "minecraft:block_state_property",
+              "block": "gates:light_blue_door",
+      "properties": {
+                "half": "lower"
+}
+}
+],
           "name": "gates:light_blue_door"
         }
       ],

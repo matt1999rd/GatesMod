@@ -6,7 +6,15 @@
       "rolls": 1,
       "entries": [
         {
-          "type": "minecraft:item",
+          "type": "minecraft:item","conditions": [
+            {
+              "condition": "minecraft:block_state_property",
+              "block": "gates:stone_door",
+      "properties": {
+                "half": "lower"
+}
+}
+],
           "name": "gates:stone_door"
         }
       ],

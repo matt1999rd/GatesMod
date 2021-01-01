@@ -32,6 +32,7 @@ import net.minecraft.util.math.shapes.ISelectionContext;
 import net.minecraft.util.math.shapes.VoxelShape;
 import net.minecraft.util.math.shapes.VoxelShapes;
 import net.minecraft.world.IBlockReader;
+import net.minecraft.world.IWorld;
 import net.minecraft.world.World;
 import net.minecraft.world.dimension.DimensionType;
 import net.minecraftforge.fml.network.PacketDistributor;
@@ -53,7 +54,7 @@ public class TurnStile extends Block {
     }
 
     public TurnStile() {
-        super(Properties.create(Material.BARRIER)
+        super(Properties.create(Material.IRON)
                 .hardnessAndResistance(2.0f)
                 .sound(SoundType.METAL)
                 //1.15 function
@@ -80,7 +81,6 @@ public class TurnStile extends Block {
     public BlockRenderLayer func_180664_k() {
         return BlockRenderLayer.CUTOUT_MIPPED;
     }
-
 
 
     private VoxelShape getTurnStileShape(BlockState state){
@@ -251,6 +251,11 @@ public class TurnStile extends Block {
     @Override
     public void harvestBlock(World world, PlayerEntity entity, BlockPos pos, BlockState state, @Nullable TileEntity tileEntity, ItemStack stack) {
         super.harvestBlock(world, entity, pos, Blocks.AIR.getDefaultState(), tileEntity, stack);
+    }
+
+    @Override
+    public BlockState updatePostPlacement(BlockState stateIn, Direction facing, BlockState facingState, IWorld worldIn, BlockPos currentPos, BlockPos facingPos) {
+        return super.updatePostPlacement(stateIn, facing, facingState, worldIn, currentPos, facingPos);
     }
 
     @Override

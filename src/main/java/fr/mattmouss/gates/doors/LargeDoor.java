@@ -103,18 +103,11 @@ public class LargeDoor extends Block {
         DoorPlacing placing = state.get(PLACING);
         Direction facing = state.get(BlockStateProperties.HORIZONTAL_FACING);
         List<BlockPos> blockToDestroy = getPosOfNeighborBlock(pos,placing,facing);
-        ItemStack itemstack = player.getHeldItemMainhand();
-        if (!worldIn.isRemote && !player.isCreative()) {
-            Block.spawnDrops(state, worldIn, pos, null, player, itemstack);
-        }
         for (BlockPos pos1 : blockToDestroy){
             BlockState blockstate = worldIn.getBlockState(pos1);
             if (blockstate.getBlock() == this && blockstate.get(PLACING) != placing) {
                 worldIn.setBlockState(pos1, Blocks.AIR.getDefaultState(), 35);
                 worldIn.playEvent(player, 2001, pos1, Block.getStateId(blockstate));
-                if (!worldIn.isRemote && !player.isCreative()) {
-                    Block.spawnDrops(blockstate, worldIn, pos1, null, player, itemstack);
-                }
             }
         }
         super.onBlockHarvested(worldIn, pos, state, player);
@@ -232,7 +225,7 @@ public class LargeDoor extends Block {
 
     private boolean isInternUpdate(DoorPlacing placing,Direction facingUpdate,Direction blockFacing){
         return ( (placing.isUp()|| placing.isCenterY()) && facingUpdate == Direction.DOWN) ||
-                (!placing.isUp() && facingUpdate == Direction.UP) ||
+                ((!placing.isUp()|| placing.isCenterY()) && facingUpdate == Direction.UP) ||
                 (placing.isLeft() && facingUpdate == blockFacing.rotateYCCW()) ||
                 (!placing.isLeft() && facingUpdate == blockFacing.rotateY());
     }

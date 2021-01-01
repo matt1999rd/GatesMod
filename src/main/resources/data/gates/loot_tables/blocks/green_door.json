@@ -6,8 +6,16 @@
       "rolls": 1,
       "entries": [
         {
-          "type": "minecraft:item",
-          "name": "gates:gray_door"
+          "type": "minecraft:item","conditions": [
+            {
+              "condition": "minecraft:block_state_property",
+              "block": "gates:green_door",
+      "properties": {
+                "half": "lower"
+}
+}
+],
+          "name": "gates:green_door"
         }
       ],
       "conditions": [

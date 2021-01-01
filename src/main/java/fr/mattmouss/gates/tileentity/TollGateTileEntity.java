@@ -134,7 +134,6 @@ public class TollGateTileEntity extends TileEntity implements ITickableTileEntit
                     this.world.setBlockState(this.pos, state.with(TollGate.ANIMATION, animationStep - 1));
                 }
             } else {
-                checkStability();
                 manageEmeraldConsumption();
                 checkTimer();
             }
@@ -263,21 +262,6 @@ public class TollGateTileEntity extends TileEntity implements ITickableTileEntit
     }
 
 
-    private void checkStability() {
-        TollGPosition tgp = getBlockState().get(TollGate.TG_POSITION);
-        Block block = world.getBlockState(pos.down()).getBlock();
-        if (!tgp.isDownBlock()){
-            //no stability to check
-            return;
-        }
-        if (block instanceof AirBlock || block instanceof BushBlock || block instanceof LeavesBlock){
-            //System.out.println("pas de block à "+pos.down()+" : destruction du block !!");
-            destroyBlock();
-            //return for stoping the function
-            return;
-        }
-    }
-
     //start all animation of all the block that make the toll gate
 
     private void startAllAnimation(){
@@ -316,13 +300,6 @@ public class TollGateTileEntity extends TileEntity implements ITickableTileEntit
         }
     }
 
-    private void destroyBlock() {
-        //destruction of all blocks connected and of the block itself
-        for (BlockPos pos1 : getPositionOfBlockConnected()){
-            TollGate selecGate = (TollGate) world.getBlockState(pos1).getBlock();
-            selecGate.deleteBlock(pos1,world);
-        }
-    }
 
     private boolean animationOpeningInProcess(){
         return storage.map(ITollStorage::isOpening).orElse(false);

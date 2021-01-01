@@ -1,5 +1,6 @@
 package fr.mattmouss.gates.doors;
 
+import fr.mattmouss.gates.enum_door.DoorPlacing;
 import fr.mattmouss.gates.enum_door.Placing;
 import fr.mattmouss.gates.tileentity.GarageTileEntity;
 import fr.mattmouss.gates.util.Functions;
@@ -7,6 +8,7 @@ import net.minecraft.block.*;
 import net.minecraft.block.material.Material;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.player.PlayerEntity;
+import net.minecraft.item.BlockItemUseContext;
 import net.minecraft.item.ItemStack;
 import net.minecraft.pathfinding.PathType;
 import net.minecraft.state.EnumProperty;
@@ -24,6 +26,7 @@ import net.minecraft.util.math.BlockRayTraceResult;
 import net.minecraft.util.math.shapes.ISelectionContext;
 import net.minecraft.util.math.shapes.VoxelShape;
 import net.minecraft.world.IBlockReader;
+import net.minecraft.world.IWorld;
 import net.minecraft.world.World;
 
 import javax.annotation.Nullable;
@@ -53,8 +56,8 @@ public class GarageDoor extends Block {
      * */
 
     public GarageDoor(String key) {
-        super(Properties.create(Material.BARRIER)
-        .hardnessAndResistance(3.0f)
+        super(Properties.create(Material.IRON)
+        .hardnessAndResistance(2.0f)
         .lightValue(0)
         .sound(SoundType.METAL)
         //.notSolid()
@@ -174,7 +177,7 @@ public class GarageDoor extends Block {
             case 5:
                 return UP_AABB;
             default:
-                throw new IllegalArgumentException("No such number allowd for animation");
+                throw new IllegalArgumentException("No such number allowed for animation");
         }
 
     }
@@ -194,6 +197,8 @@ public class GarageDoor extends Block {
     protected void fillStateContainer(StateContainer.Builder<Block, BlockState> builder) {
         builder.add(BlockStateProperties.HORIZONTAL_FACING, GARAGE_PLACING,ANIMATION);
     }
+
+
 
     @Override
     public void onBlockPlacedBy(World world, BlockPos pos, BlockState state, @Nullable LivingEntity entity, ItemStack stack) {
@@ -234,21 +239,9 @@ public class GarageDoor extends Block {
     @Override
     @ParametersAreNonnullByDefault
     public void onBlockHarvested(World world, BlockPos pos, BlockState state, PlayerEntity playerEntity) {
-        System.out.println("destroying all block of garage door");
-        GarageTileEntity gte = (GarageTileEntity)world.getTileEntity(pos);
-        assert gte != null;
-        List<BlockPos> posList = gte.getPositionOfBlockConnected();
-        ItemStack stack = playerEntity.getHeldItemMainhand();
-        for (BlockPos pos1 : posList) {
-            this.deleteBlock(pos1,world);
-            BlockState state1= world.getBlockState(pos1);
-            world.playEvent(playerEntity,2001,pos1,Block.getStateId(state1));
-            if (!world.isRemote && !playerEntity.isCreative() && playerEntity.canHarvestBlock(state1)) {
-                Block.spawnDrops(state1, world, pos1, null, playerEntity, stack);
-            }
-        }
-        if (!world.isRemote && !playerEntity.isCreative() && playerEntity.canHarvestBlock(state)) {
-            Block.spawnDrops(state, world, pos, null, playerEntity, stack);
+        ItemStack itemstack = playerEntity.getHeldItemMainhand();
+        if (!world.isRemote && !playerEntity.isCreative()) {
+            Block.spawnDrops(state, world, pos, null, playerEntity, itemstack);
         }
     }
 
@@ -258,8 +251,39 @@ public class GarageDoor extends Block {
         super.harvestBlock(world, entity, pos, Blocks.AIR.getDefaultState(), tileEntity, stack);
     }
 
-    public void deleteBlock(BlockPos pos, World world){
-        world.setBlockState(pos,Blocks.AIR.getDefaultState(),35);
+    @Override
+    public BlockState updatePostPlacement(BlockState stateIn, Direction facing, BlockState facingState, IWorld worldIn, BlockPos currentPos, BlockPos facingPos) {
+        Placing placing = stateIn.get(GARAGE_PLACING);
+        Direction blockFacing = stateIn.get(BlockStateProperties.HORIZONTAL_FACING).getOpposite();
+
+        if (isInternUpdate(placing,facing,blockFacing) && !(facingState.getBlock() instanceof GarageDoor)){
+            System.out.println("no other garage part found for placing :"+placing.toString()+" Block will be destroyed");
+            return Blocks.AIR.getDefaultState();
+        }
+
+        if (isSupportUpdate(placing,facing,blockFacing) && !facingState.getMaterial().blocksMovement()){
+            System.out.println("no support found for placing :"+placing.toString()+" Block will be destroyed");
+            return Blocks.AIR.getDefaultState();
+        }
+        return super.updatePostPlacement(stateIn,facing,facingState,worldIn,currentPos,facingPos);
+    }
+
+
+    //block facing is the direction of back block
+    private boolean isInternUpdate(Placing placing, Direction facingUpdate, Direction blockFacing){
+        return ( placing.isUpFace() && (facingUpdate == Direction.DOWN || facingUpdate == blockFacing)) ||
+                (placing.isUpBack() && facingUpdate == blockFacing.getOpposite()) ||
+                (!placing.isUp() && facingUpdate == Direction.UP) ||
+                (placing.isRight() && facingUpdate == blockFacing.rotateYCCW()) ||
+                (!placing.isRight() && facingUpdate == blockFacing.rotateY());
+    }
+
+
+    private boolean isSupportUpdate(Placing placing, Direction facingUpdate,Direction blockFacing){
+        return ( placing.isUp() && facingUpdate == Direction.UP) ||
+                (!placing.isUp() && facingUpdate == Direction.DOWN) ||
+                (placing.isRight() && facingUpdate == blockFacing.rotateY()) ||
+                (!placing.isRight() && facingUpdate == blockFacing.rotateYCCW());
     }
 
     //1.15 function

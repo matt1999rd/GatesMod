@@ -34,5 +34,9 @@ public enum Placing implements IStringSerializable {
         return (meta % 2 ==1);
     }
 
+    public boolean isUpBack() { return (meta>3); }
+
+    public boolean isUpFace() { return meta>1 && meta<4; }
+
 
 }

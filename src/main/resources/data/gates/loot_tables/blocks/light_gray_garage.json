@@ -6,7 +6,15 @@
       "rolls": 1,
       "entries": [
         {
-          "type": "minecraft:item",
+          "type": "minecraft:item","conditions": [
+            {
+              "condition": "minecraft:block_state_property",
+              "block": "gates:light_gray_garage",
+      "properties": {
+                "placing": "up_left"
+}
+}
+],
           "name": "gates:light_gray_garage"
         }
       ],

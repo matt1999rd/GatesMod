@@ -27,14 +27,13 @@ public class GarageDoorItem extends BlockItem {
 
     @Override
     public ActionResultType onItemUse(ItemUseContext context) {
-        if (allBlockReplacedisAir(new BlockItemUseContext(context))){
+        if (allBlockReplacedisAir(new BlockItemUseContext(context)) && hasSupportToStay(new BlockItemUseContext(context))){
             return super.onItemUse(context);
         }
         System.out.println("block non fabriqué");
         return ActionResultType.FAIL;
     }
 
-    // todo : need to retest this function because bugs occurs when vincent used it
     // the function is not working  because we need to know where the first block will be created it depends on where the player clicked
     // need to check the onItemUse function of blockItem to know where it put the first value
     private boolean allBlockReplacedisAir(BlockItemUseContext context){
@@ -60,6 +59,40 @@ public class GarageDoorItem extends BlockItem {
             if (!(world.getBlockState(pos_in).getBlock() instanceof AirBlock)){
                 System.out.println("la blockPos qui fait foirer :"+pos_in);
                 System.out.println("Block qui bloque :"+world.getBlockState(pos_in).getBlock());
+                return false;
+            }
+        }
+        return true;
+    }
+
+    private boolean hasSupportToStay(BlockItemUseContext context){
+        World world = context.getWorld();
+        PlayerEntity entity=context.getPlayer();
+        BlockPos pos_base =context.getPos();
+        Direction facing = Functions.getDirectionFromEntity(entity,pos_base);
+        Direction dir_left_section=facing.rotateY();
+        List<BlockPos> posList = new ArrayList<>();
+        //support at the bottom
+        posList.add(pos_base.down());
+        posList.add(pos_base.offset(dir_left_section).down());
+        //support on the right
+        posList.add(pos_base.offset(dir_left_section.getOpposite()));
+        posList.add(pos_base.offset(dir_left_section.getOpposite()).up());
+        //support on the left
+        posList.add(pos_base.offset(dir_left_section,2));
+        posList.add(pos_base.offset(dir_left_section,2).up());
+        //support on the top front
+        posList.add(pos_base.up(2).offset(dir_left_section.getOpposite()));
+        posList.add(pos_base.up(2));
+        posList.add(pos_base.up(2).offset(dir_left_section));
+        posList.add(pos_base.up(2).offset(dir_left_section,2));
+        //support on the top back
+        posList.add(pos_base.up(2).offset(dir_left_section.getOpposite()).offset(facing.getOpposite()));
+        posList.add(pos_base.up(2).offset(dir_left_section,2).offset(facing.getOpposite()));
+        for (BlockPos pos : posList){
+            if (!(world.getBlockState(pos).getMaterial().blocksMovement())){
+                System.out.println("la blockPos qui fait foirer :"+pos);
+                System.out.println("Block qui bloque :"+world.getBlockState(pos).getBlock());
                 return false;
             }
         }

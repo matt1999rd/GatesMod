@@ -9,7 +9,7 @@ import net.minecraft.util.BlockRenderLayer;
 public class MoreDoor extends DoorBlock {
     public MoreDoor(String key) {
         super(Properties.create(Material.ROCK, MaterialColor.ADOBE)
-        .hardnessAndResistance(3.0f)
+        .hardnessAndResistance(2.0f)
         .sound(SoundType.METAL)
                 //1.15 function
                 //.notSolid()

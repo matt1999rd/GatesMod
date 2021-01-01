@@ -65,59 +65,10 @@ public class GarageTileEntity extends TileEntity implements ITickableTileEntity 
                 } else {
                     this.world.setBlockState(this.pos, state.with(GarageDoor.ANIMATION, animationStep - 1));
                 }
-            } else {
-                checkStability();
-                //checkRedstoneNearby();
             }
+            //checkStability();
+            //checkRedstoneNearby();
         }
-
-    }
-
-    private void checkStability() {
-        Placing placing = this.getBlockState().get(GarageDoor.GARAGE_PLACING);
-        Direction dir_left_section = this.getBlockState().get(BlockStateProperties.HORIZONTAL_FACING).rotateY();
-        //test entre droite et gauche
-        //droite si à droite et gauche si à gauche
-        Direction placing_offset = (placing.isRight())?dir_left_section.getOpposite():dir_left_section;
-        BlockPos pos_lat_supp = pos.offset(placing_offset);
-        BlockState lat_block_state = world.getBlockState(pos_lat_supp);
-        String pos_str = (placing.isRight())?"droite":"gauche";
-        //block à droite ou à gauche qui doit être présent et stable
-        if (!lat_block_state.getMaterial().blocksMovement()){
-            System.out.println("pas de block à "+pos_str+" : destruction du block !!");
-            destroyBlock();
-            //return pour arrêter la fonction
-            return;
-        }
-
-        //test entre haut et bas
-        //haut si en haut et bas si en bas
-        placing_offset = (placing.isUp())?Direction.UP:Direction.DOWN;
-        BlockPos pos_y_supp= pos.offset(placing_offset);
-        Block y_block = world.getBlockState(pos_y_supp).getBlock();
-        String pos_str_y = (placing.isUp())?"au dessus":"en dessous";
-        //block en haut ou en bas qui doit être présent et stable
-        if (y_block instanceof AirBlock || y_block instanceof BushBlock){
-            System.out.println("pas de block "+pos_str_y+" : destruction du block !!");
-            destroyBlock();
-            //return pour arrêter la fonction
-            return;
-        }
-        //System.out.println("stability checked for block at position :"+placing.getName());
-
-    }
-
-    private void destroyBlock() {
-        GarageDoor door = (GarageDoor) this.getBlockState().getBlock();
-        List<BlockPos> posList = getPositionOfBlockConnected();
-        door.deleteBlock(pos,world);
-        posList.forEach(pos_neighbor-> {
-            Block block = world.getBlockState(pos_neighbor).getBlock();
-            if (block instanceof GarageDoor){
-                GarageDoor neighborDoor = (GarageDoor)world.getBlockState(pos_neighbor).getBlock();
-                neighborDoor.deleteBlock(pos_neighbor,world);
-            }
-        });
     }
 
 

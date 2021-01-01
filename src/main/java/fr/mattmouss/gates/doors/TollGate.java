@@ -1,6 +1,7 @@
 package fr.mattmouss.gates.doors;
 
 import fr.mattmouss.gates.energystorage.IdTracker;
+import fr.mattmouss.gates.enum_door.Placing;
 import fr.mattmouss.gates.enum_door.TollGPosition;
 import fr.mattmouss.gates.network.Networking;
 import fr.mattmouss.gates.network.SetIdPacket;
@@ -33,6 +34,7 @@ import net.minecraft.util.math.shapes.VoxelShape;
 
 import net.minecraft.util.math.shapes.VoxelShapes;
 import net.minecraft.world.IBlockReader;
+import net.minecraft.world.IWorld;
 import net.minecraft.world.World;
 import net.minecraft.world.dimension.DimensionType;
 import net.minecraftforge.fml.network.NetworkHooks;
@@ -40,6 +42,9 @@ import net.minecraftforge.fml.network.PacketDistributor;
 
 import javax.annotation.Nullable;
 import java.util.List;
+
+import static fr.mattmouss.gates.enum_door.TollGPosition.*;
+
 
 public class TollGate extends Block {
 
@@ -59,11 +64,11 @@ public class TollGate extends Block {
      *
      * */
     public TollGate() {
-        super(Properties.create(Material.BARRIER)
+        super(Properties.create(Material.IRON)
                 //1.15
                 //.notSolid()
                 .sound(SoundType.METAL)
-                .hardnessAndResistance(2.0f));
+                .hardnessAndResistance(3.0f));
         this.setRegistryName("toll_gate");
     }
 
@@ -180,7 +185,7 @@ public class TollGate extends Block {
             //block empty base
             world.setBlockState(pos.offset(direction.getOpposite()),
                     state.with(BlockStateProperties.HORIZONTAL_FACING,direction)
-                    .with(TG_POSITION,TollGPosition.EMPTY_BASE)
+                    .with(TG_POSITION, EMPTY_BASE)
                     .with(BlockStateProperties.DOOR_HINGE,dhs)
                     .with(ANIMATION,0)
             );
@@ -209,8 +214,31 @@ public class TollGate extends Block {
     }
 
     @Override
+    public BlockState updatePostPlacement(BlockState stateIn, Direction facing, BlockState facingState, IWorld worldIn, BlockPos currentPos, BlockPos facingPos) {
+        TollGPosition position = stateIn.get(TG_POSITION);
+        Direction blockFacing = stateIn.get(BlockStateProperties.HORIZONTAL_FACING);
+        DoorHingeSide dhs = stateIn.get(BlockStateProperties.DOOR_HINGE);
+        if (isInternUpdate(position,facing,blockFacing,dhs) &&  !(facingState.getBlock() instanceof TollGate)){
+            return Blocks.AIR.getDefaultState();
+        }
+        if (position == CONTROL_UNIT && facing == Direction.DOWN && !facingState.getMaterial().blocksMovement()){
+            return Blocks.AIR.getDefaultState();
+        }
+        return stateIn;
+    }
+
+    @Override
     public void harvestBlock(World world, PlayerEntity entity, BlockPos pos, BlockState state, @Nullable TileEntity tileEntity, ItemStack stack) {
         super.harvestBlock(world, entity, pos, Blocks.AIR.getDefaultState(), tileEntity, stack);
+    }
+
+    //block facing is the direction of forth block
+    private boolean isInternUpdate(TollGPosition position, Direction facingUpdate, Direction blockFacing,DoorHingeSide side){
+        return ( position == EMPTY_BASE && (facingUpdate == Direction.UP || facingUpdate == blockFacing || facingUpdate == ((side == DoorHingeSide.LEFT)? blockFacing.rotateY() : blockFacing.rotateYCCW()))) ||
+                (position == CONTROL_UNIT && facingUpdate == blockFacing.getOpposite()) ||
+                (position == MAIN && facingUpdate.getAxis() == blockFacing.rotateY().getAxis()) ||
+                (position == EMPTY_EXT && facingUpdate == ((side == DoorHingeSide.LEFT)?  blockFacing.rotateYCCW() : blockFacing.rotateY())) ||
+                (position == UP_BLOCK && facingUpdate == Direction.DOWN);
     }
 
     @Override
@@ -222,16 +250,16 @@ public class TollGate extends Block {
             idTracker.removeId(tgte.getId());
         }
         assert tgte != null;
-        ItemStack stack = entity.getHeldItemMainhand();
         List<BlockPos> posList = tgte.getPositionOfBlockConnected();
         //je détruis tout les blocks à coté ainsi que le block lui même
         for (BlockPos pos1 : posList) {
-            this.deleteBlock(pos1,world);
             BlockState state1= world.getBlockState(pos1);
-            world.playEvent(entity,2001,pos1,Block.getStateId(state1));
+            ItemStack stack = entity.getHeldItemMainhand();
             if (!world.isRemote && !entity.isCreative() && entity.canHarvestBlock(state1)) {
-                Block.spawnDrops(state1, world, pos1, null, entity, stack);
+                Block.spawnDrops(state1, world, pos, null, entity, stack);
             }
+            world.playEvent(entity,2001,pos1,Block.getStateId(state1));
+            this.deleteBlock(pos1,world);
         }
     }
 
