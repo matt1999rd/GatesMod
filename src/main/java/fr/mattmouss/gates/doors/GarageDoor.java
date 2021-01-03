@@ -1,6 +1,5 @@
 package fr.mattmouss.gates.doors;
 
-import fr.mattmouss.gates.enum_door.DoorPlacing;
 import fr.mattmouss.gates.enum_door.Placing;
 import fr.mattmouss.gates.tileentity.GarageTileEntity;
 import fr.mattmouss.gates.util.Functions;
@@ -8,7 +7,6 @@ import net.minecraft.block.*;
 import net.minecraft.block.material.Material;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.item.BlockItemUseContext;
 import net.minecraft.item.ItemStack;
 import net.minecraft.pathfinding.PathType;
 import net.minecraft.state.EnumProperty;
@@ -256,7 +254,7 @@ public class GarageDoor extends Block {
         Placing placing = stateIn.get(GARAGE_PLACING);
         Direction blockFacing = stateIn.get(BlockStateProperties.HORIZONTAL_FACING).getOpposite();
 
-        if (isInternUpdate(placing,facing,blockFacing) && !(facingState.getBlock() instanceof GarageDoor)){
+        if (isInnerUpdate(placing,facing,blockFacing) && !(facingState.getBlock() instanceof GarageDoor)){
             System.out.println("no other garage part found for placing :"+placing.toString()+" Block will be destroyed");
             return Blocks.AIR.getDefaultState();
         }
@@ -270,7 +268,7 @@ public class GarageDoor extends Block {
 
 
     //block facing is the direction of back block
-    private boolean isInternUpdate(Placing placing, Direction facingUpdate, Direction blockFacing){
+    private boolean isInnerUpdate(Placing placing, Direction facingUpdate, Direction blockFacing){
         return ( placing.isUpFace() && (facingUpdate == Direction.DOWN || facingUpdate == blockFacing)) ||
                 (placing.isUpBack() && facingUpdate == blockFacing.getOpposite()) ||
                 (!placing.isUp() && facingUpdate == Direction.UP) ||

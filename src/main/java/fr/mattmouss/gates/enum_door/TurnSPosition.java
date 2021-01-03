@@ -22,4 +22,8 @@ public enum TurnSPosition implements IStringSerializable {
     public int getMeta() {
         return meta;
     }
+
+    public boolean isSolid() {
+        return this == RIGHT_BLOCK || this == LEFT_BLOCK;
+    }
 }

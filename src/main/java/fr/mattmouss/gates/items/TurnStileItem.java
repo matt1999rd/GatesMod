@@ -30,11 +30,14 @@ public class TurnStileItem extends BlockItem {
         BlockPos pos = context.getPos();
         World world = context.getWorld();
         PlayerEntity entity = context.getPlayer();
+        Direction direction = Functions.getDirectionFromEntity(entity,pos);
+        DoorHingeSide dhs = Functions.getHingeSideFromEntity(entity,pos,direction);
+        BlockPos MainPos = (dhs == DoorHingeSide.RIGHT) ? pos.offset(direction.rotateY()): pos.offset(direction.rotateYCCW());
         TurnStileKeyItem key = (TurnStileKeyItem) ModItem.TURN_STILE_KEY.asItem();
         if (checkFeasibility(new BlockItemUseContext(context))){
             System.out.println("block successfully put !!");
             ItemStack newStack = new ItemStack(key);
-            key.setTSPosition(newStack,world,pos.up());
+            key.setTSPosition(newStack,world,MainPos.up());
             System.out.println("itemstack of new key item : "+newStack);
             entity.setItemStackToSlot(EquipmentSlotType.MAINHAND,ItemStack.EMPTY);
             entity.setItemStackToSlot(EquipmentSlotType.MAINHAND,newStack);

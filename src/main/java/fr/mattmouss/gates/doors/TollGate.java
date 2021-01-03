@@ -1,10 +1,10 @@
 package fr.mattmouss.gates.doors;
 
 import fr.mattmouss.gates.energystorage.IdTracker;
-import fr.mattmouss.gates.enum_door.Placing;
 import fr.mattmouss.gates.enum_door.TollGPosition;
 import fr.mattmouss.gates.items.ModItem;
 import fr.mattmouss.gates.items.TollKeyItem;
+import fr.mattmouss.gates.items.TurnStileKeyItem;
 import fr.mattmouss.gates.network.Networking;
 import fr.mattmouss.gates.network.SetIdPacket;
 import fr.mattmouss.gates.tileentity.TollGateTileEntity;
@@ -19,7 +19,6 @@ import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.player.PlayerInventory;
 import net.minecraft.entity.player.ServerPlayerEntity;
-import net.minecraft.inventory.Inventory;
 import net.minecraft.item.ItemStack;
 import net.minecraft.pathfinding.PathType;
 import net.minecraft.state.EnumProperty;
@@ -31,7 +30,6 @@ import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.BlockRenderLayer;
 import net.minecraft.util.Direction;
 import net.minecraft.util.Hand;
-import net.minecraft.util.NonNullList;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.BlockRayTraceResult;
 import net.minecraft.util.math.shapes.ISelectionContext;
@@ -224,10 +222,11 @@ public class TollGate extends Block {
         TollGPosition position = stateIn.get(TG_POSITION);
         Direction blockFacing = stateIn.get(BlockStateProperties.HORIZONTAL_FACING);
         DoorHingeSide dhs = stateIn.get(BlockStateProperties.DOOR_HINGE);
-        if (isInternUpdate(position,facing,blockFacing,dhs) &&  !(facingState.getBlock() instanceof TollGate)){
+        if (isInnerUpdate(position,facing,blockFacing,dhs) &&  !(facingState.getBlock() instanceof TollGate)){
             return Blocks.AIR.getDefaultState();
         }
         if (position == CONTROL_UNIT && facing == Direction.DOWN && !facingState.getMaterial().blocksMovement()){
+            if (!worldIn.isRemote())removeUselessKey(worldIn.getWorld(),currentPos,stateIn);
             return Blocks.AIR.getDefaultState();
         }
         return stateIn;
@@ -239,7 +238,7 @@ public class TollGate extends Block {
     }
 
     //block facing is the direction of forth block
-    private boolean isInternUpdate(TollGPosition position, Direction facingUpdate, Direction blockFacing,DoorHingeSide side){
+    private boolean isInnerUpdate(TollGPosition position, Direction facingUpdate, Direction blockFacing, DoorHingeSide side){
         return ( position == EMPTY_BASE && (facingUpdate == Direction.UP || facingUpdate == blockFacing || facingUpdate == ((side == DoorHingeSide.LEFT)? blockFacing.rotateY() : blockFacing.rotateYCCW()))) ||
                 (position == CONTROL_UNIT && facingUpdate == blockFacing.getOpposite()) ||
                 (position == MAIN && facingUpdate.getAxis() == blockFacing.rotateY().getAxis()) ||
@@ -254,27 +253,31 @@ public class TollGate extends Block {
         if (!world.isRemote ){
             IdTracker idTracker = world.getServer().getWorld(DimensionType.OVERWORLD).getSavedData().getOrCreate(IdTracker::new,"idgates");
             idTracker.removeId(tgte.getId());
-            TollKeyItem key = (TollKeyItem) ModItem.TOLL_GATE_KEY.asItem();
-            ItemStack oldStack = new ItemStack(key);
-            BlockPos keyPos = getKeyPos(pos,state);
-            key.setTGPosition(oldStack, world, keyPos);
-            List<? extends PlayerEntity> players = world.getPlayers();
-            AtomicBoolean foundKey = new AtomicBoolean(false);
-            players.forEach(p -> {
-                PlayerInventory inventory = p.inventory;
-                if (!foundKey.get()) {
-                    if (inventory.hasItemStack(oldStack)) {
-                        int slot = inventory.getSlotFor(oldStack);
-                        inventory.mainInventory.set(slot, ItemStack.EMPTY);
-                        foundKey.set(true);
-                    }
-                }
-            });
+            removeUselessKey(world,pos,state);
         }
         ItemStack stack = entity.getHeldItemMainhand();
         if (!world.isRemote && !entity.isCreative()) {
             Block.spawnDrops(state, world, pos, null, entity, stack);
         }
+    }
+
+    private void removeUselessKey(World world,BlockPos pos,BlockState state){
+        TollKeyItem key = (TollKeyItem) ModItem.TOLL_GATE_KEY.asItem();
+        ItemStack oldStack = new ItemStack(key);
+        BlockPos keyPos = getKeyPos(pos,state);
+        key.setTGPosition(oldStack, world, keyPos);
+        List<? extends PlayerEntity> players = world.getPlayers();
+        AtomicBoolean foundKey = new AtomicBoolean(false);
+        players.forEach(p -> {
+            PlayerInventory inventory = p.inventory;
+            if (!foundKey.get()) {
+                if (inventory.hasItemStack(oldStack)) {
+                    int slot = inventory.getSlotFor(oldStack);
+                    inventory.mainInventory.set(slot, ItemStack.EMPTY);
+                    foundKey.set(true);
+                }
+            }
+        });
     }
 
     private BlockPos getKeyPos(BlockPos pos, BlockState state) {

@@ -121,7 +121,6 @@ public class TurnStileTileEntity extends TileEntity implements IControlIdTE,ITic
 
     @Override
     public void tick() {
-        checkStability();
         BlockState state = this.getBlockState();
         if (this.isRightTSB()) {
             if (!world.isRemote && !state.get(TurnStile.WAY_IS_ON)) {
@@ -291,26 +290,6 @@ public class TurnStileTileEntity extends TileEntity implements IControlIdTE,ITic
     }
 
     //other function for functionality in the te
-
-    private void checkStability() {
-        Block block = world.getBlockState(pos.down()).getBlock();
-        if (block instanceof AirBlock || block instanceof BushBlock || block instanceof LeavesBlock){
-            //System.out.println("pas de block à "+pos.down()+" : destruction du block !!");
-            destroyBlock();
-            //return for stoping the function
-            return;
-        }
-    }
-
-    private void destroyBlock() {
-        //destruction of all blocks connected and of the block itself
-        for (BlockPos pos1 : getPositionOfBlockConnected()){
-            if (world.getBlockState(pos1).getBlock() instanceof TurnStile) {
-                TurnStile selecStile = (TurnStile) world.getBlockState(pos1).getBlock();
-                selecStile.deleteBlock(pos1, world);
-            }
-        }
-    }
 
     public void changeAllAnim() {
         List<BlockPos> posList = getPositionOfBlockConnected();
