@@ -250,7 +250,7 @@ public class TollGate extends Block {
     public void onBlockHarvested(World world, BlockPos pos, BlockState state, PlayerEntity entity) {
         System.out.println("destroying all block of toll gate");
         TollGateTileEntity tgte = (TollGateTileEntity) world.getTileEntity(pos);
-        if (!world.isRemote ){
+        if (!world.isRemote){
             IdTracker idTracker = world.getServer().getWorld(DimensionType.OVERWORLD).getSavedData().getOrCreate(IdTracker::new,"idgates");
             idTracker.removeId(tgte.getId());
             removeUselessKey(world,pos,state);
@@ -259,6 +259,7 @@ public class TollGate extends Block {
         if (!world.isRemote && !entity.isCreative()) {
             Block.spawnDrops(state, world, pos, null, entity, stack);
         }
+        super.onBlockHarvested(world, pos, state, entity);
     }
 
     private void removeUselessKey(World world,BlockPos pos,BlockState state){

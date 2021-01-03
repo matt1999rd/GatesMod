@@ -313,6 +313,7 @@ public class TurnStile extends Block {
         if (!world.isRemote && !entity.isCreative()) {
             Block.spawnDrops(state, world, pos, null, entity, stack);
         }
+        super.onBlockHarvested(world, pos, state, entity);
     }
 
     private BlockPos getKeyPos(BlockPos pos, BlockState state) {
@@ -329,15 +330,6 @@ public class TurnStile extends Block {
             default:
                 return pos;
         }
-    }
-
-    public void deleteBlock(BlockPos pos, World world){
-        TurnStileTileEntity tste = (TurnStileTileEntity) world.getTileEntity(pos);
-        if (!world.isRemote && tste.isRightTSB()){
-            IdTracker idTracker = world.getServer().getWorld(DimensionType.OVERWORLD).getSavedData().getOrCreate(IdTracker::new,"idgates");
-            idTracker.removeId(tste.getId());
-        }
-        world.setBlockState(pos,Blocks.AIR.getDefaultState(),35);
     }
 
 

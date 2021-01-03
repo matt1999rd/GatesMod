@@ -39,7 +39,15 @@ public enum DoorPlacing implements IStringSerializable {
     public boolean isCenterY(){
         return meta >5;
     }
+
+    public boolean isDown(){return !isCenterY() && !isUp();}
+
     public boolean isLeft(){
         return meta % 3 == 0;
     }
+
+    public boolean hasRightNeighbor(){return isLeft() || !isSide();}
+
+    public boolean hasLeftNeighbor(){return !isLeft();}
+
 }

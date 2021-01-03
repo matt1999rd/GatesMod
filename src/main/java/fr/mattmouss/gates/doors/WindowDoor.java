@@ -2,6 +2,7 @@ package fr.mattmouss.gates.doors;
 
 import com.google.common.collect.Lists;
 import fr.mattmouss.gates.enum_door.DoorPlacing;
+import fr.mattmouss.gates.enum_door.TurnSPosition;
 import fr.mattmouss.gates.tileentity.WindowDoorTileEntity;
 import fr.mattmouss.gates.util.Functions;
 import net.minecraft.block.Block;
@@ -25,6 +26,7 @@ import net.minecraft.util.math.shapes.ISelectionContext;
 import net.minecraft.util.math.shapes.VoxelShape;
 import net.minecraft.util.math.shapes.VoxelShapes;
 import net.minecraft.world.IBlockReader;
+import net.minecraft.world.IWorld;
 import net.minecraft.world.World;
 import javax.annotation.Nullable;
 import java.util.List;
@@ -151,80 +153,28 @@ public class WindowDoor extends Block {
     }
 
     @Override
+    public BlockState updatePostPlacement(BlockState stateIn, Direction facing, BlockState facingState, IWorld worldIn, BlockPos currentPos, BlockPos facingPos) {
+        DoorPlacing placing = stateIn.get(PLACING);
+        Direction blockFacing = stateIn.get(BlockStateProperties.HORIZONTAL_FACING);
+        if (isInnerUpdate(placing,facing,blockFacing) &&  !(facingState.getBlock() instanceof WindowDoor)){
+            return Blocks.AIR.getDefaultState();
+        }
+        if (placing.isDown() && facing == Direction.DOWN && !facingState.getMaterial().blocksMovement()){
+            return Blocks.AIR.getDefaultState();
+        }
+        return stateIn;
+    }
+
+    private boolean isInnerUpdate(DoorPlacing placing, Direction facing, Direction blockFacing) {
+        return (placing.hasRightNeighbor() && facing == blockFacing.rotateYCCW()) ||
+                (placing.hasLeftNeighbor() && facing == blockFacing.rotateY())  ||
+                (placing.isUp() && facing == Direction.DOWN) ||
+                (!placing.isUp() && facing == Direction.UP);
+    }
+
+    @Override
     protected void fillStateContainer(StateContainer.Builder<Block, BlockState> builder) {
         builder.add(BlockStateProperties.HORIZONTAL_FACING,PLACING,ANIMATION);
     }
 
-    @Override
-    public void onBlockHarvested(World worldIn, BlockPos pos, BlockState state, PlayerEntity player) {
-        DoorPlacing placing = state.get(PLACING);
-        Direction facing = state.get(BlockStateProperties.HORIZONTAL_FACING);
-        List<BlockPos> otherBlockToDestroy = Lists.newArrayList();
-        switch (placing){
-            case LEFT_UP:
-                otherBlockToDestroy.add(pos.down());
-                otherBlockToDestroy.add(pos.offset(facing.rotateYCCW()));
-                otherBlockToDestroy.add(pos.offset(facing.rotateYCCW()).down());
-                otherBlockToDestroy.add(pos.offset(facing.rotateYCCW(),2));
-                otherBlockToDestroy.add(pos.offset(facing.rotateYCCW(),2).down());
-                break;
-            case RIGHT_UP:
-                otherBlockToDestroy.add(pos.down());
-                otherBlockToDestroy.add(pos.offset(facing.rotateY()));
-                otherBlockToDestroy.add(pos.offset(facing.rotateY()).down());
-                otherBlockToDestroy.add(pos.offset(facing.rotateY(),2));
-                otherBlockToDestroy.add(pos.offset(facing.rotateY(),2).down());
-                break;
-            case CENTER_UP:
-                otherBlockToDestroy.add(pos.down());
-                otherBlockToDestroy.add(pos.offset(facing.rotateYCCW()));
-                otherBlockToDestroy.add(pos.offset(facing.rotateYCCW()).down());
-                otherBlockToDestroy.add(pos.offset(facing.rotateY()));
-                otherBlockToDestroy.add(pos.offset(facing.rotateY()).down());
-                break;
-            case LEFT_DOWN:
-                otherBlockToDestroy.add(pos.up());
-                otherBlockToDestroy.add(pos.offset(facing.rotateYCCW()));
-                otherBlockToDestroy.add(pos.offset(facing.rotateYCCW()).up());
-                otherBlockToDestroy.add(pos.offset(facing.rotateYCCW(),2));
-                otherBlockToDestroy.add(pos.offset(facing.rotateYCCW(),2).up());
-                break;
-            case RIGHT_DOWN:
-                otherBlockToDestroy.add(pos.up());
-                otherBlockToDestroy.add(pos.offset(facing.rotateY()));
-                otherBlockToDestroy.add(pos.offset(facing.rotateY()).up());
-                otherBlockToDestroy.add(pos.offset(facing.rotateY(),2));
-                otherBlockToDestroy.add(pos.offset(facing.rotateY(),2).up());
-                break;
-            case CENTER_DOWN:
-                otherBlockToDestroy.add(pos.up());
-                otherBlockToDestroy.add(pos.offset(facing.rotateYCCW()));
-                otherBlockToDestroy.add(pos.offset(facing.rotateYCCW()).up());
-                otherBlockToDestroy.add(pos.offset(facing.rotateY()));
-                otherBlockToDestroy.add(pos.offset(facing.rotateY()).up());
-                break;
-        }
-        ItemStack stack = player.getHeldItemMainhand();
-        for (BlockPos otherPos : otherBlockToDestroy){
-            BlockState state1 = worldIn.getBlockState(otherPos);
-            Block block = state1.getBlock();
-            if (block instanceof WindowDoor){
-                WindowDoor door = (WindowDoor)block;
-                door.destroyBlock(worldIn,otherPos);
-                worldIn.playEvent(player,2001,otherPos,Block.getStateId(state1));
-                if (!worldIn.isRemote && !player.isCreative() && player.canHarvestBlock(state)) {
-                    Block.spawnDrops(state, worldIn, pos, null, player, stack);
-                }
-            }
-        }
-        this.destroyBlock(worldIn,pos);
-        if (!worldIn.isRemote && !player.isCreative() && player.canHarvestBlock(state)) {
-            Block.spawnDrops(state, worldIn, pos, null, player, stack);
-        }
-        super.onBlockHarvested(worldIn, pos, state, player);
-    }
-
-    private void destroyBlock(World world,BlockPos pos) {
-        world.setBlockState(pos, Blocks.AIR.getDefaultState(),35);
-    }
 }
