@@ -3,7 +3,6 @@ package fr.mattmouss.gates.doors;
 import com.google.common.collect.Lists;
 import fr.mattmouss.gates.enum_door.DoorPlacing;
 import fr.mattmouss.gates.voxels.VoxelDefinition;
-import fr.mattmouss.gates.voxels.VoxelInts;
 import fr.mattmouss.gates.util.Functions;
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockState;
@@ -53,7 +52,7 @@ public class LargeDoor extends Block {
     }
 
     private VoxelShape getSquareShape(BlockState state) {
-        //change it for square large door
+
         return VoxelShapes.fullCube();
     }
 
@@ -62,7 +61,7 @@ public class LargeDoor extends Block {
         Direction facing = state.get(BlockStateProperties.HORIZONTAL_FACING);
         boolean isOpen = state.get(BlockStateProperties.OPEN);
         int index = placing.getMeta()*8+facing.getHorizontalIndex()*2+ ((isOpen)?1:0);
-        return VoxelDefinition.largeDoorShape[index];
+        return VoxelDefinition.largeDoorCircleShape[index];
     }
 
     //1.14.4 function replaced by notSolid()
@@ -99,18 +98,12 @@ public class LargeDoor extends Block {
         worldIn.setBlockState(pos.offset(facing.rotateYCCW()).up(2),state.with(PLACING,DoorPlacing.RIGHT_UP),3);
     }
 
-    public void onBlockHarvested(World worldIn, BlockPos pos, BlockState state, PlayerEntity player) {
-        DoorPlacing placing = state.get(PLACING);
-        Direction facing = state.get(BlockStateProperties.HORIZONTAL_FACING);
-        List<BlockPos> blockToDestroy = getPosOfNeighborBlock(pos,placing,facing);
-        for (BlockPos pos1 : blockToDestroy){
-            BlockState blockstate = worldIn.getBlockState(pos1);
-            if (blockstate.getBlock() == this && blockstate.get(PLACING) != placing) {
-                worldIn.setBlockState(pos1, Blocks.AIR.getDefaultState(), 35);
-                worldIn.playEvent(player, 2001, pos1, Block.getStateId(blockstate));
-            }
+    public void onBlockHarvested(World world, BlockPos pos, BlockState state, PlayerEntity player) {
+        ItemStack itemstack = player.getHeldItemMainhand();
+        if (!world.isRemote && !player.isCreative()) {
+            Block.spawnDrops(state, world, pos, null, player, itemstack);
         }
-        super.onBlockHarvested(worldIn, pos, state, player);
+        super.onBlockHarvested(world, pos, state, player);
     }
 
     public void harvestBlock(World worldIn, PlayerEntity player, BlockPos pos, BlockState state, @Nullable TileEntity te, ItemStack stack) {

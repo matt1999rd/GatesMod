@@ -1,0 +1,5 @@
+{
+"parent": "gates:block/sq_large_door_ru_open",
+"textures": {
+"wood": "gates:block/iron_large_door"}
+}
