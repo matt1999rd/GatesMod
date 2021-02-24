@@ -5,6 +5,7 @@ import fr.mattmouss.gates.enum_door.DoorPlacing;
 import fr.mattmouss.gates.voxels.VoxelInts;
 import fr.mattmouss.gates.windows.WindowBlock;
 import fr.mattmouss.gates.windows.WindowPlace;
+import net.minecraft.block.Block;
 import net.minecraft.block.BlockState;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.item.BlockItemUseContext;
@@ -255,6 +256,34 @@ public class Functions {
             shape = VoxelShapes.or(shape, vi.rotate(Direction.EAST, facing).getAssociatedShape());
         }
         return shape;
+    }
+
+    public static VoxelShape makeSquareShape(DoorPlacing placing,Direction facing,boolean isOpen){
+        if (!isOpen || placing.isDown() || placing.isCenterY()){
+            return makeCircleShape(placing,facing, false);
+        }
+        if (placing == DoorPlacing.RIGHT_UP){
+            //door fixed part
+            VoxelInts rightVoxel = new VoxelInts(0,0, 0,3,16,4,true);
+            VoxelInts upVoxel =    new VoxelInts(0,11,4,3,5,12,true);
+            //door part
+            VoxelInts doorVoxel =  new VoxelInts(3,0,4,12,11,3,true);
+            return VoxelShapes.or(
+                    rightVoxel.rotate(Direction.EAST,facing).getAssociatedShape(),
+                       upVoxel.rotate(Direction.EAST,facing).getAssociatedShape(),
+                     doorVoxel.rotate(Direction.EAST,facing).getAssociatedShape());
+        }else {
+            //door fixed part
+            VoxelInts rightVoxel = new VoxelInts(0,0, 12,3,16,4,true);
+            VoxelInts upVoxel =    new VoxelInts(0,11,0, 3,5,12,true);
+            //door part
+            VoxelInts doorVoxel =  new VoxelInts(3,0, 9,12,11,3,true);
+            return VoxelShapes.or(
+                    rightVoxel.rotate(Direction.EAST,facing).getAssociatedShape(),
+                       upVoxel.rotate(Direction.EAST,facing).getAssociatedShape(),
+                     doorVoxel.rotate(Direction.EAST,facing).getAssociatedShape());
+        }
+
     }
 
 

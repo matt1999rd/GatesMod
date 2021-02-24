@@ -52,8 +52,11 @@ public class LargeDoor extends Block {
     }
 
     private VoxelShape getSquareShape(BlockState state) {
-
-        return VoxelShapes.fullCube();
+        DoorPlacing placing = state.get(PLACING);
+        Direction facing = state.get(BlockStateProperties.HORIZONTAL_FACING);
+        boolean isOpen = state.get(BlockStateProperties.OPEN);
+        int index = placing.getMeta()*6+facing.getHorizontalIndex()*2+ ((isOpen)?1:0);
+        return VoxelDefinition.largeDoorCircleShape[index];
     }
 
     private VoxelShape getCircleShape(BlockState state) {
