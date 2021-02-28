@@ -260,30 +260,26 @@ public class Functions {
 
     public static VoxelShape makeSquareShape(DoorPlacing placing,Direction facing,boolean isOpen){
         if (!isOpen || placing.isDown() || placing.isCenterY()){
-            return makeCircleShape(placing,facing, false);
+            return makeCircleShape(placing,facing, isOpen);
         }
-        if (placing == DoorPlacing.RIGHT_UP){
-            //door fixed part
-            VoxelInts rightVoxel = new VoxelInts(0,0, 0,3,16,4,true);
-            VoxelInts upVoxel =    new VoxelInts(0,11,4,3,5,12,true);
-            //door part
-            VoxelInts doorVoxel =  new VoxelInts(3,0,4,12,11,3,true);
-            return VoxelShapes.or(
-                    rightVoxel.rotate(Direction.EAST,facing).getAssociatedShape(),
-                       upVoxel.rotate(Direction.EAST,facing).getAssociatedShape(),
-                     doorVoxel.rotate(Direction.EAST,facing).getAssociatedShape());
-        }else {
-            //door fixed part
-            VoxelInts rightVoxel = new VoxelInts(0,0, 12,3,16,4,true);
-            VoxelInts upVoxel =    new VoxelInts(0,11,0, 3,5,12,true);
-            //door part
-            VoxelInts doorVoxel =  new VoxelInts(3,0, 9,12,11,3,true);
-            return VoxelShapes.or(
-                    rightVoxel.rotate(Direction.EAST,facing).getAssociatedShape(),
-                       upVoxel.rotate(Direction.EAST,facing).getAssociatedShape(),
-                     doorVoxel.rotate(Direction.EAST,facing).getAssociatedShape());
+        List<VoxelInts> voxels = Lists.newArrayList();
+        //door fixed part
+        voxels.add(new VoxelInts(0,0, 0,3,16,4,true));
+        voxels.add(new VoxelInts(0,11,4,3,5,12,true));
+        //door part
+        voxels.add(new VoxelInts(3,0,4,12,11,3,true));
+        if (placing.isLeft()){
+            for (int i=0;i<3;i++){
+                VoxelInts oldVoxel = voxels.get(i);
+                VoxelInts symVoxel = oldVoxel.makeSymetry(Direction.Axis.X, Direction.Axis.Y);
+                voxels.set(i,symVoxel);
+            }
         }
-
+        VoxelShape shape = VoxelShapes.empty();
+        for (VoxelInts vi : voxels){
+            shape = VoxelShapes.or(shape, vi.rotate(Direction.EAST, facing).getAssociatedShape());
+        }
+        return shape;
     }
 
 

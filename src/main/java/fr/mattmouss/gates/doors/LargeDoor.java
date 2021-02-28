@@ -29,6 +29,7 @@ import net.minecraft.world.IBlockReader;
 import net.minecraft.world.IWorld;
 import net.minecraft.world.IWorldReader;
 import net.minecraft.world.World;
+import org.omg.CORBA.portable.ValueOutputStream;
 
 import javax.annotation.Nullable;
 import java.util.List;
@@ -44,6 +45,9 @@ public class LargeDoor extends Block {
     @Override
     public VoxelShape getShape(BlockState state, IBlockReader worldIn, BlockPos pos, ISelectionContext context) {
         Material material = this.material;
+        if (!state.get(PLACING).isSide()){
+            return VoxelShapes.empty();
+        }
         if (material == Material.WOOD){
             return getCircleShape(state);
         }else {
@@ -55,8 +59,11 @@ public class LargeDoor extends Block {
         DoorPlacing placing = state.get(PLACING);
         Direction facing = state.get(BlockStateProperties.HORIZONTAL_FACING);
         boolean isOpen = state.get(BlockStateProperties.OPEN);
-        int index = placing.getMeta()*6+facing.getHorizontalIndex()*2+ ((isOpen)?1:0);
-        return VoxelDefinition.largeDoorCircleShape[index];
+        int index = placing.getMeta()*8+facing.getHorizontalIndex()*2+ ((isOpen)?1:0);
+        if (!VoxelDefinition.isInit){
+            VoxelDefinition.init();
+        }
+        return VoxelDefinition.largeDoorSquareShape[index];
     }
 
     private VoxelShape getCircleShape(BlockState state) {
@@ -64,6 +71,9 @@ public class LargeDoor extends Block {
         Direction facing = state.get(BlockStateProperties.HORIZONTAL_FACING);
         boolean isOpen = state.get(BlockStateProperties.OPEN);
         int index = placing.getMeta()*8+facing.getHorizontalIndex()*2+ ((isOpen)?1:0);
+        if (!VoxelDefinition.isInit){
+            VoxelDefinition.init();
+        }
         return VoxelDefinition.largeDoorCircleShape[index];
     }
 

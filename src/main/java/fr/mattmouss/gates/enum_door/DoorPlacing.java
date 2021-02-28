@@ -32,7 +32,7 @@ public enum DoorPlacing implements IStringSerializable {
     }
 
     public boolean isSide() {
-        return meta>5; // is not center place
+        return meta<=5; // is not center place
     }
 
     public boolean isUp(){
