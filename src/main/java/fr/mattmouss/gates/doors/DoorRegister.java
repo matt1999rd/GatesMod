@@ -34,6 +34,8 @@ public class DoorRegister {
     private static final List<Item> WINDOWS_ITEMS = new ArrayList<>();
     private static final List<GarageDoor> GARAGES = new ArrayList<>();
     private static final List<Item> GARAGE_ITEMS = new ArrayList<>();
+    private static final List<GardenDoor> GARDEN_DOORS = new ArrayList<>();
+    private static final List<Item> GARDEN_DOOR_ITEMS = new ArrayList<>();
 
     //enregistrement des portes classiques
     //à base de pierre
@@ -120,6 +122,8 @@ public class DoorRegister {
     public static final GarageDoor YELLOW_GARAGE = Gregister("yellow_garage");
 
     //enregistrement des grandes portes de taille 3x2
+    public static final LargeDoor HAUSSMANN_LARGE_DOOR = LDregister("hausmann_large_door",Material.ROCK);
+    public static final LargeDoor HAUSSMANN2_LARGE_DOOR = LDregister("haussmann2_large_door",Material.ROCK);
     public static final LargeDoor IRON_LARGE_DOOR = LDregister("iron_large_door",Material.IRON);
     public static final LargeDoor OAK_LARGE_DOOR = LDregister("oak_large_door",Material.WOOD);
     public static final LargeDoor BIRCH_LARGE_DOOR = LDregister("birch_large_door",Material.WOOD);
@@ -127,6 +131,26 @@ public class DoorRegister {
     public static final LargeDoor ACACIA_LARGE_DOOR = LDregister("acacia_large_door",Material.WOOD);
     public static final LargeDoor SPRUCE_LARGE_DOOR = LDregister("spruce_large_door",Material.WOOD);
     public static final LargeDoor JUNGLE_LARGE_DOOR = LDregister("jungle_large_door",Material.WOOD);
+
+    //enregistrement des premiers porte à grille d'entrée de jardin
+    //à base de couleur
+    //public static final GardenDoor _GARDEN_DOOR = GdDregister("_garden_door");
+    public static final GardenDoor BLACK_GARDEN = GdDregister("black_garden");
+    public static final GardenDoor BLUE_GARDEN = GdDregister("blue_garden");
+    public static final GardenDoor BROWN_GARDEN = GdDregister("brown_garden");
+    public static final GardenDoor CYAN_GARDEN = GdDregister("cyan_garden");
+    public static final GardenDoor GRAY_GARDEN = GdDregister("gray_garden");
+    public static final GardenDoor GREEN_GARDEN = GdDregister("green_garden");
+    public static final GardenDoor L_BLUE_GARDEN = GdDregister("light_blue_garden");
+    public static final GardenDoor L_GRAY_GARDEN = GdDregister("light_gray_garden");
+    public static final GardenDoor LIME_GARDEN = GdDregister("lime_garden");
+    public static final GardenDoor MAGENTA_GARDEN = GdDregister("magenta_garden");
+    public static final GardenDoor ORANGE_GARDEN = GdDregister("orange_garden");
+    public static final GardenDoor PINK_GARDEN = GdDregister("pink_garden");
+    public static final GardenDoor PURPLE_GARDEN = GdDregister("purple_garden");
+    public static final GardenDoor RED_GARDEN = GdDregister("red_garden");
+    public static final GardenDoor WHITE_GARDEN = GdDregister("white_garden");
+    public static final GardenDoor YELLOW_GARDEN = GdDregister("yellow_garden");
 
     private static DoorBlock register(String key){
         MoreDoor newDoor = new MoreDoor(key);
@@ -173,6 +197,17 @@ public class DoorRegister {
         return largeDoor;
     }
 
+    private static GardenDoor GdDregister(String key){
+        GardenDoor gardenDoor = new GardenDoor(key);
+        BlockItem item = new BlockItem(gardenDoor,new Item.Properties().group(ModSetup.itemGroup));
+        item.setRegistryName(key);
+        System.out.println("-----------------Block "+key+" registered !------------------");
+        System.out.println("------------------ Registry Name : "+gardenDoor.getRegistryName()+"-------------");
+        GARDEN_DOORS.add(gardenDoor);
+        GARDEN_DOOR_ITEMS.add(item);
+        return gardenDoor;
+    }
+
 
     @SubscribeEvent
     public static void registerBlocks(RegistryEvent.Register<Block> event){
@@ -197,10 +232,14 @@ public class DoorRegister {
         LARGE_DOORS.forEach(largeDoor -> {
             event.getRegistry().register(largeDoor);
         });
+        GARDEN_DOORS.forEach(gardenDoor -> {
+            event.getRegistry().register(gardenDoor);
+        });
         DOORS.clear();
         WINDOWS.clear();
         GARAGES.clear();
         LARGE_DOORS.clear();
+        GARDEN_DOORS.clear();
     }
 
     @SubscribeEvent
@@ -217,10 +256,14 @@ public class DoorRegister {
         LARGE_DOOR_ITEMS.forEach(item -> {
             event.getRegistry().register(item);
         });
+        GARDEN_DOOR_ITEMS.forEach(item -> {
+            event.getRegistry().register(item);
+        });
         DOOR_ITEMS.clear();
         WINDOWS_ITEMS.clear();
         GARAGE_ITEMS.clear();
         LARGE_DOOR_ITEMS.clear();
+        GARDEN_DOOR_ITEMS.clear();
     }
 
 }
