@@ -1,0 +1,5 @@
+{
+"parent": "gates:block/garden_door_lu",
+"textures": {
+"color": "gates:block/light_gray"}
+}

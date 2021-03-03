@@ -1,6 +1,7 @@
 #list_bs = ["facing","open","window_place","rotated"]
 #list_pv = [["east","north","south","west"],[True,False],["full","both_up","both_down","both_right","both_left","both_middle","down_left","down_right","up_left","up_right","middle_left","middle_right"],[True,False]]
 #material = ["andesite","black","blue","brick","brown","cobblestone","cyan","diorite","granite","gray","green","light_blue","light_gray","lime","magenta","orange","pink","purple","red","stone_bricks","stone","white","yellow"]
+color = ["black","blue","brown","cyan","gray","green","light_blue","light_gray","lime","magenta","orange","pink","purple","red","white","yellow"]
 
 #file_name="andesite_window"
 
@@ -62,7 +63,15 @@ def getInitial(st):
         i+=1
     return initial
 
-createBlockStateJson(["east","north","south","west"],["left_down","left_center","left_up","right_down","right_center","right_up"],["true","false"],"oak_large_door")
+#createBlockStateJson(["east","north","south","west"],["left_down","left_up","right_down","right_up"],["true","false"],"")
+n=float(len(color))
+incr=0.0
+for c in color:
+	createBlockStateJson(["east","north","south","west"],["left_down","left_up","right_down","right_up"],["true","false"],c+"_garden_door")
+	print("Creating json blockstate file : "+c+"_garden_door.json !")
+	print("Progress : "+str(incr/n*100)+" %")
+	incr+=1
+
 '''
 n= float(len(material))
 incr=0.0

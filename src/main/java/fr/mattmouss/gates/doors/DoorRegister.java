@@ -135,22 +135,22 @@ public class DoorRegister {
     //enregistrement des premiers porte à grille d'entrée de jardin
     //à base de couleur
     //public static final GardenDoor _GARDEN_DOOR = GdDregister("_garden_door");
-    public static final GardenDoor BLACK_GARDEN = GdDregister("black_garden");
-    public static final GardenDoor BLUE_GARDEN = GdDregister("blue_garden");
-    public static final GardenDoor BROWN_GARDEN = GdDregister("brown_garden");
-    public static final GardenDoor CYAN_GARDEN = GdDregister("cyan_garden");
-    public static final GardenDoor GRAY_GARDEN = GdDregister("gray_garden");
-    public static final GardenDoor GREEN_GARDEN = GdDregister("green_garden");
-    public static final GardenDoor L_BLUE_GARDEN = GdDregister("light_blue_garden");
-    public static final GardenDoor L_GRAY_GARDEN = GdDregister("light_gray_garden");
-    public static final GardenDoor LIME_GARDEN = GdDregister("lime_garden");
-    public static final GardenDoor MAGENTA_GARDEN = GdDregister("magenta_garden");
-    public static final GardenDoor ORANGE_GARDEN = GdDregister("orange_garden");
-    public static final GardenDoor PINK_GARDEN = GdDregister("pink_garden");
-    public static final GardenDoor PURPLE_GARDEN = GdDregister("purple_garden");
-    public static final GardenDoor RED_GARDEN = GdDregister("red_garden");
-    public static final GardenDoor WHITE_GARDEN = GdDregister("white_garden");
-    public static final GardenDoor YELLOW_GARDEN = GdDregister("yellow_garden");
+    public static final GardenDoor BLACK_GARDEN = GdDregister("black_garden_door");
+    public static final GardenDoor BLUE_GARDEN = GdDregister("blue_garden_door");
+    public static final GardenDoor BROWN_GARDEN = GdDregister("brown_garden_door");
+    public static final GardenDoor CYAN_GARDEN = GdDregister("cyan_garden_door");
+    public static final GardenDoor GRAY_GARDEN = GdDregister("gray_garden_door");
+    public static final GardenDoor GREEN_GARDEN = GdDregister("green_garden_door");
+    public static final GardenDoor L_BLUE_GARDEN = GdDregister("light_blue_garden_door");
+    public static final GardenDoor L_GRAY_GARDEN = GdDregister("light_gray_garden_door");
+    public static final GardenDoor LIME_GARDEN = GdDregister("lime_garden_door");
+    public static final GardenDoor MAGENTA_GARDEN = GdDregister("magenta_garden_door");
+    public static final GardenDoor ORANGE_GARDEN = GdDregister("orange_garden_door");
+    public static final GardenDoor PINK_GARDEN = GdDregister("pink_garden_door");
+    public static final GardenDoor PURPLE_GARDEN = GdDregister("purple_garden_door");
+    public static final GardenDoor RED_GARDEN = GdDregister("red_garden_door");
+    public static final GardenDoor WHITE_GARDEN = GdDregister("white_garden_door");
+    public static final GardenDoor YELLOW_GARDEN = GdDregister("yellow_garden_door");
 
     private static DoorBlock register(String key){
         MoreDoor newDoor = new MoreDoor(key);

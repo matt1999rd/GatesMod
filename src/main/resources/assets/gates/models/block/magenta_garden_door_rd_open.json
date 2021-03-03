@@ -1,0 +1,5 @@
+{
+"parent": "gates:block/garden_door_rd_open",
+"textures": {
+"color": "gates:block/magenta"}
+}

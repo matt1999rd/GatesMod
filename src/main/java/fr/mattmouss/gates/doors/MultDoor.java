@@ -107,7 +107,7 @@ public abstract class MultDoor extends Block {
         neighborFuturePos.toArray(positions);
         if (Functions.testReplaceable(context,positions)){
             BlockState state = getDefaultState();
-            return state.with(BlockStateProperties.HORIZONTAL_FACING,facing).with(BlockStateProperties.OPEN,false).with(getPlacingBSP(),DoorPlacing.LEFT_DOWN);
+            return state.with(BlockStateProperties.HORIZONTAL_FACING,facing).with(BlockStateProperties.OPEN,false).with(getPlacingBSP(),DoorPlacing.LEFT_DOWN).with(BlockStateProperties.POWERED,false);
         }else {
             return null;
         }
