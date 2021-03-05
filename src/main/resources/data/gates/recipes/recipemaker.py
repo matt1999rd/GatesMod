@@ -14,24 +14,25 @@ def makeRecipe(material,blockParameter,isColour):
             json_file.write('"#": {\n      "item": "minecraft:'+material+'_dye"\n    },\n')
         else:
             json_file.write('"#": {\n      "item": "minecraft:'+material+'"\n    },\n')
+        m=len(dic)
+        i=0
         for key in dic.keys():
-            json_file.write('"'+key+'": {\n      "item": "minecraft:'+dic.get(key)+'"\n    }\n },')
+            json_file.write('"'+key+'": {\n      "item": "minecraft:'+dic.get(key)+'"\n    }')
+            i+=1
+            if i==m-1:
+                json_file.write(",\n")
         #end of file and defining count
-        json_file.write('"result": {\n    "item": "gates:'+material+"_"+blockName+'",\n    "count": '+str(nb_count)+'\n  }\n}')
+        json_file.write('\n },"result": {\n    "item": "gates:'+material+"_"+blockName+'",\n    "count": '+str(nb_count)+'\n  }\n}')
     print("recipes written !!")
         
 material = ["andesite","cobblestone","diorite","granite","stone_bricks","stone"]
 
 colour = ["black","blue","brown","cyan","gray","green","light_blue","light_gray","lime","magenta","orange","pink","purple","red","white","yellow"]
 
-blockParameter = ["garage",16,"iii","i#i","iii",{"i":"iron_ingot"}]
+blockParameter = ["garden_door",16,"igi","i#i","igi",{"i":"iron_ingot","g":"iron_bars"}]
 
-n=len(material)+len(colour)
+n=len(colour)
 i=0.0
-for m in material:
-    makeRecipe(m,blockParameter,False)
-    i+=1.0
-    print ("progress :"+str(i/n*100)+" %")
 
 for c in colour:
     makeRecipe(c,blockParameter,True)

@@ -21,13 +21,24 @@ def createLootTableWithSpawnCondition(block_id,property_condition):
         json_file.write('"condition": "minecraft:survives_explosion"\n        }\n      ]\n    }\n  ]\n}')
     print("file json loot table : "+block_id+".json written !!")
 
-material = ["andesite","cobblestone","diorite","granite","stone_bricks","stone"]
+#material = ["andesite","cobblestone","diorite","granite","stone_bricks","stone"]
 
-block = ["door","garage"]
+#block = ["door","garage"]
 
-property_condition = '"placing": "up_left"'
+#property_condition = '"placing": "up_left"'
 
 colour = ["black","blue","brown","cyan","gray","green","light_blue","light_gray","lime","magenta","orange","pink","purple","red","white","yellow"]
+i=0.0
+n=len(colour)
+for c in colour:
+    createLootTable(c+"_garden_door")
+    i+=1.0
+    print ("progress :"+str(i/n*100)+" %")
+createLootTable("iron_large_door")
+createLootTable("haussmann_large_door")
+createLootTable("haussmann2_large_door")
+
+'''
 n=(len(material)+len(colour))
 i=0.0
 for m in material:
@@ -38,4 +49,4 @@ for c in colour:
     createLootTableWithSpawnCondition(c+"_garage",property_condition)
     i+=1.0
     print ("progress :"+str(i/n*100)+" %")
-    
+'''

@@ -1,0 +1,22 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    "igi",
+    "i#i",
+    "igi"
+  ],
+  "key": {
+"#": {
+      "item": "minecraft:gray_dye"
+    },
+"i": {
+      "item": "minecraft:iron_ingot"
+    },
+"g": {
+      "item": "minecraft:iron_bars"
+    }
+ },"result": {
+    "item": "gates:gray_garden_door",
+    "count": 16
+  }
+}
