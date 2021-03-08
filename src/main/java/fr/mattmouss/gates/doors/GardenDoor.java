@@ -2,6 +2,7 @@ package fr.mattmouss.gates.doors;
 
 import com.google.common.collect.Lists;
 import fr.mattmouss.gates.enum_door.DoorPlacing;
+import fr.mattmouss.gates.voxels.VoxelDefinition;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.material.Material;
 import net.minecraft.entity.LivingEntity;
@@ -10,6 +11,10 @@ import net.minecraft.state.EnumProperty;
 import net.minecraft.state.properties.BlockStateProperties;
 import net.minecraft.util.Direction;
 import net.minecraft.util.math.BlockPos;
+import net.minecraft.util.math.shapes.ISelectionContext;
+import net.minecraft.util.math.shapes.VoxelShape;
+import net.minecraft.util.math.shapes.VoxelShapes;
+import net.minecraft.world.IBlockReader;
 import net.minecraft.world.World;
 
 import javax.annotation.Nullable;
@@ -25,6 +30,19 @@ public class GardenDoor extends MultDoor {
     public GardenDoor(String name) {
         super(Properties.create(Material.IRON));
         this.setRegistryName(name);
+    }
+
+    @Override
+    public VoxelShape getShape(BlockState state, IBlockReader worldIn, BlockPos pos, ISelectionContext context) {
+        if (!state.get(PLACING).isSide() ||state.get(PLACING).isCenterY())return VoxelShapes.empty();
+        int meta=state.get(PLACING).getMeta();
+        Direction facing=state.get(BlockStateProperties.HORIZONTAL_FACING);
+        boolean isOpen = state.get(BlockStateProperties.OPEN);
+        int index=8*meta+2*facing.getHorizontalIndex()+(isOpen?1:0);
+        if (!VoxelDefinition.isInit){
+            VoxelDefinition.init();
+        }
+        return VoxelDefinition.gardenDoorShape[index];
     }
 
     @Override

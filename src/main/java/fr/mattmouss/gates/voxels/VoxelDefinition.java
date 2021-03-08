@@ -8,6 +8,7 @@ import net.minecraft.util.math.shapes.VoxelShape;
 public class VoxelDefinition {
     public static VoxelShape[] largeDoorCircleShape = new VoxelShape[48];
     public static VoxelShape[] largeDoorSquareShape = new VoxelShape[48];
+    public static VoxelShape[] gardenDoorShape = new VoxelShape[32];
     public static boolean isInit = false;
     public static void init() {
         isInit = true;
@@ -33,6 +34,21 @@ public class VoxelDefinition {
             }
             j++;
         }
+        j=0;
+        for (DoorPlacing placing : DoorPlacing.getPlacingForGardenDoor()){
+            for (int i=0;i<4;i++){
+                gardenDoorShape[8*j+2*i]=
+                        Functions.makeGardenDoorShape(placing,
+                                Direction.byHorizontalIndex(i),
+                                false);
+                gardenDoorShape[8*j+2*i+1]=
+                        Functions.makeGardenDoorShape(placing,
+                                Direction.byHorizontalIndex(i),
+                                true);
+            }
+            j++;
+        }
+
     }
 
 }

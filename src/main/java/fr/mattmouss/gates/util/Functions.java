@@ -1,6 +1,7 @@
 package fr.mattmouss.gates.util;
 
 import com.google.common.collect.Lists;
+import com.ibm.icu.impl.duration.impl.DataRecord;
 import fr.mattmouss.gates.enum_door.DoorPlacing;
 import fr.mattmouss.gates.voxels.VoxelInts;
 import fr.mattmouss.gates.windows.WindowBlock;
@@ -275,6 +276,72 @@ public class Functions {
                 voxels.set(i,symVoxel);
             }
         }
+        VoxelShape shape = VoxelShapes.empty();
+        for (VoxelInts vi : voxels){
+            shape = VoxelShapes.or(shape, vi.rotate(Direction.EAST, facing).getAssociatedShape());
+        }
+        return shape;
+    }
+
+    public static VoxelShape makeGardenDoorShape(DoorPlacing placing, Direction facing, boolean isOpen){
+        List<VoxelInts> voxels = Lists.newArrayList();
+        //support
+        voxels.add(new VoxelInts(0,0,12,4,16,4,true));
+        if (placing.isDown()){
+            //vertical grid
+            voxels.add(new VoxelInts(1,8,8,2,8,2,true));
+            voxels.add(new VoxelInts(1,8,4,2,8,2,true));
+            voxels.add(new VoxelInts(1,8,0,2,8,2,true));
+            // bottom of the door
+            // base
+            voxels.add(new VoxelInts(1,0,0,2,8,12,true));
+            // rectangle decoration for visible part
+            voxels.add(new VoxelInts(3,1,10,1,6,1,true));
+            voxels.add(new VoxelInts(3,6,2,1,1,8,true));
+            voxels.add(new VoxelInts(3,1,1,1,6,1,true));
+            voxels.add(new VoxelInts(3,1,2,1,1,8,true));
+            // square center for visible part
+            voxels.add(new VoxelInts(3,3,5,1,2,2,true));
+            // rectangle decoration for hidden part
+            voxels.add(new VoxelInts(0,1,10,1,6,1,true));
+            voxels.add(new VoxelInts(0,6,2,1,1,8,true));
+            voxels.add(new VoxelInts(0,1,1,1,6,1,true));
+            voxels.add(new VoxelInts(0,1,2,1,1,8,true));
+            // square center for hidden part
+            voxels.add(new VoxelInts(0,3,5,1,2,2,true));
+        }else {
+            //vertical grid
+            voxels.add(new VoxelInts(1,0,8,2,7,2,true));
+            voxels.add(new VoxelInts(1,0,4,2,11,2,true));
+            voxels.add(new VoxelInts(1,0,0,2,16,2,true));
+            //diagonal grid
+            for (int i=2;i<12;i++){
+                voxels.add(new VoxelInts(1,14-i,i,2,2,1,true));
+            }
+        }
+
+        //for right we handle symetry
+        if (!placing.isLeft()){
+            int len = voxels.size();
+            for (int i=0;i<len;i++){
+                VoxelInts oldVoxel = voxels.get(i);
+                VoxelInts symVoxel = oldVoxel.makeSymetry(Direction.Axis.X, Direction.Axis.Y);
+                voxels.set(i,symVoxel);
+            }
+        }
+
+        if (isOpen){
+            int len = voxels.size();
+            for (int i=0;i<len;i++){
+                VoxelInts oldVoxel = voxels.get(i);
+                VoxelInts rotVoxel = (placing.isLeft())?
+                        oldVoxel.rotateCW(1, Direction.Axis.Y):
+                        oldVoxel.rotateCCW(1, Direction.Axis.Y);
+                voxels.set(i,rotVoxel);
+            }
+        }
+
+        //merge all vi for voxelshape
         VoxelShape shape = VoxelShapes.empty();
         for (VoxelInts vi : voxels){
             shape = VoxelShapes.or(shape, vi.rotate(Direction.EAST, facing).getAssociatedShape());

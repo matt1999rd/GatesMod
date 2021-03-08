@@ -60,4 +60,11 @@ public enum DoorPlacing implements IStringSerializable {
         return placings;
     }
 
+    public static List<DoorPlacing> getPlacingForGardenDoor(){
+        List<DoorPlacing> placings = getPlacingForLargeDoor();
+        placings.remove(DoorPlacing.LEFT_CENTER);
+        placings.remove(DoorPlacing.RIGHT_CENTER);
+        return placings;
+    }
+
 }
