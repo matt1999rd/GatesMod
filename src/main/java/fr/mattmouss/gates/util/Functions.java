@@ -287,36 +287,71 @@ public class Functions {
         List<VoxelInts> voxels = Lists.newArrayList();
         //support
         voxels.add(new VoxelInts(0,0,12,4,16,4,true));
-        if (placing.isDown()){
-            //vertical grid
-            voxels.add(new VoxelInts(1,8,8,2,8,2,true));
-            voxels.add(new VoxelInts(1,8,4,2,8,2,true));
-            voxels.add(new VoxelInts(1,8,0,2,8,2,true));
-            // bottom of the door
-            // base
-            voxels.add(new VoxelInts(1,0,0,2,8,12,true));
-            // rectangle decoration for visible part
-            voxels.add(new VoxelInts(3,1,10,1,6,1,true));
-            voxels.add(new VoxelInts(3,6,2,1,1,8,true));
-            voxels.add(new VoxelInts(3,1,1,1,6,1,true));
-            voxels.add(new VoxelInts(3,1,2,1,1,8,true));
-            // square center for visible part
-            voxels.add(new VoxelInts(3,3,5,1,2,2,true));
-            // rectangle decoration for hidden part
-            voxels.add(new VoxelInts(0,1,10,1,6,1,true));
-            voxels.add(new VoxelInts(0,6,2,1,1,8,true));
-            voxels.add(new VoxelInts(0,1,1,1,6,1,true));
-            voxels.add(new VoxelInts(0,1,2,1,1,8,true));
-            // square center for hidden part
-            voxels.add(new VoxelInts(0,3,5,1,2,2,true));
+        if (isOpen){
+            if (placing.isDown()) {
+                //vertical grid
+                voxels.add(new VoxelInts(6, 8, 13, 2, 8, 2, true));
+                voxels.add(new VoxelInts(10, 8, 13, 2, 8, 2, true));
+                voxels.add(new VoxelInts(14, 8, 13, 2, 8, 2, true));
+                // bottom of the door
+                // base
+                voxels.add(new VoxelInts(4, 0, 13, 12, 8, 2, true));
+                // rectangle decoration for visible part
+                voxels.add(new VoxelInts(14, 1, 12, 1, 6, 1, true));
+                voxels.add(new VoxelInts(6,  1, 12, 8, 1, 1, true));
+                voxels.add(new VoxelInts(5,  1, 12, 1, 6, 1, true));
+                voxels.add(new VoxelInts(6,  6, 12, 8, 1, 1, true));
+                // square center for visible part
+                voxels.add(new VoxelInts(9,  3, 12, 2, 2, 1, true));
+                // rectangle decoration for hidden part
+                voxels.add(new VoxelInts(5,  1, 15, 1, 6, 1, true));
+                voxels.add(new VoxelInts(6,  6, 15, 8, 1, 1, true));
+                voxels.add(new VoxelInts(14, 1, 15, 1, 6, 1, true));
+                voxels.add(new VoxelInts(6,  1, 15, 8, 1, 1, true));
+                // square center for hidden part
+                voxels.add(new VoxelInts(9,  3, 15, 2, 2, 1, true));
+            } else {
+                //vertical grid
+                voxels.add(new VoxelInts(6,  0, 13, 2,  7, 2, true));
+                voxels.add(new VoxelInts(10, 0, 13, 2, 11, 2, true));
+                voxels.add(new VoxelInts(14, 0, 13, 2, 16, 2, true));
+                //diagonal grid
+                for (int i = 4; i < 14; i++) {
+                    voxels.add(new VoxelInts(i, i - 1, 13, 1, 2, 2, true));
+                }
+            }
         }else {
-            //vertical grid
-            voxels.add(new VoxelInts(1,0,8,2,7,2,true));
-            voxels.add(new VoxelInts(1,0,4,2,11,2,true));
-            voxels.add(new VoxelInts(1,0,0,2,16,2,true));
-            //diagonal grid
-            for (int i=2;i<12;i++){
-                voxels.add(new VoxelInts(1,14-i,i,2,2,1,true));
+            if (placing.isDown()) {
+                //vertical grid
+                voxels.add(new VoxelInts(1, 8, 8, 2, 8, 2, true));
+                voxels.add(new VoxelInts(1, 8, 4, 2, 8, 2, true));
+                voxels.add(new VoxelInts(1, 8, 0, 2, 8, 2, true));
+                // bottom of the door
+                // base
+                voxels.add(new VoxelInts(1, 0, 0, 2, 8, 12, true));
+                // rectangle decoration for visible part
+                voxels.add(new VoxelInts(3, 1, 10, 1, 6, 1, true));
+                voxels.add(new VoxelInts(3, 6,  2, 1, 1, 8, true));
+                voxels.add(new VoxelInts(3, 1,  1, 1, 6, 1, true));
+                voxels.add(new VoxelInts(3, 1,  2, 1, 1, 8, true));
+                // square center for visible part
+                voxels.add(new VoxelInts(3, 3,  5, 1, 2, 2, true));
+                // rectangle decoration for hidden part
+                voxels.add(new VoxelInts(0, 1, 10, 1, 6, 1, true));
+                voxels.add(new VoxelInts(0, 6,  2, 1, 1, 8, true));
+                voxels.add(new VoxelInts(0, 1,  1, 1, 6, 1, true));
+                voxels.add(new VoxelInts(0, 1,  2, 1, 1, 8, true));
+                // square center for hidden part
+                voxels.add(new VoxelInts(0, 3,  5, 1, 2, 2, true));
+            } else {
+                //vertical grid
+                voxels.add(new VoxelInts(1, 0, 8, 2,  7, 2, true));
+                voxels.add(new VoxelInts(1, 0, 4, 2, 11, 2, true));
+                voxels.add(new VoxelInts(1, 0, 0, 2, 16, 2, true));
+                //diagonal grid
+                for (int i = 2; i < 12; i++) {
+                    voxels.add(new VoxelInts(1, 14 - i, i, 2, 2, 1, true));
+                }
             }
         }
 
@@ -327,17 +362,6 @@ public class Functions {
                 VoxelInts oldVoxel = voxels.get(i);
                 VoxelInts symVoxel = oldVoxel.makeSymetry(Direction.Axis.X, Direction.Axis.Y);
                 voxels.set(i,symVoxel);
-            }
-        }
-
-        if (isOpen){
-            int len = voxels.size();
-            for (int i=0;i<len;i++){
-                VoxelInts oldVoxel = voxels.get(i);
-                VoxelInts rotVoxel = (placing.isLeft())?
-                        oldVoxel.rotateCW(1, Direction.Axis.Y):
-                        oldVoxel.rotateCCW(1, Direction.Axis.Y);
-                voxels.set(i,rotVoxel);
             }
         }
 

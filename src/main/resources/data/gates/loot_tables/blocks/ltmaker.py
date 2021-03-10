@@ -25,18 +25,18 @@ def createLootTableWithSpawnCondition(block_id,property_condition):
 
 #block = ["door","garage"]
 
-#property_condition = '"placing": "up_left"'
+property_condition = '"position": "left_up"'
 
 colour = ["black","blue","brown","cyan","gray","green","light_blue","light_gray","lime","magenta","orange","pink","purple","red","white","yellow"]
 i=0.0
 n=len(colour)
 for c in colour:
-    createLootTable(c+"_garden_door")
+    createLootTableWithSpawnCondition(c+"_garden_door",property_condition)
     i+=1.0
     print ("progress :"+str(i/n*100)+" %")
-createLootTable("iron_large_door")
-createLootTable("haussmann_large_door")
-createLootTable("haussmann2_large_door")
+createLootTableWithSpawnCondition("iron_large_door",property_condition)
+createLootTableWithSpawnCondition("haussmann_large_door",property_condition)
+createLootTableWithSpawnCondition("haussmann2_large_door",property_condition)
 
 '''
 n=(len(material)+len(colour))

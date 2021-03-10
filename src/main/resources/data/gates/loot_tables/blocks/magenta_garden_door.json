@@ -6,7 +6,15 @@
       "rolls": 1,
       "entries": [
         {
-          "type": "minecraft:item",
+          "type": "minecraft:item","conditions": [
+            {
+              "condition": "minecraft:block_state_property",
+              "block": "gates:magenta_garden_door",
+      "properties": {
+                "position": "left_up"
+}
+}
+],
           "name": "gates:magenta_garden_door"
         }
       ],

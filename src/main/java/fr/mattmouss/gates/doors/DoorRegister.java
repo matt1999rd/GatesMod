@@ -122,7 +122,7 @@ public class DoorRegister {
     public static final GarageDoor YELLOW_GARAGE = Gregister("yellow_garage");
 
     //enregistrement des grandes portes de taille 3x2
-    public static final LargeDoor HAUSSMANN_LARGE_DOOR = LDregister("hausmann_large_door",Material.ROCK);
+    public static final LargeDoor HAUSSMANN_LARGE_DOOR = LDregister("haussmann_large_door",Material.ROCK);
     public static final LargeDoor HAUSSMANN2_LARGE_DOOR = LDregister("haussmann2_large_door",Material.ROCK);
     public static final LargeDoor IRON_LARGE_DOOR = LDregister("iron_large_door",Material.IRON);
     public static final LargeDoor OAK_LARGE_DOOR = LDregister("oak_large_door",Material.WOOD);

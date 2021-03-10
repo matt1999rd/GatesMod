@@ -6,7 +6,15 @@
       "rolls": 1,
       "entries": [
         {
-          "type": "minecraft:item",
+          "type": "minecraft:item","conditions": [
+            {
+              "condition": "minecraft:block_state_property",
+              "block": "gates:haussmann_large_door",
+      "properties": {
+                "position": "left_up"
+}
+}
+],
           "name": "gates:haussmann_large_door"
         }
       ],

@@ -1,0 +1,5 @@
+{
+"parent": "gates:block/sq_large_door_lu",
+"textures": {
+"wood": "gates:block/haussmann_large_door"}
+}

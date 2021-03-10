@@ -1,0 +1,5 @@
+{
+"parent": "gates:block/large_door_rc",
+"textures": {
+"wood": "gates:block/haussmann_large_door"}
+}
