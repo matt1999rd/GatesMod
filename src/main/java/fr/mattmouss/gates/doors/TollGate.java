@@ -52,21 +52,6 @@ import static fr.mattmouss.gates.enum_door.TollGPosition.*;
 
 public class TollGate extends Block {
 
-    /**
-     *
-     * blocktstate fait !!
-     *
-     * Travail à effectuer sur le block
-     *
-     * ajouter la fonction d'utilisation du block (lorsque le block est ajouté on l'enlève de la main du joueur et
-     * on lui ajoute la clé du toll man qui permet de choisir les tarifs du péages) -> fait !
-
-     *
-     * petit pliiisss (ref à kaouach hamza)
-     *
-     * ajouter une possibilité de payer un ticket
-     *
-     * */
     public TollGate() {
         super(Properties.create(Material.IRON)
                 //1.15

@@ -36,10 +36,10 @@
 			"rotation": {"angle": 0, "axis": "y", "origin": [3, 0, 12]},
 			"faces": {
 				"north": {"uv": [8, 1.66667, 14, 5.33333], "texture": "#wood"},
-				"east": {"uv": [1.5, 0, 0, 1], "texture": "#wood"},
+				"east": {"uv": [0.5, 0, 0, 0.33333], "texture": "#wood"},
 				"south": {"uv": [2, 1.66667, 8, 5.33333], "texture": "#wood"},
-				"west": {"uv": [1.5, 0, 0, 3.66667], "texture": "#wood"},
-				"up": {"uv": [5.5, 0, 0, 1], "rotation": 90, "texture": "#wood"},
+				"west": {"uv": [0.5, 0, 0, 0.33333], "texture": "#wood"},
+				"up": {"uv": [0, 0, 0.5, 0.33333], "rotation": 90, "texture": "#wood"},
 				"down": {"uv": [5.5, 0, 0, 1], "rotation": 270, "texture": "#wood"}
 			}
 		}
