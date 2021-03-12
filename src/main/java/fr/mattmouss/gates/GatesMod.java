@@ -71,6 +71,7 @@ public class GatesMod {
         @SubscribeEvent
         public static void onBlockRegistry(final RegistryEvent.Register<Block> blockRegistryEvent) {
             blockRegistryEvent.getRegistry().register(new TollGate());
+            blockRegistryEvent.getRegistry().register(new RedstoneTollGate());
             blockRegistryEvent.getRegistry().register(new TurnStile());
             blockRegistryEvent.getRegistry().register(new CardGetter());
             blockRegistryEvent.getRegistry().register(new WindowDoor());
@@ -87,6 +88,7 @@ public class GatesMod {
             blockRegistryEvent.getRegistry().register(new TurnStileKeyItem());
             blockRegistryEvent.getRegistry().register(new BlockItem(ModBlock.CARD_GETTER,properties).setRegistryName("card_getter"));
             blockRegistryEvent.getRegistry().register(new BlockItem(ModBlock.WINDOW_DOOR,properties).setRegistryName("window_door"));
+            blockRegistryEvent.getRegistry().register(new BlockItem(ModBlock.RTOLL_GATE, properties).setRegistryName("redstone_toll_gate"));
         }
 
         @SubscribeEvent
@@ -122,6 +124,10 @@ public class GatesMod {
                     ModBlock.TOLL_GATE)
                     .build(null)
                     .setRegistryName("toll_gate"));
+            event.getRegistry().register(TileEntityType.Builder.create(RedstoneTollGateTileEntity::new,
+                    ModBlock.RTOLL_GATE)
+                    .build(null)
+                    .setRegistryName("redstone_toll_gate"));
             event.getRegistry().register(TileEntityType.Builder.create(TurnStileTileEntity::new,
                     ModBlock.TURN_STILE)
                     .build(null)

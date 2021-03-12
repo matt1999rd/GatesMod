@@ -1,6 +1,7 @@
 package fr.mattmouss.gates.blocks;
 
 
+import fr.mattmouss.gates.doors.RedstoneTollGate;
 import fr.mattmouss.gates.doors.TollGate;
 import fr.mattmouss.gates.doors.TurnStile;
 import fr.mattmouss.gates.doors.WindowDoor;
@@ -16,8 +17,14 @@ public class ModBlock {
     @ObjectHolder("gates:toll_gate")
     public static TollGate TOLL_GATE = new TollGate();
 
+    @ObjectHolder("gates:redstone_toll_gate")
+    public static RedstoneTollGate RTOLL_GATE = new RedstoneTollGate();
+
     @ObjectHolder("gates:toll_gate")
     public static TileEntityType<TollGateTileEntity> TOLL_GATE_ENTITY_TYPE;
+
+    @ObjectHolder("gates:redstone_toll_gate")
+    public static TileEntityType<TollGateTileEntity> RTOLL_GATE_ENTITY_TYPE;
 
     @ObjectHolder("gates:toll_gate")
     public static ContainerType<TGUserContainer> TOLLGATE_USER_CONTAINER;
