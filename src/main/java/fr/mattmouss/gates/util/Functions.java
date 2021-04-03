@@ -6,9 +6,9 @@ import fr.mattmouss.gates.enum_door.DoorPlacing;
 import fr.mattmouss.gates.voxels.VoxelInts;
 import fr.mattmouss.gates.windows.WindowBlock;
 import fr.mattmouss.gates.windows.WindowPlace;
-import net.minecraft.block.Block;
-import net.minecraft.block.BlockState;
+import net.minecraft.block.*;
 import net.minecraft.entity.LivingEntity;
+import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.BlockItemUseContext;
 import net.minecraft.state.properties.BlockStateProperties;
 import net.minecraft.state.properties.DoorHingeSide;
@@ -20,6 +20,7 @@ import net.minecraft.util.math.shapes.VoxelShape;
 import net.minecraft.util.math.shapes.VoxelShapes;
 import net.minecraft.world.World;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public class Functions {
@@ -172,6 +173,8 @@ public class Functions {
         }
         return isReplaceable;
     }
+
+
 
     public static VoxelShape makeCircleShape(DoorPlacing placing,Direction facing,boolean isOpen) {
         List<VoxelInts> voxels = Lists.newArrayList();

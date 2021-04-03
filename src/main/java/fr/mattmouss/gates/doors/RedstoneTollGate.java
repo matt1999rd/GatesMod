@@ -43,55 +43,8 @@ public class RedstoneTollGate extends AbstractTollGate{
     @Nullable
     @Override
     public BlockState getStateForPlacement(BlockItemUseContext context) {
-        BlockPos pos = context.getPos();
-        Direction facing = context.getPlacementHorizontalFacing();
-        PlayerEntity entity = context.getPlayer();
-        DoorHingeSide dhs = Functions.getHingeSideFromEntity(entity,pos,facing);
-        List<BlockPos> neighborFuturePos = getPositionOfBlockConnected(facing,TollGPosition.CONTROL_UNIT,dhs,pos);
-        neighborFuturePos.add(pos);
-        int n=neighborFuturePos.size();
-        BlockPos[] positions = new BlockPos[n];
-        neighborFuturePos.toArray(positions); //todo : test replaceble is not working for redstonetollgate
-        if (Functions.testReplaceable(context,positions)){
-            BlockState state = getDefaultState();
-            return state.with(BlockStateProperties.HORIZONTAL_FACING,facing).with(TG_POSITION,TollGPosition.CONTROL_UNIT).with(BlockStateProperties.POWERED,false).with(ANIMATION,0);
-        }else {
-            return null;
-        }
-    }
-
-    public List<BlockPos> getPositionOfBlockConnected(Direction direction,TollGPosition tgp,DoorHingeSide dhs,BlockPos pos) {
-        //ajout de tout les blocks
-        List<BlockPos> posList = new ArrayList<>();
-        Direction extDirection = Functions.getDirectionOfExtBlock(direction,dhs);
-        BlockPos emptyBasePos = getEmptyBasePos(tgp,extDirection,direction,pos);
-        //block emptybase
-        posList.add(emptyBasePos);
-        //block de control unit
-        posList.add(emptyBasePos.offset(direction));
-        //block main et emptyext
-        posList.add(emptyBasePos.offset(extDirection));
-        posList.add(emptyBasePos.offset(extDirection,2));
-        //block up
-        posList.add(emptyBasePos.up());
-        return posList;
-    }
-
-    private BlockPos getEmptyBasePos(TollGPosition tgp, Direction extDirection, Direction facing,BlockPos pos) {
-        switch (tgp) {
-            case EMPTY_BASE:
-                return pos;
-            case MAIN:
-                return pos.offset(extDirection.getOpposite());
-            case EMPTY_EXT:
-                return pos.offset(extDirection.getOpposite(), 2);
-            case UP_BLOCK:
-                return pos.down();
-            case CONTROL_UNIT:
-                return pos.offset(facing.getOpposite());
-            default:
-                throw new NullPointerException("TollGatePosition of block at position :" + pos + "has null attribut for tollgateposition");
-        }
+        BlockState state = super.getStateForPlacement(context);
+        return state.with(BlockStateProperties.POWERED,false);
     }
 
     @Override

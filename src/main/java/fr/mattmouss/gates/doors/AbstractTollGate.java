@@ -1,20 +1,13 @@
 package fr.mattmouss.gates.doors;
 
-import fr.mattmouss.gates.energystorage.IdTracker;
 import fr.mattmouss.gates.enum_door.TollGPosition;
-import fr.mattmouss.gates.network.Networking;
-import fr.mattmouss.gates.network.SetIdPacket;
-import fr.mattmouss.gates.tileentity.TollGateTileEntity;
 import fr.mattmouss.gates.util.Functions;
 import fr.mattmouss.gates.voxels.VoxelInts;
-import net.minecraft.block.Block;
-import net.minecraft.block.BlockState;
-import net.minecraft.block.Blocks;
-import net.minecraft.block.SoundType;
+import net.minecraft.block.*;
 import net.minecraft.block.material.Material;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.entity.player.ServerPlayerEntity;
+import net.minecraft.item.BlockItemUseContext;
 import net.minecraft.item.ItemStack;
 import net.minecraft.pathfinding.PathType;
 import net.minecraft.state.EnumProperty;
@@ -32,10 +25,11 @@ import net.minecraft.util.math.shapes.VoxelShapes;
 import net.minecraft.world.IBlockReader;
 import net.minecraft.world.IWorld;
 import net.minecraft.world.World;
-import net.minecraft.world.dimension.DimensionType;
-import net.minecraftforge.fml.network.PacketDistributor;
 
 import javax.annotation.Nullable;
+
+import java.util.ArrayList;
+import java.util.List;
 
 import static fr.mattmouss.gates.enum_door.TollGPosition.*;
 
@@ -202,6 +196,92 @@ public abstract class AbstractTollGate extends Block {
             default:
                 return false;
         }
+    }
+
+    public List<BlockPos> getPositionOfBlockConnected(Direction direction,TollGPosition tgp,DoorHingeSide dhs,BlockPos pos) {
+        //ajout de tout les blocks
+        List<BlockPos> posList = new ArrayList<>();
+        Direction extDirection = Functions.getDirectionOfExtBlock(direction,dhs);
+        BlockPos emptyBasePos = getEmptyBasePos(tgp,extDirection,direction,pos);
+        //block emptybase
+        posList.add(emptyBasePos);
+        //block de control unit
+        posList.add(emptyBasePos.offset(direction));
+        //block main et emptyext
+        posList.add(emptyBasePos.offset(extDirection));
+        posList.add(emptyBasePos.offset(extDirection,2));
+        //block up
+        posList.add(emptyBasePos.up());
+        return posList;
+    }
+
+    private BlockPos getEmptyBasePos(TollGPosition tgp, Direction extDirection, Direction facing,BlockPos pos) {
+        switch (tgp) {
+            case EMPTY_BASE:
+                return pos;
+            case MAIN:
+                return pos.offset(extDirection.getOpposite());
+            case EMPTY_EXT:
+                return pos.offset(extDirection.getOpposite(), 2);
+            case UP_BLOCK:
+                return pos.down();
+            case CONTROL_UNIT:
+                return pos.offset(facing.getOpposite());
+            default:
+                throw new NullPointerException("TollGatePosition of block at position :" + pos + "has null attribut for tollgateposition");
+        }
+    }
+
+
+    @Nullable
+    @Override
+    public BlockState getStateForPlacement(BlockItemUseContext context) {
+        Direction facing = context.getPlacementHorizontalFacing();
+        if (checkFeasibility(context)){
+            BlockState state = getDefaultState();
+            return state.with(BlockStateProperties.HORIZONTAL_FACING,facing).with(TG_POSITION,TollGPosition.CONTROL_UNIT).with(ANIMATION,0);
+        }else {
+            return null;
+        }
+    }
+
+    public static boolean checkFeasibility(BlockItemUseContext context){
+        BlockPos pos =context.getPos();
+        PlayerEntity entity = context.getPlayer();
+        World world = context.getWorld();
+        Direction facing = Functions.getDirectionFromEntity(entity,pos);
+        DoorHingeSide dhs = Functions.getHingeSideFromEntity(entity,pos,facing);
+        Direction extDirection = Functions.getDirectionOfExtBlock(facing,dhs);
+        List<BlockPos> posList = new ArrayList<>();
+        //block de control unit
+        posList.add(pos);
+        //block main
+        posList.add(pos.offset(facing.getOpposite()));
+        //blocks de barrière fermé
+        posList.add(pos.offset(facing.getOpposite()).offset(extDirection));
+        posList.add(pos.offset(facing.getOpposite()).offset(extDirection,2));
+        //block de barrière ouverte
+        BlockPos ignoredPos = pos.offset(facing.getOpposite()).up();
+        posList.add(pos.offset(facing.getOpposite()).up());
+
+        for (BlockPos pos_in : posList){
+            //return false if the position of this future block is occupied by another solid block
+            if (!(world.getBlockState(pos_in).getBlock() instanceof AirBlock)){
+                System.out.println("la blockPos qui fait foirer :"+pos_in);
+                System.out.println("Block qui bloque :"+world.getBlockState(pos_in).getBlock());
+                return false;
+            }
+            //return false if the position of this future block is above a air or bush block
+            Block underBlock = world.getBlockState(pos_in.down()).getBlock();
+            if (underBlock instanceof AirBlock || underBlock instanceof BushBlock || underBlock instanceof LeavesBlock){
+                if (!pos_in.equals(ignoredPos)){
+                    System.out.println("la blockPos qui fait foirer :"+pos_in.down());
+                    System.out.println("Block qui ne stabilise pas :"+underBlock);
+                    return false;
+                }
+            }
+        }
+        return true;
     }
 
     @Override

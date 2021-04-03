@@ -420,6 +420,14 @@ public class TollGateTileEntity extends TileEntity implements ITickableTileEntit
         }
     }
 
+    private List<BlockPos> getPositionOfBlockConnected(){
+        TollGate tollGate = (TollGate) this.getBlockState().getBlock();
+        Direction direction = this.getBlockState().get(BlockStateProperties.HORIZONTAL_FACING);
+        TollGPosition tgp = this.getBlockState().get(TollGate.TG_POSITION);
+        DoorHingeSide dhs = this.getBlockState().get(BlockStateProperties.DOOR_HINGE);
+        return tollGate.getPositionOfBlockConnected(direction,tgp,dhs,this.pos);
+    }
+
     @Override
     public CompoundNBT write(CompoundNBT tag) {
         if (canWrite()) {
@@ -452,44 +460,7 @@ public class TollGateTileEntity extends TileEntity implements ITickableTileEntit
         return super.getCapability(cap, side);
     }
 
-    //que les blocks connecté en prenant en compte le block lui même
-    public List<BlockPos> getPositionOfBlockConnected() {
-        //ajout de tout les blocks
-        Direction direction = this.getBlockState().get(BlockStateProperties.HORIZONTAL_FACING);
-        TollGPosition tgp = this.getBlockState().get(TollGate.TG_POSITION);
-        List<BlockPos> posList = new ArrayList<>();
-        DoorHingeSide dhs = this.getBlockState().get(BlockStateProperties.DOOR_HINGE);
-        Direction extDirection = Functions.getDirectionOfExtBlock(direction,dhs);
-        BlockPos emptyBasePos = getEmptyBasePos(tgp,extDirection,direction);
-        //block emptybase
-        posList.add(emptyBasePos);
-        //block de control unit
-        posList.add(emptyBasePos.offset(direction));
-        //block main et emptyext
-        posList.add(emptyBasePos.offset(extDirection));
-        posList.add(emptyBasePos.offset(extDirection,2));
-        //block up
-        posList.add(emptyBasePos.up());
-        return posList;
-    }
 
-    private BlockPos getEmptyBasePos(TollGPosition tgp, Direction extDirection, Direction facing) {
-        switch (tgp){
-            case EMPTY_BASE:
-                return pos;
-            case MAIN:
-                return pos.offset(extDirection.getOpposite());
-            case EMPTY_EXT:
-                return pos.offset(extDirection.getOpposite(),2);
-            case UP_BLOCK:
-                return pos.down();
-            case CONTROL_UNIT:
-                return pos.offset(facing.getOpposite());
-            default:
-                throw new NullPointerException("TollGatePosition of block at position :"+this.pos+"has null attribut for tollgateposition");
-        }
-
-    }
 
     public boolean isGateOpen(){
         int animation_step = this.getBlockState().get(TollGate.ANIMATION);

@@ -22,17 +22,16 @@ import net.minecraft.util.math.BlockPos;
 import net.minecraftforge.common.capabilities.Capability;
 import net.minecraftforge.common.util.INBTSerializable;
 import net.minecraftforge.common.util.LazyOptional;
-import net.minecraftforge.items.CapabilityItemHandler;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-import java.util.ArrayList;
 import java.util.List;
 
 public class RedstoneTollGateTileEntity extends TileEntity implements ITickableTileEntity {
 
     private LazyOptional<TollStorage> storage = LazyOptional.of(this::getStorage).cast();
     private boolean lastPowered = false;
+    private boolean initialise = false;
 
     private TollStorage getStorage() {
         return new TollStorage();
@@ -46,10 +45,14 @@ public class RedstoneTollGateTileEntity extends TileEntity implements ITickableT
     public void tick() {
         if (!world.isRemote) {
             BlockState state = this.getBlockState();
-            if (lastPowered != state.get(BlockStateProperties.POWERED)){
-                lastPowered = true;
+            if (!initialise){
+                initialise = true;
+                lastPowered = state.get(BlockStateProperties.POWERED);
+            }
+            if (lastPowered != state.get(BlockStateProperties.POWERED)) {
                 startAllAnimation();
             }
+
             //block for gestion of animation
             if (animationOpeningInProcess()) {
                 int animationStep = state.get(TollGate.ANIMATION);
@@ -77,6 +80,7 @@ public class RedstoneTollGateTileEntity extends TileEntity implements ITickableT
                     this.world.setBlockState(this.pos, state.with(TollGate.ANIMATION, animationStep - 1));
                 }
             }
+            lastPowered = state.get(BlockStateProperties.POWERED);
         }
     }
 
@@ -91,11 +95,13 @@ public class RedstoneTollGateTileEntity extends TileEntity implements ITickableT
         DoorHingeSide dhs = this.getBlockState().get(BlockStateProperties.DOOR_HINGE);
         List<BlockPos> posList = tollGate.getPositionOfBlockConnected(direction,tgp,dhs,this.pos);
         for (BlockPos pos1 : posList){
-            if (!(world.getTileEntity(pos1) instanceof TollGateTileEntity)) throw new IllegalArgumentException("No tile entity on this blockPos :"+pos1);
+            if (!(world.getTileEntity(pos1) instanceof RedstoneTollGateTileEntity)) {
+                throw new IllegalArgumentException("No tile entity on this blockPos :"+pos1);
+            }
             //System.out.println("position du block animé :"+pos1);
-            TollGateTileEntity tgte2 = (TollGateTileEntity) world.getTileEntity(pos1);
-            assert tgte2 != null;
-            tgte2.startAnimation();
+            RedstoneTollGateTileEntity rtgte2 = (RedstoneTollGateTileEntity) world.getTileEntity(pos1);
+            assert rtgte2 != null;
+            rtgte2.startAnimation();
         }
     }
 
