@@ -30,11 +30,12 @@ public class TurnStileItem extends BlockItem {
         BlockPos pos = context.getPos();
         World world = context.getWorld();
         PlayerEntity entity = context.getPlayer();
+        ActionResultType actionResultType = super.onItemUse(context);
         Direction direction = Functions.getDirectionFromEntity(entity,pos);
         DoorHingeSide dhs = Functions.getHingeSideFromEntity(entity,pos,direction);
         BlockPos MainPos = (dhs == DoorHingeSide.RIGHT) ? pos.offset(direction.rotateY()): pos.offset(direction.rotateYCCW());
         TurnStileKeyItem key = (TurnStileKeyItem) ModItem.TURN_STILE_KEY.asItem();
-        if (checkFeasibility(new BlockItemUseContext(context))){
+        if (actionResultType == ActionResultType.SUCCESS){
             System.out.println("block successfully put !!");
             ItemStack newStack = new ItemStack(key);
             key.setTSPosition(newStack,world,MainPos.up());
@@ -47,37 +48,5 @@ public class TurnStileItem extends BlockItem {
         return ActionResultType.FAIL;
     }
 
-    private boolean checkFeasibility(BlockItemUseContext context) {
-        BlockPos pos =context.getPos();
-        World world = context.getWorld();
-        PlayerEntity entity = context.getPlayer();
-        Direction facing = Functions.getDirectionFromEntity(entity,pos);
-        DoorHingeSide dhs = Functions.getHingeSideFromEntity(entity,pos,facing);
-        Direction dir_other_block = (dhs == DoorHingeSide.RIGHT) ? facing.rotateY() : facing.rotateYCCW();
-        List<BlockPos> posList = new ArrayList<>();
-        //block Control Unit
-        posList.add(pos);
-        //block main
-        posList.add(pos.offset(dir_other_block));
-        //block opposite CU
-        posList.add(pos.offset(dir_other_block,2));
 
-        for (BlockPos pos_in : posList){
-            //return false if the position of this future block is occupied by another solid block
-            if (!(world.getBlockState(pos_in).getBlock() instanceof AirBlock)){
-                System.out.println("la blockPos qui fait foirer :"+pos_in);
-                System.out.println("Block qui bloque :"+world.getBlockState(pos_in).getBlock());
-                return false;
-            }
-            //return false if the position of this future block is above a air or bush or leaves block
-            Block underBlock = world.getBlockState(pos_in.down()).getBlock();
-            if (underBlock instanceof AirBlock || underBlock instanceof BushBlock || underBlock instanceof LeavesBlock){
-                System.out.println("la blockPos qui fait foirer :"+pos_in.down());
-                System.out.println("Block qui ne stabilise pas :"+underBlock);
-                return false;
-            }
-        }
-        return true;
-
-    }
 }

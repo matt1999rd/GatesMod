@@ -47,8 +47,14 @@ public class ModBlock {
     @ObjectHolder("gates:turn_stile")
     public static TurnStile TURN_STILE = new TurnStile();
 
+    @ObjectHolder("gates:redstone_turn_stile")
+    public static TurnStile RTURN_STILE = new TurnStile();
+
     @ObjectHolder("gates:turn_stile")
     public static TileEntityType<TurnStileTileEntity> TURNSTILE_TILE_TYPE;
+
+    @ObjectHolder("gates:redstone_turn_stile")
+    public static TileEntityType<RedstoneTurnStileTileEntity> RTURNSTILE_TILE_TYPE;
 
     @ObjectHolder("gates:card_getter")
     public static CardGetter CARD_GETTER = new CardGetter();

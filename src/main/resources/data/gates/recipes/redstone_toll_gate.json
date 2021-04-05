@@ -1,7 +1,7 @@
 {
   "type": "minecraft:crafting_shaped",
   "pattern": [
-    "   ",
+    "s  ",
     "crw",
     "sc "
   ],
@@ -20,7 +20,7 @@
     }
   },
   "result": {
-    "item": "gates:toll_gate",
+    "item": "gates:redstone_toll_gate",
     "count": 1
   }
 }

@@ -97,6 +97,7 @@
   "block.gates.yellow_garden_door": "Porte de jardin jaune",
 
   "block.gates.toll_gate": "Peage",
+  "block.gates.redstone_toll_gate": "Peage à Redstone",
   "block.gates.turn_stile": "Tourniquet",
   "block.gates.card_getter": "Distributeur de Carte",
   "item.gates.card_key": "Carte %1$d",
