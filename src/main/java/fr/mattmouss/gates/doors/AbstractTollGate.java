@@ -177,7 +177,7 @@ public abstract class AbstractTollGate extends Block {
     public void onBlockHarvested(World world, BlockPos pos, BlockState state, PlayerEntity entity) {
         System.out.println("destroying all block of toll gate");
         ItemStack stack = entity.getHeldItemMainhand();
-        if (!world.isRemote && !entity.isCreative()) {
+        if (!world.isRemote) {
             Block.spawnDrops(state, world, pos, null, entity, stack);
         }
         super.onBlockHarvested(world, pos, state, entity);

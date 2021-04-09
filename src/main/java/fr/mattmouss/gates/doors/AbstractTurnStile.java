@@ -239,6 +239,7 @@ public abstract class AbstractTurnStile extends Block {
         }
     }
 
+
     @Override
     public void harvestBlock(World world, PlayerEntity entity, BlockPos pos, BlockState state, @Nullable TileEntity tileEntity, ItemStack stack) {
         super.harvestBlock(world, entity, pos, Blocks.AIR.getDefaultState(), tileEntity, stack);
@@ -248,7 +249,7 @@ public abstract class AbstractTurnStile extends Block {
     public void onBlockHarvested(World world, BlockPos pos, BlockState state, PlayerEntity entity) {
         System.out.println("destroying all block of turn stile");
         ItemStack stack = entity.getHeldItemMainhand();
-        if (!world.isRemote && !entity.isCreative()) {
+        if (!world.isRemote) {
             Block.spawnDrops(state, world, pos, null, entity, stack);
         }
         super.onBlockHarvested(world, pos, state, entity);

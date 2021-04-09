@@ -1,7 +1,7 @@
 {
   "type": "minecraft:crafting_shaped",
   "pattern": [
-    "  c",
+    "s c",
     "ccc",
     "s c"
   ],
@@ -14,7 +14,7 @@
     }
   },
   "result": {
-    "item": "gates:turn_stile",
+    "item": "gates:redstone_turn_stile",
     "count": 1
   }
 }

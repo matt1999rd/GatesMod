@@ -1,10 +1,7 @@
 package fr.mattmouss.gates.blocks;
 
 
-import fr.mattmouss.gates.doors.RedstoneTollGate;
-import fr.mattmouss.gates.doors.TollGate;
-import fr.mattmouss.gates.doors.TurnStile;
-import fr.mattmouss.gates.doors.WindowDoor;
+import fr.mattmouss.gates.doors.*;
 import fr.mattmouss.gates.gui.*;
 import fr.mattmouss.gates.tileentity.*;
 import net.minecraft.inventory.container.ContainerType;
@@ -48,7 +45,7 @@ public class ModBlock {
     public static TurnStile TURN_STILE = new TurnStile();
 
     @ObjectHolder("gates:redstone_turn_stile")
-    public static TurnStile RTURN_STILE = new TurnStile();
+    public static RedstoneTurnStile RTURN_STILE = new RedstoneTurnStile();
 
     @ObjectHolder("gates:turn_stile")
     public static TileEntityType<TurnStileTileEntity> TURNSTILE_TILE_TYPE;

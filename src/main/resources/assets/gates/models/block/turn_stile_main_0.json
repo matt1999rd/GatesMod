@@ -2,5 +2,8 @@
   "loader": "forge:obj",
   "flip-v": true,
   "ambientToFullbright": false,
-  "model": "gates:models/block/turn_stile_main_0.obj"
+  "model": "gates:models/block/turn_stile_main_0.obj",
+  "textures": {
+    "particle": "gates:block/turn_stile_face"
+  }
 }

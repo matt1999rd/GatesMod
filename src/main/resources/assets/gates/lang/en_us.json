@@ -100,6 +100,7 @@
   "block.gates.toll_gate": "Toll Gate",
   "block.gates.redstone_toll_gate": "Redstone Toll Gate",
   "block.gates.turn_stile": "Turn Stile",
+  "block.gates.redstone_turn_stile": "Redstone Turn Stile",
   "block.gates.card_getter": "Card Getter",
   "item.gates.card_key": "Card %1$d",
   "item.gates.toll_gate_key": "Toll Key %1$d",

@@ -5,6 +5,7 @@ import fr.mattmouss.gates.enum_door.TurnSPosition;
 import fr.mattmouss.gates.network.Networking;
 import fr.mattmouss.gates.network.SetIdPacket;
 import fr.mattmouss.gates.tileentity.RedstoneTollGateTileEntity;
+import fr.mattmouss.gates.tileentity.RedstoneTurnStileTileEntity;
 import fr.mattmouss.gates.tileentity.TurnStileTileEntity;
 import fr.mattmouss.gates.util.Functions;
 import net.minecraft.block.Block;
@@ -39,7 +40,7 @@ public class RedstoneTurnStile extends AbstractTurnStile {
     @Nullable
     @Override
     public TileEntity createTileEntity(BlockState state, IBlockReader world) {
-        return new TurnStileTileEntity();
+        return new RedstoneTurnStileTileEntity();
     }
 
     @Override
