@@ -2,19 +2,20 @@ package fr.mattmouss.gates.tileentity;
 
 
 import fr.mattmouss.gates.blocks.ModBlock;
+import fr.mattmouss.gates.doors.RedstoneTurnStile;
 import fr.mattmouss.gates.doors.TurnStile;
 import fr.mattmouss.gates.enum_door.TurnSPosition;
 import fr.mattmouss.gates.network.Networking;
 import fr.mattmouss.gates.network.blockTSPacket;
 import fr.mattmouss.gates.network.movePlayerPacket;
 import fr.mattmouss.gates.setup.ModSound;
+import net.minecraft.block.Block;
 import net.minecraft.block.BlockState;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.audio.SimpleSound;
 import net.minecraft.client.entity.player.ClientPlayerEntity;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.state.properties.BlockStateProperties;
-import net.minecraft.state.properties.DoorHingeSide;
 import net.minecraft.tileentity.ITickableTileEntity;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.Direction;
@@ -27,6 +28,8 @@ import java.util.List;
 public class RedstoneTurnStileTileEntity extends TileEntity implements ITickableTileEntity {
 
     private boolean isAnimationInWork = false;
+    private boolean lastPowered = false;
+    private boolean initialise = false;
 
     public RedstoneTurnStileTileEntity() {
         super(ModBlock.RTURNSTILE_TILE_TYPE);
@@ -63,7 +66,19 @@ public class RedstoneTurnStileTileEntity extends TileEntity implements ITickable
     @Override
     public void tick() {
         BlockState state = this.getBlockState();
-        if (this.isRightTSB()) {
+        Block block=state.getBlock();
+        if (!(block instanceof RedstoneTurnStile))return;
+        RedstoneTurnStile turnStile = (RedstoneTurnStile)block;
+        if (turnStile.isRightTSB(state)) {
+            if (!world.isRemote){
+                if (!initialise){
+                    initialise = true;
+                    lastPowered = state.get(BlockStateProperties.POWERED);
+                }
+                if (lastPowered != state.get(BlockStateProperties.POWERED)) {
+                    openOrBlockAllTS();
+                }
+            }
             if (state.get(TurnStile.WAY_IS_ON)) {
                 BlockPos mainPos = this.getMainPos();
                 double x = mainPos.getX() + 0.5D;
@@ -80,6 +95,7 @@ public class RedstoneTurnStileTileEntity extends TileEntity implements ITickable
                 }
             }
         }
+        lastPowered = state.get(BlockStateProperties.POWERED);
     }
 
     //this function check if the player in argument is going into this turn stile with a certain speed
@@ -154,6 +170,20 @@ public class RedstoneTurnStileTileEntity extends TileEntity implements ITickable
         world.setBlockState(pos, state.with(TurnStile.ANIMATION, 1 - i));
     }
 
+    private void openOrBlockAllTS() {
+        List<BlockPos> posList=this.getPositionOfBlockConnected();
+        for (BlockPos pos:posList){
+            TileEntity te=world.getTileEntity(pos);
+            if (te instanceof RedstoneTurnStileTileEntity){
+                RedstoneTurnStileTileEntity rtste=(RedstoneTurnStileTileEntity)te;
+                if (lastPowered){
+                    rtste.blockTS();
+                }else {
+                    rtste.openTS();
+                }
+            }
+        }
+    }
 
 
     public void openTS() {
@@ -181,13 +211,5 @@ public class RedstoneTurnStileTileEntity extends TileEntity implements ITickable
     }
 
 
-    //check if this TE is the control unit tile entity to avoid multiple definition of idstorage that will be of no use
-    public boolean isRightTSB() {
-        BlockState state = getBlockState();
-        DoorHingeSide dhs = state.get(BlockStateProperties.DOOR_HINGE);
-        return (dhs == DoorHingeSide.RIGHT) ?
-                state.get(TurnStile.TS_POSITION) == TurnSPosition.RIGHT_BLOCK :
-                state.get(TurnStile.TS_POSITION) == TurnSPosition.LEFT_BLOCK;
-    }
 
 }

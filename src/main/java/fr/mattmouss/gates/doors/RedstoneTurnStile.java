@@ -67,12 +67,12 @@ public class RedstoneTurnStile extends AbstractTurnStile {
     @Override
     public void neighborChanged(BlockState state, World worldIn, BlockPos pos, Block blockIn, BlockPos fromPos, boolean isMoving) {
         boolean flag = isNeighBorDoorBlockPowered(pos,state,worldIn);
-        if (blockIn != this && flag != state.get(BlockStateProperties.POWERED) && state.get(TS_POSITION)== MAIN){
+        if (blockIn != this && flag != state.get(BlockStateProperties.POWERED) && this.isRightTSB(state)){
             worldIn.setBlockState(pos, state.with(BlockStateProperties.POWERED, flag), 2);
             TileEntity te=worldIn.getTileEntity(pos);
-            if (te instanceof RedstoneTollGateTileEntity){
-                RedstoneTollGateTileEntity rtgte=(RedstoneTollGateTileEntity)te;
-                rtgte.startAnimation();
+            if (te instanceof RedstoneTurnStileTileEntity){
+                RedstoneTurnStileTileEntity rtste=(RedstoneTurnStileTileEntity) te;
+                rtste.openTS();
             }
         }
     }

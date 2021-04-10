@@ -408,11 +408,12 @@ public class TurnStileTileEntity extends TileEntity implements IControlIdTE,ITic
 
     //check if this TE is the control unit tile entity to avoid multiple definition of idstorage that will be of no use
     public boolean isRightTSB() {
-        BlockState state = getBlockState();
-        DoorHingeSide dhs = state.get(BlockStateProperties.DOOR_HINGE);
-        return (dhs == DoorHingeSide.RIGHT) ?
-                state.get(TurnStile.TS_POSITION) == TurnSPosition.RIGHT_BLOCK :
-                state.get(TurnStile.TS_POSITION) == TurnSPosition.LEFT_BLOCK;
+        Block block=this.getBlockState().getBlock();
+        if (!(block instanceof TurnStile)){
+            return false;
+        }
+        TurnStile turnStile = (TurnStile)block;
+        return turnStile.isRightTSB(this.getBlockState());
     }
 
 

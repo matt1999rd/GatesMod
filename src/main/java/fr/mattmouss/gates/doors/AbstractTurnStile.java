@@ -1,6 +1,5 @@
 package fr.mattmouss.gates.doors;
 
-import fr.mattmouss.gates.enum_door.TollGPosition;
 import fr.mattmouss.gates.enum_door.TurnSPosition;
 import fr.mattmouss.gates.util.Functions;
 import fr.mattmouss.gates.voxels.VoxelInts;
@@ -329,5 +328,14 @@ public abstract class AbstractTurnStile extends Block {
                 throw new NullPointerException("TollGatePosition of block at position :" + pos + "has null attribut for tollgateposition");
         }
     }
+
+    //check if this TE is the control unit tile entity to avoid multiple definition of idstorage that will be of no use
+    public boolean isRightTSB(BlockState state) {
+        DoorHingeSide dhs = state.get(BlockStateProperties.DOOR_HINGE);
+        return (dhs == DoorHingeSide.RIGHT) ?
+                state.get(TurnStile.TS_POSITION) == TurnSPosition.RIGHT_BLOCK :
+                state.get(TurnStile.TS_POSITION) == TurnSPosition.LEFT_BLOCK;
+    }
+
 
 }
