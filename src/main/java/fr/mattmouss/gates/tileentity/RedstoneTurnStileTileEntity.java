@@ -79,20 +79,29 @@ public class RedstoneTurnStileTileEntity extends TileEntity implements ITickable
                     openOrBlockAllTS();
                 }
             }
+            BlockPos mainPos = this.getMainPos();
+            double x = mainPos.getX() + 0.5D;
+            double y = mainPos.getY() + 0.5D;
+            double z = mainPos.getZ() + 0.5D;
+            PlayerEntity player = world.getClosestPlayer(x, y, z, 2, false);
             if (state.get(TurnStile.WAY_IS_ON)) {
-                BlockPos mainPos = this.getMainPos();
-                double x = mainPos.getX() + 0.5D;
-                double y = mainPos.getY() + 0.5D;
-                double z = mainPos.getZ() + 0.5D;
-                PlayerEntity player = world.getClosestPlayer(x, y, z, 2, false);
                 if (this.isAnimationInWork()) {
-                    movePlayerGoingThrough(player);
+                    movePlayerGoingThrough(player,false);
                     return;
                 }
                 if (playerIsGoingThrough(player)) {
-                    movePlayerGoingThrough(player);
+                    movePlayerGoingThrough(player,false);
                     Minecraft.getInstance().getSoundHandler().play(SimpleSound.master(ModSound.TURN_STILE_PASS, 1.0F));
                 }
+            }
+
+            if (this.isAnimationInWork()) {
+                movePlayerGoingThrough(player,true);
+                return;
+            }
+            if (playerIsGoingThroughFromExit(player)) {
+                movePlayerGoingThrough(player,true);
+                Minecraft.getInstance().getSoundHandler().play(SimpleSound.master(ModSound.TURN_STILE_PASS, 1.0F));
             }
         }
         lastPowered = state.get(BlockStateProperties.POWERED);
@@ -129,8 +138,39 @@ public class RedstoneTurnStileTileEntity extends TileEntity implements ITickable
         return false;
     }
 
+    //this function check if the player in argument is going into this turn stile from exit with a certain speed
+    private boolean playerIsGoingThroughFromExit(PlayerEntity entity) {
+        Direction facing = this.getBlockState().get(BlockStateProperties.HORIZONTAL_FACING);
+        BlockPos mainPos = this.getMainPos();
+        double x = mainPos.getX();
+        double y = mainPos.getY();
+        double z = mainPos.getZ();
+        if (entity != null) {
+            Vec3d vec3d = entity.getMotion();
+            //the player is going in the direction of the turn stile
+            boolean isRightMove = (Direction.getFacingFromVector(vec3d.x, vec3d.y, vec3d.z) == facing);
+            Vec3d player_pos = entity.getPositionVec();
+            double x_player = player_pos.x;
+            double y_player = player_pos.y;
+            double z_player = player_pos.z;
+            boolean isPlayerInFrontOfMainBlock;
+            Direction.Axis axis = facing.getAxis();
+            double coor_player = axis.getCoordinate(x_player, y_player, z_player);
+            double coor_pos = axis.getCoordinate(x, y, z);
+            int axisDirOffset = facing.getAxisDirection().getOffset();
+            //it is a very simplified expression which check in each direction for placement of player
+            // if NORTH or SOUTH it will check the coordinate z and verify if
+            // for NORTH posZ-0.5<z<posZ for SOUTH posZ+1<z<posZ+1.5
+            // if EAST or WEST it will check the coordinate x and verify if
+            // for WEST posX-0.5<x<posX for EAST posX+1<x<posX+1.5
+            isPlayerInFrontOfMainBlock = (coor_player > coor_pos + 0.25 + axisDirOffset * 0.75) && (coor_player < coor_pos + 0.75 + 0.75 * axisDirOffset);
+            return isRightMove && isPlayerInFrontOfMainBlock;
+        }
+        return false;
+    }
+
     //this function is aimed to move the player into the turn stile
-    private void movePlayerGoingThrough(PlayerEntity player) {
+    private void movePlayerGoingThrough(PlayerEntity player,boolean fromExit) {
         if (player == null) {
             return;
         }
@@ -140,15 +180,10 @@ public class RedstoneTurnStileTileEntity extends TileEntity implements ITickable
         System.out.println("moving player into turn stile !!");
 
         if (this.isAnimationInWork()) {
-            Networking.INSTANCE.sendToServer(new movePlayerPacket(pos, (ClientPlayerEntity) player, true));
+            Networking.INSTANCE.sendToServer(new movePlayerPacket(pos, (ClientPlayerEntity) player, true,fromExit));
             this.endAnimation();
-            Networking.INSTANCE.sendToServer(new blockTSPacket(pos));
-            for (BlockPos pos1 : this.getPositionOfBlockConnected()) {
-                RedstoneTurnStileTileEntity tste = (RedstoneTurnStileTileEntity) world.getTileEntity(pos1);
-                tste.blockTS();
-            }
         } else {
-            Networking.INSTANCE.sendToServer(new movePlayerPacket(pos, (ClientPlayerEntity) player, false));
+            Networking.INSTANCE.sendToServer(new movePlayerPacket(pos, (ClientPlayerEntity) player, false,fromExit));
             //player.moveToBlockPosAndAngles(pos,rot.y,rot.x);
             this.startAnimation();
         }

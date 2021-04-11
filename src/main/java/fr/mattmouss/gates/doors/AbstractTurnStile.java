@@ -59,7 +59,7 @@ public abstract class AbstractTurnStile extends Block {
             return Block.makeCuboidShape(0,0,0,16,18,16);
         }else if (state.get(TS_POSITION) == TurnSPosition.UP_BLOCK){
             //we had this block because player is jumping on the turn stile without this block
-            return (!state.get(WAY_IS_ON))? VoxelShapes.fullCube() : VoxelShapes.empty();
+            return (state.get(WAY_IS_ON))?VoxelShapes.empty():makeUpBlockShape(state.get(BlockStateProperties.HORIZONTAL_FACING));
         }
 
         return getTurnStileShape(state);
@@ -161,6 +161,21 @@ public abstract class AbstractTurnStile extends Block {
         }
 
         return shape;
+    }
+
+    private VoxelShape makeUpBlockShape(Direction facing){
+        switch (facing){
+            case EAST:
+                return Block.makeCuboidShape(6,0,0,16,16,16);
+            case NORTH:
+                return Block.makeCuboidShape(0,0,0,16,16,10);
+            case WEST:
+                return Block.makeCuboidShape(0,0,0,10,16,16);
+            case SOUTH:
+                return Block.makeCuboidShape(0,0,6,16,16,16);
+            default:
+                return null;
+        }
     }
 
 

@@ -20,23 +20,27 @@ public class movePlayerPacket {
     private final BlockPos te_pos;
     private final int player_id;
     private final boolean isAnimationInWork;
+    private final boolean fromExit;
 
-    public movePlayerPacket(BlockPos pos, ClientPlayerEntity player,boolean isAnimationInWork_in){
+    public movePlayerPacket(BlockPos pos, ClientPlayerEntity player,boolean isAnimationInWork_in,boolean fromExit_in){
         te_pos = pos;
         player_id = player.getEntityId();
         isAnimationInWork = isAnimationInWork_in;
+        fromExit=fromExit_in;
     }
 
     public movePlayerPacket(PacketBuffer buf){
         te_pos =buf.readBlockPos();
         player_id = buf.readInt();
         isAnimationInWork = buf.readBoolean();
+        fromExit = buf.readBoolean();
     }
 
     public void toBytes(PacketBuffer buf){
         buf.writeBlockPos(te_pos);
         buf.writeInt(player_id);
         buf.writeBoolean(isAnimationInWork);
+        buf.writeBoolean(fromExit);
     }
 
     public void handle(Supplier<NetworkEvent.Context> context){
@@ -54,7 +58,8 @@ public class movePlayerPacket {
             ServerPlayerEntity player = (ServerPlayerEntity)entity;
             Direction facing = te.getBlockState().get(BlockStateProperties.HORIZONTAL_FACING);
             Vec2f rot =player.getPitchYaw();
-            BlockPos final_pos = (isAnimationInWork)? te_pos.offset(facing.getOpposite()) : te_pos;
+            Direction offsetDirection=(fromExit)? facing : facing.getOpposite();
+            BlockPos final_pos = (isAnimationInWork)? te_pos.offset(offsetDirection) : te_pos;
             player.moveToBlockPosAndAngles(final_pos,rot.y,rot.x);
         });
     }

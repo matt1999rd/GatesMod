@@ -107,6 +107,7 @@ public class RedstoneTurnStile extends AbstractTurnStile {
     @Override
     public BlockState getStateForPlacement(BlockItemUseContext context) {
         BlockState state = super.getStateForPlacement(context);
+        if (state == null)return null;
         return state.with(BlockStateProperties.POWERED,false);
     }
 

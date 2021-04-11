@@ -186,15 +186,15 @@ public class TurnStileTileEntity extends TileEntity implements IControlIdTE,ITic
         System.out.println("moving player into turn stile !!");
 
         if (this.isAnimationInWork()){
-            Networking.INSTANCE.sendToServer(new movePlayerPacket(pos, (ClientPlayerEntity) player,true));
+            Networking.INSTANCE.sendToServer(new movePlayerPacket(pos, (ClientPlayerEntity) player,true,false));
             this.endAnimation();
-            Networking.INSTANCE.sendToServer(new blockTSPacket(pos));
+            Networking.INSTANCE.sendToServer(new blockTSPacket(pos,false));
             for (BlockPos pos1 : this.getPositionOfBlockConnected()) {
                 TurnStileTileEntity tste = (TurnStileTileEntity) world.getTileEntity(pos1);
                 tste.blockTS();
             }
         }else {
-            Networking.INSTANCE.sendToServer(new movePlayerPacket(pos,(ClientPlayerEntity)player,false));
+            Networking.INSTANCE.sendToServer(new movePlayerPacket(pos,(ClientPlayerEntity)player,false,false));
             //player.moveToBlockPosAndAngles(pos,rot.y,rot.x);
             this.startAnimation();
         }
