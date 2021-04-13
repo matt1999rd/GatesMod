@@ -163,7 +163,7 @@ public class RedstoneTurnStileTileEntity extends TileEntity implements ITickable
             // for NORTH posZ-0.5<z<posZ for SOUTH posZ+1<z<posZ+1.5
             // if EAST or WEST it will check the coordinate x and verify if
             // for WEST posX-0.5<x<posX for EAST posX+1<x<posX+1.5
-            isPlayerInFrontOfMainBlock = (coor_player > coor_pos + 0.25 + axisDirOffset * 0.75) && (coor_player < coor_pos + 0.75 + 0.75 * axisDirOffset);
+            isPlayerInFrontOfMainBlock = (coor_player > coor_pos + 0.25 - axisDirOffset * 0.75) && (coor_player < coor_pos + 0.75 - 0.75 * axisDirOffset);
             return isRightMove && isPlayerInFrontOfMainBlock;
         }
         return false;
