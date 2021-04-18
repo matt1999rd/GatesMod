@@ -141,8 +141,4 @@ public class TurnStile extends AbstractTurnStile {
                 return pos;
         }
     }
-
-
-
-
 }
