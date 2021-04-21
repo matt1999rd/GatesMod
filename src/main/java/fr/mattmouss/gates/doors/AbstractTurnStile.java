@@ -2,7 +2,7 @@ package fr.mattmouss.gates.doors;
 
 import fr.mattmouss.gates.enum_door.TurnSPosition;
 import fr.mattmouss.gates.util.Functions;
-import fr.mattmouss.gates.voxels.VoxelInts;
+import fr.mattmouss.gates.voxels.VoxelDoubles;
 import net.minecraft.block.*;
 import net.minecraft.block.material.Material;
 import net.minecraft.entity.LivingEntity;
@@ -76,86 +76,86 @@ public abstract class AbstractTurnStile extends Block {
         int anim = state.get(ANIMATION);
         Direction facing = state.get(BlockStateProperties.HORIZONTAL_FACING);
         VoxelShape shape;
-        VoxelInts RotationBlock;
-        VoxelInts[] ForwardPart,BackwardPart,MiddlePart;
-        RotationBlock = new VoxelInts(0,7,6,2,10,10,false);
+        VoxelDoubles RotationBlock;
+        VoxelDoubles[] ForwardPart,BackwardPart,MiddlePart;
+        RotationBlock = new VoxelDoubles(0,7,6,2,10,10,false);
 
         if (anim == 0){
-            MiddlePart = new VoxelInts[]{
-                    new VoxelInts(2,10,7.4676,2,1,1,true),
-                    new VoxelInts(4,11,7.4676,2,1,1,true),
-                    new VoxelInts(6,12,7.4676,2,1,1,true),
-                    new VoxelInts(8,13,7.4676,1,1,1,true),
-                    new VoxelInts(9,14,7.4676,2,1,1,true),
-                    new VoxelInts(11,15,7.4676,2,1,1,true)
+            MiddlePart = new VoxelDoubles[]{
+                    new VoxelDoubles(2,10,7.4676,2,1,1,true),
+                    new VoxelDoubles(4,11,7.4676,2,1,1,true),
+                    new VoxelDoubles(6,12,7.4676,2,1,1,true),
+                    new VoxelDoubles(8,13,7.4676,1,1,1,true),
+                    new VoxelDoubles(9,14,7.4676,2,1,1,true),
+                    new VoxelDoubles(11,15,7.4676,2,1,1,true)
             };
-            ForwardPart = new VoxelInts[]{
-                    new VoxelInts(3,7,6.5,1,1,1,true),
-                    new VoxelInts(4,6,5.5,1,1,1,true),
-                    new VoxelInts(5,5,4.5,2,1,1,true),
-                    new VoxelInts(7,5,3.5,1,1,1,true),
-                    new VoxelInts(8,4,2.5,1,1,1,true),
-                    new VoxelInts(9,3,1.5,1,1,1,true),
-                    new VoxelInts(10,3,0.5,1,1,1,true)
+            ForwardPart = new VoxelDoubles[]{
+                    new VoxelDoubles(3,7,6.5,1,1,1,true),
+                    new VoxelDoubles(4,6,5.5,1,1,1,true),
+                    new VoxelDoubles(5,5,4.5,2,1,1,true),
+                    new VoxelDoubles(7,5,3.5,1,1,1,true),
+                    new VoxelDoubles(8,4,2.5,1,1,1,true),
+                    new VoxelDoubles(9,3,1.5,1,1,1,true),
+                    new VoxelDoubles(10,3,0.5,1,1,1,true)
             };
 
-            BackwardPart = new VoxelInts[]{
-                    new VoxelInts(3,7,8.5,1,1,1,true),
-                    new VoxelInts(4,6,9.5,1,1,1,true),
-                    new VoxelInts(5,5,10.5,2,1,1,true),
-                    new VoxelInts(7,5,11.5,1,1,1,true),
-                    new VoxelInts(8,4,12.5,1,1,1,true),
-                    new VoxelInts(9,3,13.5,1,1,1,true),
-                    new VoxelInts(10,3,14.5,1,1,1,true)
+            BackwardPart = new VoxelDoubles[]{
+                    new VoxelDoubles(3,7,8.5,1,1,1,true),
+                    new VoxelDoubles(4,6,9.5,1,1,1,true),
+                    new VoxelDoubles(5,5,10.5,2,1,1,true),
+                    new VoxelDoubles(7,5,11.5,1,1,1,true),
+                    new VoxelDoubles(8,4,12.5,1,1,1,true),
+                    new VoxelDoubles(9,3,13.5,1,1,1,true),
+                    new VoxelDoubles(10,3,14.5,1,1,1,true)
             };
         }else if (anim == 1){
-            MiddlePart = new VoxelInts[]{
-                    new VoxelInts(1,6,8,2,1,1,true),
-                    new VoxelInts(3,5,8,1,1,1,true),
-                    new VoxelInts(4,4,8,2,1,1,true),
-                    new VoxelInts(6,3,8,2,1,1,true),
-                    new VoxelInts(8,2,8,2,1,1,true),
-                    new VoxelInts(10,1,8,1,1,1,true),
-                    new VoxelInts(11,0,8,2,1,1,true)
+            MiddlePart = new VoxelDoubles[]{
+                    new VoxelDoubles(1,6,8,2,1,1,true),
+                    new VoxelDoubles(3,5,8,1,1,1,true),
+                    new VoxelDoubles(4,4,8,2,1,1,true),
+                    new VoxelDoubles(6,3,8,2,1,1,true),
+                    new VoxelDoubles(8,2,8,2,1,1,true),
+                    new VoxelDoubles(10,1,8,1,1,1,true),
+                    new VoxelDoubles(11,0,8,2,1,1,true)
             };
-            ForwardPart = new VoxelInts[]{
-                    new VoxelInts(2,10.5,6,1,1,1,true),
-                    new VoxelInts(3,11,5.5,1,1,1,true),
-                    new VoxelInts(4,11.8,4.5,1,1,1,true),
-                    new VoxelInts(5,12.2,4,1,1,1,true),
-                    new VoxelInts(6,12.8,3,1,1,1,true),
-                    new VoxelInts(7,13.4,2,1,1,1,true),
-                    new VoxelInts(8,14,1.5,1,1,1,true),
-                    new VoxelInts(9,14.5,0.5,1,1,1,true)
+            ForwardPart = new VoxelDoubles[]{
+                    new VoxelDoubles(2,10.5,6,1,1,1,true),
+                    new VoxelDoubles(3,11,5.5,1,1,1,true),
+                    new VoxelDoubles(4,11.8,4.5,1,1,1,true),
+                    new VoxelDoubles(5,12.2,4,1,1,1,true),
+                    new VoxelDoubles(6,12.8,3,1,1,1,true),
+                    new VoxelDoubles(7,13.4,2,1,1,1,true),
+                    new VoxelDoubles(8,14,1.5,1,1,1,true),
+                    new VoxelDoubles(9,14.5,0.5,1,1,1,true)
             };
-            BackwardPart = new VoxelInts[]{
-                    new VoxelInts(2,10.5,9,1,1,1,true),
-                    new VoxelInts(3,11,9.5,1,1,1,true),
-                    new VoxelInts(4,11.8,10.5,1,1,1,true),
-                    new VoxelInts(5,12.2,11,1,1,1,true),
-                    new VoxelInts(6,12.8,12,1,1,1,true),
-                    new VoxelInts(7,13.4,13,1,1,1,true),
-                    new VoxelInts(8,14,13.5,1,1,1,true),
-                    new VoxelInts(9,14.5,14.5,1,1,1,true)
+            BackwardPart = new VoxelDoubles[]{
+                    new VoxelDoubles(2,10.5,9,1,1,1,true),
+                    new VoxelDoubles(3,11,9.5,1,1,1,true),
+                    new VoxelDoubles(4,11.8,10.5,1,1,1,true),
+                    new VoxelDoubles(5,12.2,11,1,1,1,true),
+                    new VoxelDoubles(6,12.8,12,1,1,1,true),
+                    new VoxelDoubles(7,13.4,13,1,1,1,true),
+                    new VoxelDoubles(8,14,13.5,1,1,1,true),
+                    new VoxelDoubles(9,14.5,14.5,1,1,1,true)
             };
 
         }else {
-            ForwardPart = new VoxelInts[]{VoxelInts.EMPTY} ;
-            BackwardPart = new VoxelInts[]{VoxelInts.EMPTY};
-            MiddlePart = new VoxelInts[]{VoxelInts.EMPTY};
+            ForwardPart = new VoxelDoubles[]{VoxelDoubles.EMPTY} ;
+            BackwardPart = new VoxelDoubles[]{VoxelDoubles.EMPTY};
+            MiddlePart = new VoxelDoubles[]{VoxelDoubles.EMPTY};
         }
 
         shape = RotationBlock.rotate(Direction.NORTH,facing).getAssociatedShape();
 
-        for (VoxelInts vi : ForwardPart){
+        for (VoxelDoubles vi : ForwardPart){
             vi =vi.rotate(Direction.NORTH,facing);
             shape = VoxelShapes.or(shape,vi.getAssociatedShape());
         }
-        for (VoxelInts vi : BackwardPart){
+        for (VoxelDoubles vi : BackwardPart){
             vi =vi.rotate(Direction.NORTH,facing);
             shape = VoxelShapes.or(shape,vi.getAssociatedShape());
         }
-        for (VoxelInts vi : MiddlePart){
+        for (VoxelDoubles vi : MiddlePart){
             vi =vi.rotate(Direction.NORTH,facing);
             shape = VoxelShapes.or(shape,vi.getAssociatedShape());
         }

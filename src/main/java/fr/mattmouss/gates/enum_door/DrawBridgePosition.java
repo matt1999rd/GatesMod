@@ -20,6 +20,10 @@ public enum DrawBridgePosition implements IStringSerializable {
         this.id=id;
     }
 
+    public static DrawBridgePosition[] getNonBridgePositions(){
+        return new DrawBridgePosition[]{DOOR_LEFT_UP,DOOR_RIGHT_UP,DOOR_LEFT_DOWN,DOOR_RIGHT_DOWN};
+    }
+
     public int getMeta() {
         return meta;
     }
@@ -87,4 +91,5 @@ public enum DrawBridgePosition implements IStringSerializable {
         return (isRight() && (facingUpdate == blockFacing.rotateYCCW()) ) ||
                 (!isRight() && (facingUpdate == blockFacing.rotateY()));
     }
+
 }

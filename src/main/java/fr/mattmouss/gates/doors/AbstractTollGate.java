@@ -2,7 +2,7 @@ package fr.mattmouss.gates.doors;
 
 import fr.mattmouss.gates.enum_door.TollGPosition;
 import fr.mattmouss.gates.util.Functions;
-import fr.mattmouss.gates.voxels.VoxelInts;
+import fr.mattmouss.gates.voxels.VoxelDoubles;
 import net.minecraft.block.*;
 import net.minecraft.block.material.Material;
 import net.minecraft.entity.LivingEntity;
@@ -48,13 +48,13 @@ public abstract class AbstractTollGate extends Block {
     private static final VoxelShape CTRLUNITAABB;
     private static final VoxelShape EMPTY_AABB;
 
-    private static final VoxelInts CLOSE_BAR = new VoxelInts(0,9,5,16,10,6,false);
-    private static final VoxelInts OPEN_BAR = new VoxelInts(3,0,5,4,16,6,false);
-    private static final VoxelInts PLANE = new VoxelInts(0,0,5,16,16,6,false);
-    private static final VoxelInts HINGE = new VoxelInts(3,8,5,6,11,6,false);
-    private static final VoxelInts BASE = new VoxelInts(1,0,0,8,11,5,false);
-    private static final VoxelInts BEG_BAR = new VoxelInts(4,9,5,16,10,6,false);
-    private static final VoxelInts BEG_BAR_OPEN = new VoxelInts(3,8,5,4,16,6,false);
+    private static final VoxelDoubles CLOSE_BAR = new VoxelDoubles(0,9,5,16,10,6,false);
+    private static final VoxelDoubles OPEN_BAR = new VoxelDoubles(3,0,5,4,16,6,false);
+    private static final VoxelDoubles PLANE = new VoxelDoubles(0,0,5,16,16,6,false);
+    private static final VoxelDoubles HINGE = new VoxelDoubles(3,8,5,6,11,6,false);
+    private static final VoxelDoubles BASE = new VoxelDoubles(1,0,0,8,11,5,false);
+    private static final VoxelDoubles BEG_BAR = new VoxelDoubles(4,9,5,16,10,6,false);
+    private static final VoxelDoubles BEG_BAR_OPEN = new VoxelDoubles(3,8,5,4,16,6,false);
 
     static  {
         TG_POSITION = EnumProperty.create("tg_position",TollGPosition.class);
@@ -92,7 +92,7 @@ public abstract class AbstractTollGate extends Block {
         if (tgp.getMeta()==1 && (animation==0 || animation==4)){
             VoxelShape base_shape = getEmptyBaseShape(dhs,facing,BASE);
             VoxelShape hinge_shape = getEmptyBaseShape(dhs,facing,HINGE);
-            VoxelInts beg_bar_VoxInt = (animation == 0) ? BEG_BAR : BEG_BAR_OPEN;
+            VoxelDoubles beg_bar_VoxInt = (animation == 0) ? BEG_BAR : BEG_BAR_OPEN;
             VoxelShape beg_bar_shape = getEmptyBaseShape(dhs,facing,beg_bar_VoxInt) ;
             //association of the three voxelshapes
             return VoxelShapes.or(base_shape,hinge_shape,beg_bar_shape);
@@ -100,13 +100,13 @@ public abstract class AbstractTollGate extends Block {
         return PLANE.rotate(Direction.NORTH,facing).getAssociatedShape();
     }
 
-    private VoxelShape getEmptyBaseShape(DoorHingeSide dhs, Direction facing, VoxelInts voxelInts) {
+    private VoxelShape getEmptyBaseShape(DoorHingeSide dhs, Direction facing, VoxelDoubles voxelDoubles) {
         boolean isSymetryNeeded = (dhs == DoorHingeSide.RIGHT);
         Direction.Axis facing_axis = facing.getAxis();
         if (isSymetryNeeded){
-            return voxelInts.rotate(Direction.NORTH,facing).makeSymetry(Direction.Axis.Y,facing_axis).getAssociatedShape();
+            return voxelDoubles.rotate(Direction.NORTH,facing).makeSymetry(Direction.Axis.Y,facing_axis).getAssociatedShape();
         }else {
-            return voxelInts.rotate(Direction.NORTH,facing).getAssociatedShape();
+            return voxelDoubles.rotate(Direction.NORTH,facing).getAssociatedShape();
         }
     }
 
@@ -114,11 +114,11 @@ public abstract class AbstractTollGate extends Block {
         Direction.Axis axis_symetry = facing.getAxis();
         boolean isSymetryNeeded = (dhs == DoorHingeSide.RIGHT);
         //if the part selected is openBarrier
-        VoxelInts voxelInts = (tgp.getMeta() == 3) ? OPEN_BAR : CLOSE_BAR;
+        VoxelDoubles voxelDoubles = (tgp.getMeta() == 3) ? OPEN_BAR : CLOSE_BAR;
         if (isSymetryNeeded){
-            return voxelInts.rotate(Direction.NORTH,facing).makeSymetry(Direction.Axis.Y,axis_symetry).getAssociatedShape();
+            return voxelDoubles.rotate(Direction.NORTH,facing).makeSymetry(Direction.Axis.Y,axis_symetry).getAssociatedShape();
         }else {
-            return voxelInts.rotate(Direction.NORTH,facing).getAssociatedShape();
+            return voxelDoubles.rotate(Direction.NORTH,facing).getAssociatedShape();
         }
     }
 

@@ -1,6 +1,6 @@
 package fr.mattmouss.gates.windows;
 
-import fr.mattmouss.gates.voxels.VoxelInts;
+import fr.mattmouss.gates.voxels.VoxelDoubles;
 import fr.mattmouss.gates.util.ExtendDirection;
 import fr.mattmouss.gates.util.Functions;
 import net.minecraft.block.Block;
@@ -60,9 +60,9 @@ public enum WindowPlace implements IStringSerializable {
 
     static {
         windows_closed = new VoxelShape[4];
-        VoxelInts[] usedVoxels = new VoxelInts[15];
+        VoxelDoubles[] usedVoxels = new VoxelDoubles[15];
         for (int i = 0; i < 15; i++) {
-            usedVoxels[i] = new VoxelInts(i, 0, i, 2, 16, 2, true);
+            usedVoxels[i] = new VoxelDoubles(i, 0, i, 2, 16, 2, true);
         }
         for (int i=0;i<4;i++) {
             windows_closed[i] = Functions.getShapeFromVoxelIntsTab(usedVoxels, Direction.byHorizontalIndex(i), VoxelShapes.empty());
@@ -455,17 +455,17 @@ public enum WindowPlace implements IStringSerializable {
 
     private static VoxelShape[] makeShape(int flag){
         boolean isLeft,isRight,isUp,isDown;
-        VoxelInts rightMainPilar = new VoxelInts(0, 0, 0, 2, 16, 2, true); // right main pilar
-        VoxelInts leftMainPilar = new VoxelInts(14, 0, 14, 2, 16, 2, true); // left main pilar
-        VoxelInts[] downWindowSquare = new VoxelInts[13];
-        VoxelInts[] upWindowSquare = new VoxelInts[13];
+        VoxelDoubles rightMainPilar = new VoxelDoubles(0, 0, 0, 2, 16, 2, true); // right main pilar
+        VoxelDoubles leftMainPilar = new VoxelDoubles(14, 0, 14, 2, 16, 2, true); // left main pilar
+        VoxelDoubles[] downWindowSquare = new VoxelDoubles[13];
+        VoxelDoubles[] upWindowSquare = new VoxelDoubles[13];
         for (int i = 1; i < 14; i++){
-            downWindowSquare[i-1] = new VoxelInts(i, 0, i, 2, 2, 2, true); // down part
-            upWindowSquare[i-1] = new VoxelInts(i, 14, i, 2, 2, 2, true); // up part
+            downWindowSquare[i-1] = new VoxelDoubles(i, 0, i, 2, 2, 2, true); // down part
+            upWindowSquare[i-1] = new VoxelDoubles(i, 14, i, 2, 2, 2, true); // up part
         }
         int glass_length = 5,glass_y_beg=0,glass_height=16;
         VoxelShape[] shapes = new VoxelShape[4];
-        VoxelInts[] usedVoxels;
+        VoxelDoubles[] usedVoxels;
         isUp =  (flag & 0x1000) == 0x1000;
         isDown = (flag & 0x0100) == 0x0100;
         isLeft = (flag & 0x0010) == 0x0010;
@@ -496,17 +496,17 @@ public enum WindowPlace implements IStringSerializable {
                 glass_y_beg = 2;
             }
             if (glass_length == 13) {
-                usedVoxels = new VoxelInts[glass_length];
+                usedVoxels = new VoxelDoubles[glass_length];
                 for (int j = 0; j < glass_length; j++) {
-                    usedVoxels[j] = (isLeft)? new VoxelInts(16 + j, glass_y_beg, 13 - j, 1, glass_height, 1, true) // left glass pane
-                                             :new VoxelInts(2 + j, glass_y_beg, -j - 1, 1, glass_height, 1, true); // right glass pane
+                    usedVoxels[j] = (isLeft)? new VoxelDoubles(16 + j, glass_y_beg, 13 - j, 1, glass_height, 1, true) // left glass pane
+                                             :new VoxelDoubles(2 + j, glass_y_beg, -j - 1, 1, glass_height, 1, true); // right glass pane
                 }
                 shape = Functions.getShapeFromVoxelIntsTab(usedVoxels, facing, shape);
             } else {
-                usedVoxels = new VoxelInts[glass_length * 2];
+                usedVoxels = new VoxelDoubles[glass_length * 2];
                 for (int j = 0; j < glass_length; j++) {
-                    usedVoxels[2 * j] = new VoxelInts(16 + j, glass_y_beg, 13 - j, 1, glass_height, 1, true); // left glass pane
-                    usedVoxels[2 * j + 1] = new VoxelInts(2 + j, glass_y_beg, -j - 1, 1, glass_height, 1, true); // right glass pane
+                    usedVoxels[2 * j] = new VoxelDoubles(16 + j, glass_y_beg, 13 - j, 1, glass_height, 1, true); // left glass pane
+                    usedVoxels[2 * j + 1] = new VoxelDoubles(2 + j, glass_y_beg, -j - 1, 1, glass_height, 1, true); // right glass pane
                 }
                 shape = Functions.getShapeFromVoxelIntsTab(usedVoxels, facing, shape);
             }

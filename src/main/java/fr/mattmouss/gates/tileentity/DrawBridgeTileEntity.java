@@ -22,6 +22,7 @@ public class DrawBridgeTileEntity extends TileEntity implements ITickableTileEnt
     private boolean isClosing =   false;
     private boolean lastPowered = false;
     private boolean initialise =  false;
+    private int ticksGap =10;
     public DrawBridgeTileEntity() {
         super(ModBlock.DRAW_BRIDGE_TILE_TYPE);
     }
@@ -49,13 +50,21 @@ public class DrawBridgeTileEntity extends TileEntity implements ITickableTileEnt
                     if (animState == 4){
                         isOpening = false;
                     }else {
-                        changeAnim(true,animState+1);
+                        if (ticksGap==0){
+                            changeAnim(true,animState+1);
+                            ticksGap = 10;
+                        }
+                        ticksGap--;
                     }
                 }else if (isClosing){
                     if (animState == 0){
                         isClosing = false;
                     }else {
-                        changeAnim(false,animState-1);
+                        if (ticksGap == 0){
+                            changeAnim(false,animState-1);
+                            ticksGap = 10;
+                        }
+                        ticksGap--;
                     }
                 }
             }

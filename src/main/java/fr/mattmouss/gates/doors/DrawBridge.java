@@ -4,6 +4,7 @@ import com.google.common.collect.Lists;
 import fr.mattmouss.gates.enum_door.DrawBridgePosition;
 import fr.mattmouss.gates.tileentity.DrawBridgeTileEntity;
 import fr.mattmouss.gates.util.Functions;
+import fr.mattmouss.gates.voxels.VoxelDefinition;
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.Blocks;
@@ -24,6 +25,7 @@ import net.minecraft.util.Direction;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.shapes.ISelectionContext;
 import net.minecraft.util.math.shapes.VoxelShape;
+import net.minecraft.util.math.shapes.VoxelShapes;
 import net.minecraft.world.IBlockReader;
 import net.minecraft.world.IWorld;
 import net.minecraft.world.World;
@@ -66,7 +68,24 @@ public class DrawBridge extends Block {
 
     @Override
     public VoxelShape getShape(BlockState state, IBlockReader worldIn, BlockPos pos, ISelectionContext context) {
-        return super.getShape(state, worldIn, pos, context);
+        DrawBridgePosition position = state.get(POSITION);
+        int animState=state.get(ANIMATION);
+        Direction facing=state.get(BlockStateProperties.HORIZONTAL_FACING);
+        //opening bridge part when closed (or almost)
+        if (position.isBridge()) {
+            return VoxelShapes.empty();
+        }
+        return getSpecialShape(position,animState,facing);
+    }
+
+    private VoxelShape getSpecialShape(DrawBridgePosition position,int animState,Direction facing){
+        int meta=position.getMeta();
+        int facingIndex=facing.getHorizontalIndex();
+        int index=4*meta+5*animState+facingIndex;
+        if (!VoxelDefinition.isInit){
+            VoxelDefinition.init();
+        }
+        return VoxelDefinition.drawBridgeShape[index];
     }
 
     @Override

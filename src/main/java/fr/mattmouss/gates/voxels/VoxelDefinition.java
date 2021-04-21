@@ -1,6 +1,7 @@
 package fr.mattmouss.gates.voxels;
 
 import fr.mattmouss.gates.enum_door.DoorPlacing;
+import fr.mattmouss.gates.enum_door.DrawBridgePosition;
 import fr.mattmouss.gates.util.Functions;
 import net.minecraft.util.Direction;
 import net.minecraft.util.math.shapes.VoxelShape;
@@ -9,6 +10,7 @@ public class VoxelDefinition {
     public static VoxelShape[] largeDoorCircleShape = new VoxelShape[48];
     public static VoxelShape[] largeDoorSquareShape = new VoxelShape[48];
     public static VoxelShape[] gardenDoorShape = new VoxelShape[32];
+    public static VoxelShape[] drawBridgeShape = new VoxelShape[80];
     public static boolean isInit = false;
     public static void init() {
         isInit = true;
@@ -48,7 +50,20 @@ public class VoxelDefinition {
             }
             j++;
         }
-
+        j=0;
+        for (DrawBridgePosition position : DrawBridgePosition.getNonBridgePositions()){
+            //for animation
+            for (int animState=0;animState<5;animState++){
+                //for direction
+                for (int k=0;k<4;k++){
+                    drawBridgeShape[4*j+5*animState+k]=
+                            Functions.makeDrawBridgeShape(position,
+                                    animState,
+                                    Direction.byHorizontalIndex(k));
+                }
+            }
+            j++;
+        }
     }
 
 }
