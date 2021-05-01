@@ -5,10 +5,10 @@ color = ["black","blue","brown","cyan","gray","green","light_blue","light_gray",
 
 #file_name="andesite_window"
 
-def createBlockStateJson(facing,animation,position,file_name):
+def createBlockStateJson(file_name,**states):
     begining = '{\n"variants": {\n'
     end = '  }\n}'
-    center_string = create_center_string(facing,animation,position,file_name)
+    center_string = create_center_string(file_name,**states)
     with open(file_name+".json","w") as json_file:
         json_file.write(begining)
         json_file.write(center_string)
@@ -16,7 +16,39 @@ def createBlockStateJson(facing,animation,position,file_name):
         json_file.close()
     print("blockstate json written !! ")
                 
+def create_center_string(file_name,**states):
+    n=0
+    for value in states.values():
+        n*=len(value)
+    return execLoop(file_name,{},states)
 
+def execLoop(file_name,defined_states,non_defined_states):
+    print("\n execloop with defined states :")
+    print(defined_states)
+    print("non defined states :")
+    print(non_defined_states)
+    keys=list(non_defined_states.keys())
+    property=[]
+    this_keys=""
+    if keys:
+        property=non_defined_states.get(keys[0])
+        this_keys = keys[0]
+    else:
+        return getLineModel(file_name,defined_states)
+    remaining_states = {}
+    for k in keys:
+        if k != keys[0]:
+            remaining_states[k]=non_defined_states.get(k)
+    s=""
+    for p in property:
+        new_defined_states = defined_states.copy()
+        if this_keys == "": return
+        new_defined_states[this_keys] = p
+        s+=execLoop(file_name,new_defined_states,remaining_states)
+    print("string obtained : "+s)
+    return s
+
+"""
 def create_center_string(facing,position,open_tab,file_name):
     center_string=""
     incr = 0
@@ -39,13 +71,40 @@ def create_center_string(facing,position,open_tab,file_name):
                     line +=','
                 center_string += line + "\n"
     return center_string
-    
+"""
+
 def getModel(file_name,position,open_bool):
     model_str= "gates:block/"+file_name+"_"+getInitial(position)
-    if (open_bool == "true"):
+    if open_bool == "true":
         model_str+="_open"
     return model_str 
-   
+
+def getLineModel(file_name,defined_states):
+    keys=defined_states.keys()
+    n=len(keys)
+    line="   \""
+    i=0
+    for k in keys:
+        if i!=0:
+            line +=","
+        line += k+"="+defined_states.get(k)
+        f= defined_states.get("facing")
+        facing_add_on = ""
+        if f!="east":
+            facing_add_on += ', "y":'
+        if f=="west":
+            facing_add_on +='180'
+        elif f=="north":
+            facing_add_on +='270'
+        elif f=="south":
+            facing_add_on +='90'
+        if i==n-1:
+            line+="\":  { \"model\": \"gates:block/"+\
+                  file_name+"_"+getInitial(defined_states.get("position"))\
+                  +getAnimationEnd(int(defined_states.get("animation")))+"\""+facing_add_on+"},"
+        i+=1
+    line+="\n"
+    return line
 
 def getInitial(st):
     if (len(st) == 0):
@@ -63,7 +122,21 @@ def getInitial(st):
         i+=1
     return initial
 
-#createBlockStateJson(["east","north","south","west"],["left_down","left_up","right_down","right_up"],["true","false"],"")
+def getAnimationEnd(anim_state):
+    if anim_state>4:
+        return ""
+    angle=anim_state*225
+    return "_"+str(angle)
+
+createBlockStateJson("draw_bridge",
+                     facing=["east","north","south","west"],
+                     position=["door_left_down","door_left_up",
+                               "door_right_down","door_right_up",
+                               "door_left_up_up","door_right_up_up",
+                               "bridge_left","bridge_right"],
+                     animation=["0","1","2","3","4"])
+
+'''
 n=float(len(color))
 incr=0.0
 for c in color:
@@ -71,6 +144,7 @@ for c in color:
 	print("Creating json blockstate file : "+c+"_garden_door.json !")
 	print("Progress : "+str(incr/n*100)+" %")
 	incr+=1
+'''
 
 '''
 n= float(len(material))

@@ -8,10 +8,12 @@ import net.minecraft.util.math.BlockPos;
 public enum DrawBridgePosition implements IStringSerializable {
     DOOR_LEFT_UP(0,"door_left_up"),
     DOOR_RIGHT_UP(1,"door_right_up"),
-    DOOR_LEFT_DOWN(2,"door_left_down"),
-    DOOR_RIGHT_DOWN(3,"door_right_down"),
-    BRIDGE_LEFT(4,"bridge_left"),
-    BRIDGE_RIGHT(5,"bridge_right");
+    DOOR_LEFT_UUP(2,"door_left_up_up"),
+    DOOR_RIGHT_UUP(3,"door_right_up_up"),
+    DOOR_LEFT_DOWN(4,"door_left_down"),
+    DOOR_RIGHT_DOWN(5,"door_right_down"),
+    BRIDGE_LEFT(6,"bridge_left"),
+    BRIDGE_RIGHT(7,"bridge_right");
 
     int meta;
     String id;
@@ -21,7 +23,7 @@ public enum DrawBridgePosition implements IStringSerializable {
     }
 
     public static DrawBridgePosition[] getNonBridgePositions(){
-        return new DrawBridgePosition[]{DOOR_LEFT_UP,DOOR_RIGHT_UP,DOOR_LEFT_DOWN,DOOR_RIGHT_DOWN};
+        return new DrawBridgePosition[]{DOOR_LEFT_UP,DOOR_RIGHT_UP,DOOR_LEFT_UUP,DOOR_RIGHT_UUP,DOOR_LEFT_DOWN,DOOR_RIGHT_DOWN};
     }
 
     public int getMeta() {
@@ -33,11 +35,13 @@ public enum DrawBridgePosition implements IStringSerializable {
     }
 
     public boolean isUp(){
-        return meta < 2;
+        return meta < 4;
     }
 
+    public boolean isUpUp(){return meta>1 && isUp(); }
+
     public boolean isBridge(){
-        return meta > 3;
+        return meta > 5;
     }
 
     @Override
@@ -49,6 +53,10 @@ public enum DrawBridgePosition implements IStringSerializable {
         BlockPos finalPos = new BlockPos(leftDownPos);
         //add up function
         if (isUp()){
+            finalPos=finalPos.up();
+        }
+        //add an additionnal up function
+        if (isUpUp()){
             finalPos=finalPos.up();
         }
         //add offset on right
@@ -69,11 +77,15 @@ public enum DrawBridgePosition implements IStringSerializable {
         if (isUp()){
             finalPos=finalPos.down();
         }
+        //add an additional down function
+        if (isUpUp()){
+            finalPos=finalPos.down();
+        }
         //add offset on left
         if (isRight()){
             finalPos=finalPos.offset(facing.rotateYCCW());
         }
-        //add offset on deepNess
+        //add offset on deepness
         if (isBridge()){
             finalPos=finalPos.offset(facing.getOpposite());
         }
@@ -81,10 +93,11 @@ public enum DrawBridgePosition implements IStringSerializable {
     }
 
     public boolean isInnerUpdate(Direction facingUpdate,Direction blockFacing){
-        return (isLateralUpdate(facingUpdate,blockFacing) ||
-                isBridge() && facingUpdate == blockFacing.getOpposite()||
-                isUp() && facingUpdate == Direction.DOWN ||
-                (!isUp() && !isBridge()) && (facingUpdate == Direction.UP || facingUpdate==blockFacing));
+        return (isLateralUpdate(facingUpdate,blockFacing) || //right or left part is destroyed or powered
+                isBridge() && facingUpdate == blockFacing.getOpposite() || //when bridge there is only down part update
+                (isUp() && !isUpUp()) && (facingUpdate.getAxis() == Direction.Axis.Y) || //when is up but not extreme up there is two update from both up and down
+                (isUpUp() && facingUpdate == Direction.DOWN) || //when is extreme up only down update is important
+                (!isUp() && !isBridge()) && (facingUpdate == Direction.UP || facingUpdate==blockFacing)); //when is down take care of up and bridge update
     }
 
     private boolean isLateralUpdate(Direction facingUpdate,Direction blockFacing){

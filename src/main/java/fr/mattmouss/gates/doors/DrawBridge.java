@@ -81,7 +81,7 @@ public class DrawBridge extends Block {
     private VoxelShape getSpecialShape(DrawBridgePosition position,int animState,Direction facing){
         int meta=position.getMeta();
         int facingIndex=facing.getHorizontalIndex();
-        int index=4*meta+5*animState+facingIndex;
+        int index=20*meta+4*animState+facingIndex;
         if (!VoxelDefinition.isInit){
             VoxelDefinition.init();
         }

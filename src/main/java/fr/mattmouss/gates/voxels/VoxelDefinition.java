@@ -10,7 +10,7 @@ public class VoxelDefinition {
     public static VoxelShape[] largeDoorCircleShape = new VoxelShape[48];
     public static VoxelShape[] largeDoorSquareShape = new VoxelShape[48];
     public static VoxelShape[] gardenDoorShape = new VoxelShape[32];
-    public static VoxelShape[] drawBridgeShape = new VoxelShape[80];
+    public static VoxelShape[] drawBridgeShape = new VoxelShape[120];
     public static boolean isInit = false;
     public static void init() {
         isInit = true;
@@ -56,7 +56,7 @@ public class VoxelDefinition {
             for (int animState=0;animState<5;animState++){
                 //for direction
                 for (int k=0;k<4;k++){
-                    drawBridgeShape[4*j+5*animState+k]=
+                    drawBridgeShape[20*j+4*animState+k]=
                             Functions.makeDrawBridgeShape(position,
                                     animState,
                                     Direction.byHorizontalIndex(k));
