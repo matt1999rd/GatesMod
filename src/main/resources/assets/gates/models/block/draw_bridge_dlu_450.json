@@ -19,9 +19,9 @@
 			}
 		},
 		{
-			"from": [0, 0, 0],
-			"to": [12, 32, 2],
-			"rotation": {"angle": 45, "axis": "x", "origin": [9, 1, 1]},
+			"from": [0, -16, 0],
+			"to": [12, 28, 2],
+			"rotation": {"angle": 45, "axis": "x", "origin": [9, -15, 1]},
 			"color": 4,
 			"faces": {
 				"north": {"uv": [0, 0, 12, 16], "texture": "#missing"},

@@ -5,9 +5,9 @@
 	},
 	"elements": [
 		{
-			"from": [0, 0, 16],
-			"to": [12, 2, 24],
-			"rotation": {"angle": -22.5, "axis": "x", "origin": [9, 1, -16]},
+			"from": [0, 0, -16],
+			"to": [12, 2, 28],
+			"rotation": {"angle": -22.5, "axis": "x", "origin": [9, 1, -15]},
 			"color": 4,
 			"faces": {
 				"north": {"uv": [0, 0, 12, 2], "rotation": 180, "texture": "#missing"},

@@ -20,7 +20,9 @@ def create_center_string(file_name,**states):
     n=0
     for value in states.values():
         n*=len(value)
-    return execLoop(file_name,{},states)
+    s=execLoop(file_name,{},states)
+    del s[-1]
+    return s
 
 def execLoop(file_name,defined_states,non_defined_states):
     print("\n execloop with defined states :")
@@ -90,14 +92,14 @@ def getLineModel(file_name,defined_states):
         line += k+"="+defined_states.get(k)
         f= defined_states.get("facing")
         facing_add_on = ""
-        if f!="east":
+        if f!="south":
             facing_add_on += ', "y":'
         if f=="west":
-            facing_add_on +='180'
-        elif f=="north":
-            facing_add_on +='270'
-        elif f=="south":
             facing_add_on +='90'
+        elif f=="north":
+            facing_add_on +='180'
+        elif f=="east":
+            facing_add_on +='270'
         if i==n-1:
             line+="\":  { \"model\": \"gates:block/"+\
                   file_name+"_"+getInitial(defined_states.get("position"))\
@@ -134,7 +136,8 @@ createBlockStateJson("draw_bridge",
                                "door_right_down","door_right_up",
                                "door_left_up_up","door_right_up_up",
                                "bridge_left","bridge_right"],
-                     animation=["0","1","2","3","4"])
+                     animation=["0","1","2","3","4"],
+                     powered=["false","true"])
 
 '''
 n=float(len(color))
