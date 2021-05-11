@@ -76,7 +76,6 @@ public class GatesMod {
             blockRegistryEvent.getRegistry().register(new RedstoneTurnStile());
             blockRegistryEvent.getRegistry().register(new CardGetter());
             blockRegistryEvent.getRegistry().register(new WindowDoor());
-            blockRegistryEvent.getRegistry().register(new DrawBridge());
         }
 
 
@@ -92,7 +91,6 @@ public class GatesMod {
             blockRegistryEvent.getRegistry().register(new BlockItem(ModBlock.WINDOW_DOOR,properties).setRegistryName("window_door"));
             blockRegistryEvent.getRegistry().register(new BlockItem(ModBlock.RTOLL_GATE, properties).setRegistryName("redstone_toll_gate"));
             blockRegistryEvent.getRegistry().register(new BlockItem(ModBlock.RTURN_STILE, properties).setRegistryName("redstone_turn_stile"));
-            blockRegistryEvent.getRegistry().register(new BlockItem(ModBlock.DRAW_BRIDGE,properties).setRegistryName("draw_bridge"));
         }
 
         @SubscribeEvent
@@ -149,7 +147,12 @@ public class GatesMod {
                     .build(null)
                     .setRegistryName("window_door"));
             event.getRegistry().register(TileEntityType.Builder.create(DrawBridgeTileEntity::new,
-                    ModBlock.DRAW_BRIDGE)
+                    DoorRegister.ACACIA_DRAW_BRIDGE,
+                    DoorRegister.DARK_OAK_DRAW_BRIDGE,
+                    DoorRegister.BIRCH_DRAW_BRIDGE,
+                    DoorRegister.OAK_DRAW_BRIDGE,
+                    DoorRegister.SPRUCE_DRAW_BRIDGE,
+                    DoorRegister.JUNGLE_DRAW_BRIDGE)
                     .build(null)
                     .setRegistryName("draw_bridge"));
         }

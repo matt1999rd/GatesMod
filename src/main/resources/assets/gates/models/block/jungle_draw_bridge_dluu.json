@@ -1,0 +1,6 @@
+{
+    "parent": "gates:block/draw_bridge_dluu", 
+    "textures": {
+      "wood": "gates:block/jungle_draw_bridge"
+    }
+}

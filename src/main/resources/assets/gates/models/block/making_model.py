@@ -20,7 +20,31 @@ def Json_write(m,wp):
         json_file.write(texture_str+m+'"')
         json_file.write(end)
     print("model written : "+m+"_window_"+wp+".json")
+	
+def buildJson(texture_key,texture_name,file_name,state):
+	parent_file_name = file_name+"_"+state
+	texture_loc= texture_name+"_"+file_name
+	begining = "{\n    \"parent\": \"gates:block/"+parent_file_name+"\", \n"
+	texture_str = '    "textures": {\n      "'+texture_key+'": "gates:block/'+texture_loc+"\""
+	end = '\n    }\n}'
+	with open(texture_name+"_"+parent_file_name+".json","w") as json_file:
+		json_file.write(begining)
+		json_file.write(texture_str)
+		json_file.write(end)
+	print("model written : "+parent_file_name+".json")
+	
+wood = ["oak","dark_oak","acacia","spruce","jungle","birch"]
+draw_bridge_states=["dluu","druu","dlu_0","dlu_225","dlu_450","dru_0","dru_225","dru_450","left_support","right_support","bl_675","bl_900","br_675","br_900"]
 
+n=len(draw_bridge_states)*len(wood)
+i=0
+for state in draw_bridge_states:
+	for w in wood:
+		buildJson("wood",w,"draw_bridge",state)
+		i+=1
+		print("Progress : "+str(int(i/n*100))+" %")
+
+"""
 n= float(len(material) * len(window_place))
 incr = 0.0
 for m in material:
@@ -29,5 +53,5 @@ for m in material:
         Json_write(m,wp+"_rot")
         incr+= 1
         print("Progress : "+str(int(incr/n*100))+" %")
-        
-
+		
+"""

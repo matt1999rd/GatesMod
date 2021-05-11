@@ -1,13 +1,14 @@
 {
 	"credit": "Made with Blockbench",
+	"texture_size": [12, 44],
 	"textures": {
 		"0": "gates:block/metal",
 		"particle": "gates:block/metal"
 	},
 	"elements": [
 		{
-			"from": [12, 0, 0],
-			"to": [16, 16, 2],
+			"from": [12, 0, 14],
+			"to": [16, 16, 16],
 			"rotation": {"angle": 0, "axis": "y", "origin": [20, 8, 8]},
 			"faces": {
 				"north": {"uv": [0, 0, 4, 16], "texture": "#0"},
@@ -19,17 +20,16 @@
 			}
 		},
 		{
-			"from": [0, -16, 0],
-			"to": [12, 28, 2],
-			"rotation": {"angle": 45, "axis": "x", "origin": [9, -15, 1]},
-			"color": 4,
+			"from": [0, -16, 14],
+			"to": [12, 28, 16],
+			"rotation": {"angle": 45, "axis": "x", "origin": [9, -15, 15]},
 			"faces": {
-				"north": {"uv": [0, 0, 12, 16], "texture": "#missing"},
-				"east": {"uv": [0, 0, 2, 16], "texture": "#missing"},
-				"south": {"uv": [0, 0, 12, 16], "texture": "#missing"},
-				"west": {"uv": [0, 0, 2, 16], "texture": "#missing"},
-				"up": {"uv": [0, 0, 12, 2], "texture": "#missing"},
-				"down": {"uv": [0, 0, 12, 2], "texture": "#missing"}
+				"north": {"uv": [0, 0, 16, 16], "texture": "#wood"},
+				"east": {"uv": [0, 0, 1.33333, 16], "texture": "#wood"},
+				"south": {"uv": [0, 0, 16, 16], "texture": "#wood"},
+				"west": {"uv": [0, 0, 1.33333, 16], "texture": "#wood"},
+				"up": {"uv": [0, 0, 16, 0.36364], "texture": "#wood"},
+				"down": {"uv": [0, 0, 16, 0.36364], "texture": "#wood"}
 			}
 		}
 	]

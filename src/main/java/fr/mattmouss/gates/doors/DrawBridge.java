@@ -39,14 +39,14 @@ public class DrawBridge extends Block {
 
     public static IntegerProperty ANIMATION = IntegerProperty.create("animation",0,4);
 
-    public DrawBridge() {
+    public DrawBridge(String key) {
         super(Properties.create(Material.IRON)
                 .hardnessAndResistance(2.0f)
                 .sound(SoundType.METAL)
                 //1.15 function
                 //.notSolid()
         );
-        this.setRegistryName("draw_bridge");
+        this.setRegistryName(key);
     }
 
     //1.14.4 function replaced by notSolid()
@@ -169,7 +169,7 @@ public class DrawBridge extends Block {
         if (isInnerUpdate(position,facing,blockFacing) &&  !(facingState.getBlock() instanceof DrawBridge)){
             return Blocks.AIR.getDefaultState();
         }
-        if (facing == Direction.DOWN && !facingState.getMaterial().blocksMovement()){
+        if (facing == Direction.DOWN && !facingState.getMaterial().blocksMovement() && !stateIn.get(POSITION).isBridge()){
             return Blocks.AIR.getDefaultState();
         }
         return stateIn;

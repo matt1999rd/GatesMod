@@ -21,8 +21,7 @@ def create_center_string(file_name,**states):
     for value in states.values():
         n*=len(value)
     s=execLoop(file_name,{},states)
-    del s[-1]
-    return s
+    return s[:-2]
 
 def execLoop(file_name,defined_states,non_defined_states):
     print("\n execloop with defined states :")
@@ -36,7 +35,7 @@ def execLoop(file_name,defined_states,non_defined_states):
         property=non_defined_states.get(keys[0])
         this_keys = keys[0]
     else:
-        return getLineModel(file_name,defined_states)
+        return getLineModel(defined_states)
     remaining_states = {}
     for k in keys:
         if k != keys[0]:
@@ -81,7 +80,7 @@ def getModel(file_name,position,open_bool):
         model_str+="_open"
     return model_str 
 
-def getLineModel(file_name,defined_states):
+def getLineModel(defined_states):
     keys=defined_states.keys()
     n=len(keys)
     line="   \""
@@ -101,12 +100,37 @@ def getLineModel(file_name,defined_states):
         elif f=="east":
             facing_add_on +='270'
         if i==n-1:
-            line+="\":  { \"model\": \"gates:block/"+\
-                  file_name+"_"+getInitial(defined_states.get("position"))\
-                  +getAnimationEnd(int(defined_states.get("animation")))+"\""+facing_add_on+"},"
+            line+="\":  { \"model\": "+DBModel(defined_states.get("position"),int(defined_states.get("animation")))+facing_add_on+"},"
         i+=1
     line+="\n"
     return line
+
+def DBModel(pos,animState):
+    if needAir(pos,animState):
+        return "\"block/air\""
+    if needSupport(pos,animState):
+        if "left" in pos:
+            return "\"gates:block/draw_bridge_left_support\""
+        return "\"gates:block/draw_bridge_right_support\""
+    if pos in ["door_left_up_up","door_right_up_up"]:
+        animationEnd = ""
+    else:
+        animationEnd = getAnimationEnd(int(animState))
+    return "\"gates:block/draw_bridge_"+getInitial(pos) + animationEnd +"\""
+
+def needAir(pos,animState):
+    if pos in ["bridge_left","bridge_right"]:
+        return True
+    if pos in ["bridge_ext_left","bridge_ext_right"]:
+        return animState<3
+    return False
+
+def needSupport(pos,animState):
+    if pos in ["door_left_down","door_right_down"]:
+        return True
+    if pos in ["door_left_up","door_right_up"]:
+        return animState>2
+    return False
 
 def getInitial(st):
     if (len(st) == 0):
@@ -135,7 +159,8 @@ createBlockStateJson("draw_bridge",
                      position=["door_left_down","door_left_up",
                                "door_right_down","door_right_up",
                                "door_left_up_up","door_right_up_up",
-                               "bridge_left","bridge_right"],
+                               "bridge_left","bridge_right",
+                               "bridge_ext_left","bridge_ext_right"],
                      animation=["0","1","2","3","4"],
                      powered=["false","true"])
 

@@ -66,9 +66,6 @@ public class ModBlock {
     public static TileEntityType<WindowDoorTileEntity> WINDOW_DOOR_TILE_TYPE;
 
     @ObjectHolder("gates:draw_bridge")
-    public static DrawBridge DRAW_BRIDGE = new DrawBridge();
-
-    @ObjectHolder("gates:draw_bridge")
     public static TileEntityType<DrawBridgeTileEntity> DRAW_BRIDGE_TILE_TYPE;
 
 

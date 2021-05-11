@@ -1,0 +1,22 @@
+{
+	"credit": "Made with Blockbench",
+	"texture_size": [12, 44],
+	"textures": {
+		"particle": "gates:block/metal"
+	},
+	"elements": [
+		{
+			"from": [4, 0, -16],
+			"to": [16, 2, 28],
+			"rotation": {"angle": 0, "axis": "x", "origin": [9, 1, -15]},
+			"faces": {
+				"north": {"uv": [0, 0, 16, 0.36364], "rotation": 180, "texture": "#wood"},
+				"east": {"uv": [0, 0, 1.33333, 16], "rotation": 270, "texture": "#wood"},
+				"south": {"uv": [0, 0, 16, 0.36364], "texture": "#wood"},
+				"west": {"uv": [0, 0, 1.33333, 16], "rotation": 90, "texture": "#wood"},
+				"up": {"uv": [0, 0, 16, 16], "rotation": 180, "texture": "#wood"},
+				"down": {"uv": [0, 0, 16, 16], "texture": "#wood"}
+			}
+		}
+	]
+}

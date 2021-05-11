@@ -36,6 +36,8 @@ public class DoorRegister {
     private static final List<Item> GARAGE_ITEMS = new ArrayList<>();
     private static final List<GardenDoor> GARDEN_DOORS = new ArrayList<>();
     private static final List<Item> GARDEN_DOOR_ITEMS = new ArrayList<>();
+    private static final List<DrawBridge> DRAW_BRIDGES = new ArrayList<>();
+    private static final List<Item> DRAW_BRIDGE_ITEMS = new ArrayList<>();
 
     //enregistrement des portes classiques
     //à base de pierre
@@ -152,6 +154,15 @@ public class DoorRegister {
     public static final GardenDoor WHITE_GARDEN = GdDregister("white_garden_door");
     public static final GardenDoor YELLOW_GARDEN = GdDregister("yellow_garden_door");
 
+    //draw bridge for all wood type
+    public static final DrawBridge OAK_DRAW_BRIDGE = DBregister("oak_draw_bridge");
+    public static final DrawBridge DARK_OAK_DRAW_BRIDGE = DBregister("dark_oak_draw_bridge");
+    public static final DrawBridge BIRCH_DRAW_BRIDGE = DBregister("birch_draw_bridge");
+    public static final DrawBridge JUNGLE_DRAW_BRIDGE = DBregister("jungle_draw_bridge");
+    public static final DrawBridge ACACIA_DRAW_BRIDGE = DBregister("acacia_draw_bridge");
+    public static final DrawBridge SPRUCE_DRAW_BRIDGE = DBregister("spruce_draw_bridge");
+
+
     private static DoorBlock register(String key){
         MoreDoor newDoor = new MoreDoor(key);
         BlockItem item = new BlockItem(newDoor,new Item.Properties().group(ModSetup.itemGroup));
@@ -208,6 +219,17 @@ public class DoorRegister {
         return gardenDoor;
     }
 
+    private static DrawBridge DBregister(String key){
+        DrawBridge drawBridge = new DrawBridge(key);
+        BlockItem item = new BlockItem(drawBridge,new Item.Properties().group(ModSetup.itemGroup));
+        item.setRegistryName(key);
+        System.out.println("-----------------Block "+key+" registered !------------------");
+        System.out.println("------------------ Registry Name : "+drawBridge.getRegistryName()+"-------------");
+        DRAW_BRIDGES.add(drawBridge);
+        DRAW_BRIDGE_ITEMS.add(item);
+        return drawBridge;
+    }
+
 
     @SubscribeEvent
     public static void registerBlocks(RegistryEvent.Register<Block> event){
@@ -235,11 +257,15 @@ public class DoorRegister {
         GARDEN_DOORS.forEach(gardenDoor -> {
             event.getRegistry().register(gardenDoor);
         });
+        DRAW_BRIDGES.forEach(drawBridge -> {
+            event.getRegistry().register(drawBridge);
+        });
         DOORS.clear();
         WINDOWS.clear();
         GARAGES.clear();
         LARGE_DOORS.clear();
         GARDEN_DOORS.clear();
+        DRAW_BRIDGES.clear();
     }
 
     @SubscribeEvent
@@ -259,11 +285,15 @@ public class DoorRegister {
         GARDEN_DOOR_ITEMS.forEach(item -> {
             event.getRegistry().register(item);
         });
+        DRAW_BRIDGE_ITEMS.forEach(item -> {
+            event.getRegistry().register(item);
+        });
         DOOR_ITEMS.clear();
         WINDOWS_ITEMS.clear();
         GARAGE_ITEMS.clear();
         LARGE_DOOR_ITEMS.clear();
         GARDEN_DOOR_ITEMS.clear();
+        DRAW_BRIDGE_ITEMS.clear();
     }
 
 }

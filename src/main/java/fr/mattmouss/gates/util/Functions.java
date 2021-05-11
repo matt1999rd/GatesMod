@@ -395,20 +395,20 @@ public class Functions {
             case DOOR_RIGHT_DOWN:
                 voxels.add(new VoxelDoubles(0, 0,0, 4,16,2,true)); //right
                 if (animState==4){
-                    voxels.add(new VoxelDoubles(4,0,0,12,2,28,true)); //open bridge
+                    voxels.add(new VoxelDoubles(4,0,0,12,2,44,true)); //open bridge
                 }else {
                     for (int i = 0; i <= endY; i++) { //for part in diagonal
-                        voxels.add(new VoxelDoubles(4, i, i * deltaZ - 0.2, 12, 1, 2, true));
+                        voxels.add(new VoxelDoubles(4, i, -i * deltaZ - 0.2, 12, 1, 2, true));
                     }
                 }
                 break;
             case DOOR_LEFT_DOWN:
                 voxels.add(new VoxelDoubles(12, 0,0,4,16,2,true)); //left
                 if (animState==4) {
-                    voxels.add(new VoxelDoubles(0, 0, 0, 12, 2, 28, true)); //open bridge
+                    voxels.add(new VoxelDoubles(0, 0, 0, 12, 2, 44, true)); //open bridge
                 }else {
                     for (int i = 0; i < endY; i++) { //for part in diagonal
-                        voxels.add(new VoxelDoubles(0, i, i * deltaZ - 0.2, 12, 1, 2, true));
+                        voxels.add(new VoxelDoubles(0, i, -i * deltaZ - 0.2, 12, 1, 2, true));
                     }
                 }
                 break;

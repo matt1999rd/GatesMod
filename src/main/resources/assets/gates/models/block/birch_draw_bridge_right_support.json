@@ -1,0 +1,6 @@
+{
+    "parent": "gates:block/draw_bridge_right_support", 
+    "textures": {
+      "wood": "gates:block/birch_draw_bridge"
+    }
+}
