@@ -371,49 +371,33 @@ public class Functions {
     public static VoxelShape makeDrawBridgeShape(DrawBridgePosition position,int animState,Direction facing){
         //totaly closed part for existing part
         if (animState == 0){
-            VoxelDoubles flatSquareVoxel = new VoxelDoubles(0,0,0,16,16,2,true); //voxelshape for anim=0
+            VoxelDoubles flatSquareVoxel = new VoxelDoubles(0,0,14,16,16,2,true); //voxelshape for anim=0
             return flatSquareVoxel.rotate(Direction.SOUTH,facing).getAssociatedShape();
         }
         List<VoxelDoubles> voxels=Lists.newArrayList();
+        int begX = 0;
+        //add common support
+        if (position.isRight()){
+            voxels.add(new VoxelDoubles(0, 0,14, 4,16,2,true)); //right
+            begX = 4;
+        }else{
+            voxels.add(new VoxelDoubles(12, 0,14,4,16,2,true)); //left
+        }
+        //add the top of the door
+        if (position.isUpUp()){
+            voxels.add(new VoxelDoubles(4, 12,14,16, 4,2,true));
+        }
+        //add the bridge
         double deltaZ=Math.tan(Math.PI/8*animState);
         int endY=MathHelper.fastFloor(40*Math.cos(animState*Math.PI/8));
-        switch (position){
-            case DOOR_LEFT_UUP:
-                voxels.add(new VoxelDoubles( 0, 8,0,12, 8,2,true)); //up
-                voxels.add(new VoxelDoubles(12, 0,0,14,16,2,true)); //left
-                break;
-            case DOOR_RIGHT_UUP:
-                voxels.add(new VoxelDoubles(4, 8,0,12, 8,2,true)); //up
-                voxels.add(new VoxelDoubles(0, 0,0, 4,16,2,true)); //right
-                break;
-            case DOOR_RIGHT_UP:
-                voxels.add(new VoxelDoubles(0, 0,0, 4,16,2,true)); //right
-                break;
-            case DOOR_LEFT_UP:
-                voxels.add(new VoxelDoubles(12, 0,0,14,16,2,true)); //left
-                break;
-            case DOOR_RIGHT_DOWN:
-                voxels.add(new VoxelDoubles(0, 0,0, 4,16,2,true)); //right
-                if (animState==4){
-                    voxels.add(new VoxelDoubles(4,0,0,12,2,44,true)); //open bridge
-                }else {
-                    for (int i = 0; i <= endY; i++) { //for part in diagonal
-                        voxels.add(new VoxelDoubles(4, i, -i * deltaZ - 0.2, 12, 1, 2, true));
-                    }
+        if (!position.isUp()){
+            if (animState==4){
+                voxels.add(new VoxelDoubles(begX,0,16,12,2,44,true)); //open bridge
+            }else {
+                for (int i = 0; i <= endY; i++) { //for part in diagonal
+                    voxels.add(new VoxelDoubles(begX, i, 13.8 + i * deltaZ, 12, 1, 2, true));
                 }
-                break;
-            case DOOR_LEFT_DOWN:
-                voxels.add(new VoxelDoubles(12, 0,0,4,16,2,true)); //left
-                if (animState==4) {
-                    voxels.add(new VoxelDoubles(0, 0, 0, 12, 2, 44, true)); //open bridge
-                }else {
-                    for (int i = 0; i < endY; i++) { //for part in diagonal
-                        voxels.add(new VoxelDoubles(0, i, -i * deltaZ - 0.2, 12, 1, 2, true));
-                    }
-                }
-                break;
-            default:
-                return VoxelShapes.empty();
+            }
         }
         //merge all vi for voxelshape
         VoxelShape shape = VoxelShapes.empty();
