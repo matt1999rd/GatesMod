@@ -1,0 +1,23 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    "caa",
+    "caa",
+    "cww"
+  ],
+  "key": {
+    "c": {
+      "item": "minecraft:cobblestone"
+    },
+    "w": {
+      "item": "minecraft:jungle_planks"
+    },
+    "a": {
+      "item": "minecarft:air"
+    }
+  },
+  "result": {
+    "item": "gates:jungle_draw_bridge",
+    "count": 3
+  }
+}

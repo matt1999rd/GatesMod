@@ -5,6 +5,7 @@ import fr.mattmouss.gates.enum_door.DrawBridgePosition;
 import fr.mattmouss.gates.tileentity.DrawBridgeTileEntity;
 import fr.mattmouss.gates.util.Functions;
 import fr.mattmouss.gates.voxels.VoxelDefinition;
+import fr.mattmouss.gates.voxels.VoxelDoubles;
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.Blocks;
@@ -73,7 +74,10 @@ public class DrawBridge extends Block {
         Direction facing=state.get(BlockStateProperties.HORIZONTAL_FACING);
         //opening bridge part when closed (or almost)
         if (position.isBridge()) {
-            return VoxelShapes.empty();
+            if (animState != 4 || position.isBridgeExt())return VoxelShapes.empty();
+            int begX = (position.isRight())?4:0;
+            VoxelDoubles voxel = new VoxelDoubles(begX,0,16,12,2,28,true);
+            return voxel.rotate(Direction.SOUTH,facing).getAssociatedShape();
         }
         return getSpecialShape(position,animState,facing);
     }

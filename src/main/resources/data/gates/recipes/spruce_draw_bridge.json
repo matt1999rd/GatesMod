@@ -1,0 +1,23 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    "caa",
+    "caa",
+    "cww"
+  ],
+  "key": {
+    "c": {
+      "item": "minecraft:cobblestone"
+    },
+    "w": {
+      "item": "minecraft:spruce_planks"
+    },
+    "a": {
+      "item": "minecarft:air"
+    }
+  },
+  "result": {
+    "item": "gates:spruce_draw_bridge",
+    "count": 3
+  }
+}

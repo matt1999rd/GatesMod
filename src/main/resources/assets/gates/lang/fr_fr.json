@@ -96,6 +96,13 @@
   "block.gates.white_garden_door": "Porte de jardin blanche",
   "block.gates.yellow_garden_door": "Porte de jardin jaune",
 
+  "block.gates.oak_draw_bridge": "Pont Levis en chêne",
+  "block.gates.dark_oak_draw_bridge": "Pont Levis en chêne noir",
+  "block.gates.birch_draw_bridge": "Pont Levis en bouleau",
+  "block.gates.jungle_draw_bridge": "Pont Levis en acajou",
+  "block.gates.spruce_draw_bridge": "Pont Levis en sapin",
+  "block.gates.acacia_draw_bridge": "Pont Levis en acacia",
+
   "block.gates.toll_gate": "Peage",
   "block.gates.redstone_toll_gate": "Peage à Redstone",
   "block.gates.turn_stile": "Tourniquet",

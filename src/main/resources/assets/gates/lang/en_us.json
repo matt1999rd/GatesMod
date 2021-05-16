@@ -96,6 +96,12 @@
   "block.gates.white_garden_door": "White Garden Door",
   "block.gates.yellow_garden_door": "Yellow Garden Door",
 
+  "block.gates.oak_draw_bridge": "Oak Draw Bridge",
+  "block.gates.dark_oak_draw_bridge": "Dark Oak Draw Bridge",
+  "block.gates.birch_draw_bridge": "Birch Draw Bridge",
+  "block.gates.jungle_draw_bridge": "Jungle Draw Bridge",
+  "block.gates.spruce_draw_bridge": "Spruce Draw Bridge",
+  "block.gates.acacia_draw_bridge": "Acacia Draw Bridge",
 
   "block.gates.toll_gate": "Toll Gate",
   "block.gates.redstone_toll_gate": "Redstone Toll Gate",

@@ -385,14 +385,14 @@ public class Functions {
         }
         //add the top of the door
         if (position.isUpUp()){
-            voxels.add(new VoxelDoubles(4, 12,14,16, 4,2,true));
+            voxels.add(new VoxelDoubles(0, 12,14,16, 4,2,true));
         }
         //add the bridge
         double deltaZ=Math.tan(Math.PI/8*animState);
         int endY=MathHelper.fastFloor(40*Math.cos(animState*Math.PI/8));
         if (!position.isUp()){
             if (animState==4){
-                voxels.add(new VoxelDoubles(begX,0,16,12,2,44,true)); //open bridge
+                voxels.add(new VoxelDoubles(begX,0,16,12,2,16,true)); //open bridge
             }else {
                 for (int i = 0; i <= endY; i++) { //for part in diagonal
                     voxels.add(new VoxelDoubles(begX, i, 13.8 + i * deltaZ, 12, 1, 2, true));
