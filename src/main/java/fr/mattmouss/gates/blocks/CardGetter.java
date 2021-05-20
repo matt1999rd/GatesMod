@@ -14,7 +14,7 @@ import net.minecraft.state.StateContainer;
 import net.minecraft.state.properties.BlockStateProperties;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.ActionResultType;
-import net.minecraft.util.BlockRenderLayer;
+//import net.minecraft.util.BlockRenderLayer;
 import net.minecraft.util.Direction;
 import net.minecraft.util.Hand;
 import net.minecraft.util.math.BlockPos;
@@ -33,7 +33,7 @@ public class CardGetter extends Block {
         .hardnessAndResistance(2f)
         .sound(SoundType.METAL)
         //1.15 function
-        //.notSolid()
+        .notSolid()
         .lightValue(5));
         this.setRegistryName("card_getter");
     }
@@ -64,11 +64,13 @@ public class CardGetter extends Block {
     }
 
     //1.14.4 function replaced by notSolid()
-
+    /*
     @Override
     public BlockRenderLayer func_180664_k() {
         return BlockRenderLayer.CUTOUT_MIPPED;
     }
+
+     */
 
 
     @Override
@@ -78,7 +80,7 @@ public class CardGetter extends Block {
 
     //1.15 function
 
-    /*
+
     @Override
     public ActionResultType onBlockActivated(BlockState state, World world, BlockPos pos, PlayerEntity player, Hand hand, BlockRayTraceResult result) {
         if (player != null){
@@ -94,11 +96,11 @@ public class CardGetter extends Block {
         return ActionResultType.FAIL;
     }
 
-     */
+
 
 
     //1.14.4 function onBlockActivated
-
+    /*
     @Override
     public boolean func_220051_a(BlockState state, World world, BlockPos pos, PlayerEntity player, Hand p_220051_5_, BlockRayTraceResult p_220051_6_) {
         if (player != null){
@@ -113,5 +115,7 @@ public class CardGetter extends Block {
         }
         return false;
     }
+
+     */
 
 }

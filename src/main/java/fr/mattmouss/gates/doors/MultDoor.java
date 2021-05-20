@@ -13,7 +13,8 @@ import net.minecraft.state.EnumProperty;
 import net.minecraft.state.StateContainer;
 import net.minecraft.state.properties.BlockStateProperties;
 import net.minecraft.tileentity.TileEntity;
-import net.minecraft.util.BlockRenderLayer;
+import net.minecraft.util.ActionResultType;
+//import net.minecraft.util.BlockRenderLayer;
 import net.minecraft.util.Direction;
 import net.minecraft.util.Hand;
 import net.minecraft.util.math.BlockPos;
@@ -59,6 +60,7 @@ public abstract class MultDoor extends Block {
     }
 
     //1.14 onBlockActivated
+    /*
     @Override
     public boolean func_220051_a(BlockState state, World world, BlockPos pos, PlayerEntity player, Hand hand, BlockRayTraceResult result) {
         state = state.cycle(BlockStateProperties.OPEN);
@@ -66,23 +68,17 @@ public abstract class MultDoor extends Block {
         return true;
     }
 
+     */
+
     //1.15 onBlockActivated
-    /*
+
     @Override
-    public boolean onBlockActivated(BlockState state, World world, BlockPos pos, PlayerEntity player, Hand hand, BlockRayTraceResult result) {
-        DoorPlacing placing = state.get(PLACING);
-        Direction facing = state.get(BlockStateProperties.HORIZONTAL_FACING);
+    public ActionResultType onBlockActivated(BlockState state, World world, BlockPos pos, PlayerEntity player, Hand hand, BlockRayTraceResult result) {
         state = state.cycle(BlockStateProperties.OPEN);
         world.setBlockState(pos,state,10);
-        List<BlockPos> blockToChange = getPosOfNeighborBlock(pos,placing,facing);
-        for (BlockPos pos1 : blockToChange){
-            BlockState state1 = world.getBlockState(pos1);
-            state1 = state1.cycle(BlockStateProperties.OPEN);
-            world.setBlockState(pos1,state1,10);
-        }
-        return true;
+        return ActionResultType.SUCCESS;
     }
-    */
+
 
     @Override
     public boolean isValidPosition(BlockState state, IWorldReader worldIn, BlockPos pos) {
@@ -131,10 +127,13 @@ public abstract class MultDoor extends Block {
     }
 
     //1.14.4 function replaced by notSolid()
+    /*
     @Override
     public BlockRenderLayer func_180664_k() {
         return BlockRenderLayer.CUTOUT_MIPPED;
     }
+
+     */
 
     @Override
     public void neighborChanged(BlockState state, World worldIn, BlockPos pos, Block blockIn, BlockPos fromPos, boolean isMoving) {

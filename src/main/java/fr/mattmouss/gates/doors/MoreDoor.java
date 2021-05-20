@@ -4,7 +4,7 @@ import net.minecraft.block.DoorBlock;
 import net.minecraft.block.SoundType;
 import net.minecraft.block.material.Material;
 import net.minecraft.block.material.MaterialColor;
-import net.minecraft.util.BlockRenderLayer;
+//import net.minecraft.util.BlockRenderLayer;
 
 public class MoreDoor extends DoorBlock {
     public MoreDoor(String key) {
@@ -12,17 +12,20 @@ public class MoreDoor extends DoorBlock {
         .hardnessAndResistance(2.0f)
         .sound(SoundType.METAL)
                 //1.15 function
-                //.notSolid()
+                .notSolid()
         );
         this.setRegistryName(key);
     }
 
 
+    /*
     //1.14.4 function replaced by notSolid()
     @Override
     public BlockRenderLayer func_180664_k() {
         return BlockRenderLayer.CUTOUT_MIPPED;
     }
+
+     */
 
 
 }

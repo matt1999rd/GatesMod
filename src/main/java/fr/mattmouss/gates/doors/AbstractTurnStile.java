@@ -17,7 +17,7 @@ import net.minecraft.state.StateContainer;
 import net.minecraft.state.properties.BlockStateProperties;
 import net.minecraft.state.properties.DoorHingeSide;
 import net.minecraft.tileentity.TileEntity;
-import net.minecraft.util.BlockRenderLayer;
+//import net.minecraft.util.BlockRenderLayer;
 import net.minecraft.util.Direction;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.shapes.ISelectionContext;
@@ -47,7 +47,7 @@ public abstract class AbstractTurnStile extends Block {
                         .hardnessAndResistance(2.0f)
                         .sound(SoundType.METAL)
                 //1.15 function
-                //.notSolid()
+                .notSolid()
         );
     }
 
@@ -67,10 +67,13 @@ public abstract class AbstractTurnStile extends Block {
 
 
     //1.14.4 function replaced by notSolid()
+    /*
     @Override
     public BlockRenderLayer func_180664_k() {
         return BlockRenderLayer.CUTOUT_MIPPED;
     }
+
+     */
 
     private VoxelShape getTurnStileShape(BlockState state){
         int anim = state.get(ANIMATION);

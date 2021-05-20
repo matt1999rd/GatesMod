@@ -15,7 +15,8 @@ import net.minecraft.state.EnumProperty;
 import net.minecraft.state.StateContainer;
 import net.minecraft.state.properties.BlockStateProperties;
 import net.minecraft.tileentity.TileEntity;
-import net.minecraft.util.BlockRenderLayer;
+import net.minecraft.util.ActionResultType;
+//import net.minecraft.util.BlockRenderLayer;
 import net.minecraft.util.Direction;
 import net.minecraft.util.Hand;
 import net.minecraft.util.math.BlockPos;
@@ -64,7 +65,7 @@ public class WindowBlock extends Block {
                 .hardnessAndResistance(3.0f)
                 .sound(SoundType.GLASS)
                 //1.15 function
-                //.notSolid()
+                .notSolid()
         );
         this.setRegistryName(key);
         this.setDefaultState(this.getStateContainer().getBaseState().with(ROTATED, Boolean.FALSE).with(WINDOW_PLACE,WindowPlace.FULL));
@@ -76,10 +77,13 @@ public class WindowBlock extends Block {
 
     //1.14 notSolid() function
 
+    /*
     @Override
     public BlockRenderLayer func_180664_k() {
         return BlockRenderLayer.CUTOUT;
     }
+
+     */
 
     @Override
     public VoxelShape getShape(BlockState state, IBlockReader p_220053_2_, BlockPos p_220053_3_, ISelectionContext p_220053_4_) {
@@ -226,7 +230,7 @@ public class WindowBlock extends Block {
 
     }
 
-    /*
+
     //1.15 function
     @Override
     public ActionResultType onBlockActivated(BlockState state, World world, BlockPos pos, PlayerEntity player, Hand hand, BlockRayTraceResult result) {
@@ -242,10 +246,11 @@ public class WindowBlock extends Block {
         return ActionResultType.PASS;
     }
 
-     */
 
 
 
+
+    /*
 
     //1.14 function onBlockActivated
     @Override
@@ -261,6 +266,8 @@ public class WindowBlock extends Block {
         }
         return false;
     }
+
+     */
 
 
 

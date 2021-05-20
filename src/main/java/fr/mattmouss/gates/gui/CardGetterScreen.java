@@ -125,7 +125,7 @@ public class CardGetterScreen extends ContainerScreen<CardGetterContainer> imple
         int WIDTH = (this.width - this.xSize) / 2;
         int HEIGHT = (this.height - this.ySize) / 2;
         //1.14 : .blitOffset 1.15 : getBlitOffset()
-        blit(WIDTH, HEIGHT,this.blitOffset , 0.0F, 0.0F, this.xSize, this.ySize, 256, 512);
+        blit(WIDTH, HEIGHT,this.getBlitOffset() , 0.0F, 0.0F, this.xSize, this.ySize, 256, 512);
 
     }
 

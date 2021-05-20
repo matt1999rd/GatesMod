@@ -16,7 +16,7 @@ import net.minecraft.state.StateContainer;
 import net.minecraft.state.properties.BlockStateProperties;
 import net.minecraft.state.properties.DoorHingeSide;
 import net.minecraft.tileentity.TileEntity;
-import net.minecraft.util.BlockRenderLayer;
+//import net.minecraft.util.BlockRenderLayer;
 import net.minecraft.util.Direction;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.shapes.ISelectionContext;
@@ -38,7 +38,7 @@ public abstract class AbstractTollGate extends Block {
     public AbstractTollGate() {
         super(Properties.create(Material.IRON)
                 //1.15
-                //.notSolid()
+                .notSolid()
                 .sound(SoundType.METAL)
                 .hardnessAndResistance(3.0f));
     }
@@ -62,12 +62,13 @@ public abstract class AbstractTollGate extends Block {
     }
 
     //1.14.4 function replaced by notSolid()
-
+    /*
     @Override
     public BlockRenderLayer func_180664_k() {
         return BlockRenderLayer.CUTOUT_MIPPED;
     }
 
+     */
     @Override
     public boolean hasTileEntity(BlockState state) {
         return true;

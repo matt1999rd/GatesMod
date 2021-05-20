@@ -17,6 +17,7 @@ import net.minecraft.item.ItemStack;
 import net.minecraft.state.properties.BlockStateProperties;
 import net.minecraft.state.properties.DoorHingeSide;
 import net.minecraft.tileentity.TileEntity;
+import net.minecraft.util.ActionResultType;
 import net.minecraft.util.Direction;
 import net.minecraft.util.Hand;
 import net.minecraft.util.math.BlockPos;
@@ -124,7 +125,7 @@ public class TollGate extends AbstractTollGate {
         }
     }
 
-    /*
+
     //1.15 function
     @Override
     public ActionResultType onBlockActivated(BlockState state, World world, BlockPos pos, PlayerEntity entity, Hand hand, BlockRayTraceResult blockRayTraceResult) {
@@ -156,9 +157,10 @@ public class TollGate extends AbstractTollGate {
         return ActionResultType.FAIL;
     }
 
-     */
 
 
+
+    /*
     //1.14.4 function onBlockActivated
 
     @Override
@@ -190,5 +192,7 @@ public class TollGate extends AbstractTollGate {
         }
         return false;
     }
+
+     */
 
 }
