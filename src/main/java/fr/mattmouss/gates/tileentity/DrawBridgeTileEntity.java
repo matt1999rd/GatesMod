@@ -33,20 +33,20 @@ public class DrawBridgeTileEntity extends TileEntity implements ITickableTileEnt
         BlockState state = this.getBlockState();
         Block block=state.getBlock();
         if (!(block instanceof DrawBridge))return;
-        if (state.get(POSITION) == DOOR_LEFT_DOWN) {
-            if (!world.isRemote){
+        if (state.getValue(POSITION) == DOOR_LEFT_DOWN) {
+            if (!level.isClientSide){
                 if (!initialise){
                     initialise = true;
-                    lastPowered = state.get(BlockStateProperties.POWERED);
+                    lastPowered = state.getValue(BlockStateProperties.POWERED);
                 }
-                if (lastPowered != state.get(BlockStateProperties.POWERED)) {
+                if (lastPowered != state.getValue(BlockStateProperties.POWERED)) {
                     if (lastPowered){ //unpowered draw bridge
                         isClosing = true;
                     }else { //powered draw bridge
                         isOpening = true;
                     }
                 }
-                int animState=state.get(ANIMATION);
+                int animState=state.getValue(ANIMATION);
                 if (isOpening){
                     if (animState == 4){
                         isOpening = false;
@@ -70,19 +70,19 @@ public class DrawBridgeTileEntity extends TileEntity implements ITickableTileEnt
                 }
             }
         }
-        lastPowered = state.get(BlockStateProperties.POWERED);
+        lastPowered = state.getValue(BlockStateProperties.POWERED);
     }
 
     private void changeAnim(boolean isOpening,int futureAnimState){
         BlockState state = getBlockState();
-        if (state.get(POSITION) != DOOR_LEFT_DOWN)return;
+        if (state.getValue(POSITION) != DOOR_LEFT_DOWN)return;
         Block block = state.getBlock();
         if (!(block instanceof DrawBridge))return;
         DrawBridge bridge = (DrawBridge)block;
-        List<BlockPos> posList= bridge.getNeighborPositions(state.get(BlockStateProperties.HORIZONTAL_FACING),pos,DOOR_LEFT_DOWN);
+        List<BlockPos> posList= bridge.getNeighborPositions(state.getValue(BlockStateProperties.HORIZONTAL_FACING),worldPosition,DOOR_LEFT_DOWN);
         for (BlockPos neiPos : posList){
-            BlockState neiState=world.getBlockState(neiPos);
-            if (!(neiState.getBlock() instanceof AirBlock))world.setBlockState(neiPos,neiState.with(BlockStateProperties.POWERED,isOpening).with(ANIMATION,futureAnimState));
+            BlockState neiState=level.getBlockState(neiPos);
+            if (!(neiState.getBlock() instanceof AirBlock))level.setBlockAndUpdate(neiPos,neiState.setValue(BlockStateProperties.POWERED,isOpening).setValue(ANIMATION,futureAnimState));
         }
     }
 

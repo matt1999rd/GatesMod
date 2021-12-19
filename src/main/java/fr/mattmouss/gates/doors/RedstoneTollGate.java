@@ -31,24 +31,24 @@ public class RedstoneTollGate extends AbstractTollGate{
     }
 
     @Override
-    protected void fillStateContainer(StateContainer.Builder<Block, BlockState> builder) {
+    protected void createBlockStateDefinition(StateContainer.Builder<Block, BlockState> builder) {
         builder.add(BlockStateProperties.POWERED);
-        super.fillStateContainer(builder);
+        super.createBlockStateDefinition(builder);
     }
 
     @Nullable
     @Override
     public BlockState getStateForPlacement(BlockItemUseContext context) {
         BlockState state = super.getStateForPlacement(context);
-        return state.with(BlockStateProperties.POWERED,false);
+        return state.setValue(BlockStateProperties.POWERED,false);
     }
 
     @Override
     public void neighborChanged(BlockState state, World worldIn, BlockPos pos, Block blockIn, BlockPos fromPos, boolean isMoving) {
         boolean flag = isNeighBorDoorBlockPowered(pos,state,worldIn);
-        if (blockIn != this && flag != state.get(BlockStateProperties.POWERED) && state.get(TG_POSITION)==TollGPosition.CONTROL_UNIT){
-            worldIn.setBlockState(pos, state.with(BlockStateProperties.POWERED, flag), 2);
-            TileEntity te=worldIn.getTileEntity(pos);
+        if (blockIn != this && flag != state.getValue(BlockStateProperties.POWERED) && state.getValue(TG_POSITION)==TollGPosition.CONTROL_UNIT){
+            worldIn.setBlock(pos, state.setValue(BlockStateProperties.POWERED, flag), 2);
+            TileEntity te=worldIn.getBlockEntity(pos);
             if (te instanceof RedstoneTollGateTileEntity){
                 RedstoneTollGateTileEntity rtgte=(RedstoneTollGateTileEntity)te;
                 rtgte.startAnimation();
@@ -57,15 +57,15 @@ public class RedstoneTollGate extends AbstractTollGate{
     }
 
     private boolean isNeighBorDoorBlockPowered(BlockPos pos, BlockState state, World world) {
-        TollGPosition tgp = state.get(TG_POSITION);
-        Direction facing = state.get(BlockStateProperties.HORIZONTAL_FACING);
-        DoorHingeSide dhs = state.get(BlockStateProperties.DOOR_HINGE);
+        TollGPosition tgp = state.getValue(TG_POSITION);
+        Direction facing = state.getValue(BlockStateProperties.HORIZONTAL_FACING);
+        DoorHingeSide dhs = state.getValue(BlockStateProperties.DOOR_HINGE);
         List<BlockPos> blockPosList = getPositionOfBlockConnected(facing,tgp,dhs,pos);
-        if (world.isBlockPowered(pos)){
+        if (world.hasNeighborSignal(pos)){
             return true;
         }
         for (BlockPos neiPos : blockPosList){
-            if (world.isBlockPowered(neiPos)){
+            if (world.hasNeighborSignal(neiPos)){
                 return true;
             }
         }

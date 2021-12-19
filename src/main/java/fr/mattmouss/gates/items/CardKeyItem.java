@@ -24,28 +24,28 @@ import net.minecraft.world.World;
 public class CardKeyItem extends Item {
 
     public CardKeyItem(){
-        super(new Item.Properties().group(ModSetup.itemGroup).maxStackSize(1));
+        super(new Item.Properties().tab(ModSetup.itemGroup).stacksTo(1));
         this.setRegistryName("card_key");
     }
 
     @Override
-    public ActionResultType onItemUse(ItemUseContext context) {
+    public ActionResultType useOn(ItemUseContext context) {
         System.out.println("on item use !!");
-        BlockPos pos = context.getPos();
+        BlockPos pos = context.getClickedPos();
         PlayerEntity entity = context.getPlayer();
         Hand hand = context.getHand();
-        ItemStack stack = entity.getHeldItem(hand);
-        World world = context.getWorld();
-        TileEntity te = world.getTileEntity(pos);
+        ItemStack stack = entity.getItemInHand(hand);
+        World world = context.getLevel();
+        TileEntity te = world.getBlockEntity(pos);
         if (!(te instanceof IControlIdTE)) {
             //we exit the function if it is not a TollGateTileEntity or a TurnStileTileEntity
             System.out.println("not the right tile entity : "+te);
-            return super.onItemUse(context);
+            return super.useOn(context);
         }
         int te_id = ((IControlIdTE)te).getId();
         //if the clicked block is part of the toll gate that is not CU
         if (te_id == -1){
-            return super.onItemUse(context);
+            return super.useOn(context);
         }
         CompoundNBT tag = stack.getTag();
         //if id is not existing we fix it
@@ -68,15 +68,15 @@ public class CardKeyItem extends Item {
     }
 
     @Override
-    public ITextComponent getDisplayName(ItemStack stack) {
+    public ITextComponent getName(ItemStack stack) {
         //this first five line is a filter for when stack has no id stored
         int id = getId(stack);
         if (id == -1){
-            return super.getDisplayName(stack);
+            return super.getName(stack);
         }
         String formatedString = "# %1$d";
         String st =String.format(formatedString,id);
-        return new TranslationTextComponent(this.getDefaultTranslationKey(),st);
+        return new TranslationTextComponent(this.getOrCreateDescriptionId(),st);
     }
 
 

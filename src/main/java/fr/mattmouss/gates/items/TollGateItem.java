@@ -1,49 +1,43 @@
 package fr.mattmouss.gates.items;
 
 import fr.mattmouss.gates.doors.TollGate;
+import fr.mattmouss.gates.network.Networking;
+import fr.mattmouss.gates.network.PacketReplaceBlockItemByKey;
 import fr.mattmouss.gates.setup.ModSetup;
 import fr.mattmouss.gates.util.Functions;
-import net.minecraft.block.AirBlock;
-import net.minecraft.block.Block;
-import net.minecraft.block.BushBlock;
-import net.minecraft.block.LeavesBlock;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.inventory.EquipmentSlotType;
 import net.minecraft.item.*;
-import net.minecraft.state.properties.DoorHingeSide;
 import net.minecraft.util.ActionResultType;
-import net.minecraft.util.Direction;
-import net.minecraft.util.Hand;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
 
-import java.util.ArrayList;
-import java.util.List;
-
 public class TollGateItem extends BlockItem {
     public TollGateItem(TollGate gate) {
-        super(gate, new Item.Properties().group(ModSetup.itemGroup));
+        super(gate, new Item.Properties().tab(ModSetup.itemGroup));
         this.setRegistryName("toll_gate");
     }
 
 
     @Override
-    public ActionResultType onItemUse(ItemUseContext context) {
-        BlockPos pos =context.getPos();
-        World world = context.getWorld();
-        PlayerEntity entity=context.getPlayer();
-        ActionResultType actionResultType = super.onItemUse(context);
+    public ActionResultType useOn(ItemUseContext context) {
+        BlockItemUseContext blockItemUseContext = new BlockItemUseContext(context);
+        BlockPos pos = blockItemUseContext.getClickedPos();
+        World world = blockItemUseContext.getLevel();
+        PlayerEntity entity=blockItemUseContext.getPlayer();
+        ActionResultType actionResultType = super.useOn(context);
         TollKeyItem key = (TollKeyItem) ModItem.TOLL_GATE_KEY.asItem();
         System.out.println("item defini : "+key);
         if (actionResultType == ActionResultType.SUCCESS){
             ItemStack newStack = new ItemStack(key);
-            key.setTGPosition(newStack,world,pos.up());
+            key.setTGPosition(newStack,world,pos);
+            Functions.moveMainOldStackToFreeSlot(entity);
             System.out.println("itemstack of new key item : "+newStack);
-            entity.setItemStackToSlot(EquipmentSlotType.MAINHAND,ItemStack.EMPTY);
-            entity.setItemStackToSlot(EquipmentSlotType.MAINHAND,newStack);
-            return super.onItemUse(context);
+            entity.setItemSlot(EquipmentSlotType.MAINHAND,ItemStack.EMPTY);
+            entity.setItemSlot(EquipmentSlotType.MAINHAND,newStack);
+            Networking.INSTANCE.sendToServer(new PacketReplaceBlockItemByKey(pos,false,entity.getUUID()));
         }
-        System.out.println("block non fabriqué");
+        if (actionResultType != ActionResultType.SUCCESS)System.out.println("block non fabriqué");
         return actionResultType;
     }
 

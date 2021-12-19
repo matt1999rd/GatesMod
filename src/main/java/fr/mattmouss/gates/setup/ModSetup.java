@@ -11,7 +11,7 @@ public class ModSetup {
 
     public static ItemGroup itemGroup = new ItemGroup("gate") {
         @Override
-        public ItemStack createIcon() {
+        public ItemStack makeIcon() {
             return new ItemStack(DoorRegister.STONE_DOOR);
         }
     };

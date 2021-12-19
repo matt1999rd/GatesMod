@@ -73,6 +73,24 @@ public class Networking {
                 PacketMarkDirty::toBytes,
                 PacketMarkDirty::new,
                 PacketMarkDirty::handle);
+
+        INSTANCE.registerMessage(nextID(),
+                PacketReplaceBlockItemByKey.class,
+                PacketReplaceBlockItemByKey::toBytes,
+                PacketReplaceBlockItemByKey::new,
+                PacketReplaceBlockItemByKey::handle);
+
+        INSTANCE.registerMessage(nextID(),
+                PacketRemoveId.class,
+                PacketRemoveId::toBytes,
+                PacketRemoveId::new,
+                PacketRemoveId::handle);
+
+        INSTANCE.registerMessage(nextID(),
+                PacketGiveCard.class,
+                PacketGiveCard::toBytes,
+                PacketGiveCard::new,
+                PacketGiveCard::handle);
     }
 
 

@@ -29,7 +29,7 @@ public class PacketChangeSelectedID {
 
     public void handle(Supplier<NetworkEvent.Context> context){
         context.get().enqueueWork(()->{
-            CardGetterTileEntity cgte = (CardGetterTileEntity) context.get().getSender().getServerWorld().getTileEntity(pos);
+            CardGetterTileEntity cgte = (CardGetterTileEntity) context.get().getSender().getLevel().getBlockEntity(pos);
             cgte.changeSelectedId(id);
         });
         context.get().setPacketHandled(true);

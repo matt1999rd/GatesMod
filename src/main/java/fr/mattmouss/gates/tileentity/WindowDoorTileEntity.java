@@ -9,7 +9,7 @@ import net.minecraft.state.properties.BlockStateProperties;
 import net.minecraft.tileentity.ITickableTileEntity;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.Direction;
-import net.minecraft.util.math.Vec3d;
+import net.minecraft.util.math.vector.Vector3d;
 import net.minecraft.world.server.ServerWorld;
 import java.util.List;
 
@@ -25,16 +25,16 @@ public class WindowDoorTileEntity extends TileEntity implements ITickableTileEnt
 
     @Override
     public void tick() {
-        if (this.getBlockState().get(WindowDoor.PLACING) == DoorPlacing.CENTER_DOWN && !world.isRemote ){
-            int animation = getBlockState().get(WindowDoor.ANIMATION);
+        if (this.getBlockState().getValue(WindowDoor.PLACING) == DoorPlacing.CENTER_DOWN && !level.isClientSide ){
+            int animation = getBlockState().getValue(WindowDoor.ANIMATION);
             if (animation == 0 || animation == 4) {
-                ServerWorld world = (ServerWorld) getWorld();
+                ServerWorld world = (ServerWorld) getLevel();
                 boolean existPlayerNearby = false;
-                List<ServerPlayerEntity> playerEntities = world.getPlayers();
+                List<ServerPlayerEntity> playerEntities = world.players();
                 for (ServerPlayerEntity player : playerEntities) {
                     if (!existPlayerNearby) {
-                        Vec3d playerPos = player.getPositionVec();
-                        if (playerPos.distanceTo(new Vec3d(pos.getX() + 0.5, pos.getY(), pos.getZ() + 0.5)) < 3.0F) {
+                        Vector3d playerPos = player.position();
+                        if (playerPos.distanceTo(new Vector3d(worldPosition.getX() + 0.5, worldPosition.getY(), worldPosition.getZ() + 0.5)) < 3.0F) {
                             existPlayerNearby = true;
                         }
                     }
@@ -52,7 +52,7 @@ public class WindowDoorTileEntity extends TileEntity implements ITickableTileEnt
 
     private void openDoor() {
         BlockState state = getBlockState();
-        int animationState = state.get(WindowDoor.ANIMATION);
+        int animationState = state.getValue(WindowDoor.ANIMATION);
         changeAllState(animationState+1,state);
         if (animationState == 3){
             isOpening = false;
@@ -61,7 +61,7 @@ public class WindowDoorTileEntity extends TileEntity implements ITickableTileEnt
 
     private void closeDoor(){
         BlockState state = getBlockState();
-        int animationState = state.get(WindowDoor.ANIMATION);
+        int animationState = state.getValue(WindowDoor.ANIMATION);
         changeAllState(animationState-1,state);
         if (animationState == 1){
             isClosing = false;
@@ -69,17 +69,17 @@ public class WindowDoorTileEntity extends TileEntity implements ITickableTileEnt
     }
 
     private void changeAllState(int animationState,BlockState state){
-        Direction facing = state.get(BlockStateProperties.HORIZONTAL_FACING);
-        world.setBlockState(pos,state.with(WindowDoor.ANIMATION,animationState));
-        BlockState state1 = world.getBlockState(pos.up());
-        world.setBlockState(pos.up(),state1.with(WindowDoor.ANIMATION,animationState));
-        state1 = world.getBlockState(pos.offset(facing.rotateY()));
-        world.setBlockState(pos.offset(facing.rotateY()),state1.with(WindowDoor.ANIMATION,animationState));
-        state1 = world.getBlockState(pos.offset(facing.rotateY()).up());
-        world.setBlockState(pos.offset(facing.rotateY()).up(),state1.with(WindowDoor.ANIMATION,animationState));
-        state1 = world.getBlockState(pos.offset(facing.rotateYCCW()));
-        world.setBlockState(pos.offset(facing.rotateYCCW()),state1.with(WindowDoor.ANIMATION,animationState));
-        state1 = world.getBlockState(pos.offset(facing.rotateYCCW()).up());
-        world.setBlockState(pos.offset(facing.rotateYCCW()).up(),state1.with(WindowDoor.ANIMATION,animationState));
+        Direction facing = state.getValue(BlockStateProperties.HORIZONTAL_FACING);
+        level.setBlockAndUpdate(worldPosition,state.setValue(WindowDoor.ANIMATION,animationState));
+        BlockState state1 = level.getBlockState(worldPosition.above());
+        level.setBlockAndUpdate(worldPosition.above(),state1.setValue(WindowDoor.ANIMATION,animationState));
+        state1 = level.getBlockState(worldPosition.relative(facing.getClockWise()));
+        level.setBlockAndUpdate(worldPosition.relative(facing.getClockWise()),state1.setValue(WindowDoor.ANIMATION,animationState));
+        state1 = level.getBlockState(worldPosition.relative(facing.getClockWise()).above());
+        level.setBlockAndUpdate(worldPosition.relative(facing.getClockWise()).above(),state1.setValue(WindowDoor.ANIMATION,animationState));
+        state1 = level.getBlockState(worldPosition.relative(facing.getCounterClockWise()));
+        level.setBlockAndUpdate(worldPosition.relative(facing.getCounterClockWise()),state1.setValue(WindowDoor.ANIMATION,animationState));
+        state1 = level.getBlockState(worldPosition.relative(facing.getCounterClockWise()).above());
+        level.setBlockAndUpdate(worldPosition.relative(facing.getCounterClockWise()).above(),state1.setValue(WindowDoor.ANIMATION,animationState));
     }
 }

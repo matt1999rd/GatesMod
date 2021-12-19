@@ -20,7 +20,7 @@ public enum TollGPosition implements IStringSerializable {
         return meta;
     }
 
-    public String getName() {
+    public String getSerializedName() {
         return name;
     }
 

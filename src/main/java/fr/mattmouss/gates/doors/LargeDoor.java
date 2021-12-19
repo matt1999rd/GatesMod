@@ -25,14 +25,14 @@ public class LargeDoor extends MultDoor {
     public static EnumProperty<DoorPlacing> PLACING = EnumProperty.create("position",DoorPlacing.class,DoorPlacing::isSide);
 
     public LargeDoor(String key,Material material) {
-        super(Properties.create(material, MaterialColor.BLACK));
+        super(Properties.of(material, MaterialColor.COLOR_BLACK));
         this.setRegistryName(key);
     }
 
     @Override
     public VoxelShape getShape(BlockState state, IBlockReader worldIn, BlockPos pos, ISelectionContext context) {
         Material material = this.material;
-        if (!state.get(PLACING).isSide()){
+        if (!state.getValue(PLACING).isSide()){
             return VoxelShapes.empty();
         }
         if (material == Material.WOOD){
@@ -43,10 +43,10 @@ public class LargeDoor extends MultDoor {
     }
 
     private VoxelShape getSquareShape(BlockState state) {
-        DoorPlacing placing = state.get(PLACING);
-        Direction facing = state.get(BlockStateProperties.HORIZONTAL_FACING);
-        boolean isOpen = state.get(BlockStateProperties.OPEN);
-        int index = placing.getMeta()*8+facing.getHorizontalIndex()*2+ ((isOpen)?1:0);
+        DoorPlacing placing = state.getValue(PLACING);
+        Direction facing = state.getValue(BlockStateProperties.HORIZONTAL_FACING);
+        boolean isOpen = state.getValue(BlockStateProperties.OPEN);
+        int index = placing.getMeta()*8+facing.get2DDataValue()*2+ ((isOpen)?1:0);
         if (!VoxelDefinition.isInit){
             VoxelDefinition.init();
         }
@@ -54,10 +54,10 @@ public class LargeDoor extends MultDoor {
     }
 
     private VoxelShape getCircleShape(BlockState state) {
-        DoorPlacing placing = state.get(PLACING);
-        Direction facing = state.get(BlockStateProperties.HORIZONTAL_FACING);
-        boolean isOpen = state.get(BlockStateProperties.OPEN);
-        int index = placing.getMeta()*8+facing.getHorizontalIndex()*2+ ((isOpen)?1:0);
+        DoorPlacing placing = state.getValue(PLACING);
+        Direction facing = state.getValue(BlockStateProperties.HORIZONTAL_FACING);
+        boolean isOpen = state.getValue(BlockStateProperties.OPEN);
+        int index = placing.getMeta()*8+facing.get2DDataValue()*2+ ((isOpen)?1:0);
         if (!VoxelDefinition.isInit){
             VoxelDefinition.init();
         }
@@ -65,13 +65,13 @@ public class LargeDoor extends MultDoor {
     }
 
     @Override
-    public void onBlockPlacedBy(World worldIn, BlockPos pos, BlockState state, @Nullable LivingEntity placer, ItemStack stack) {
-        Direction facing = state.get(BlockStateProperties.HORIZONTAL_FACING);
-        worldIn.setBlockState(pos.up(), state.with(PLACING, DoorPlacing.LEFT_CENTER), 3);
-        worldIn.setBlockState(pos.up(2), state.with(PLACING, DoorPlacing.LEFT_UP), 3);
-        worldIn.setBlockState(pos.offset(facing.rotateYCCW()),state.with(PLACING,DoorPlacing.RIGHT_DOWN),3);
-        worldIn.setBlockState(pos.offset(facing.rotateYCCW()).up(),state.with(PLACING,DoorPlacing.RIGHT_CENTER),3);
-        worldIn.setBlockState(pos.offset(facing.rotateYCCW()).up(2),state.with(PLACING,DoorPlacing.RIGHT_UP),3);
+    public void setPlacedBy(World worldIn, BlockPos pos, BlockState state, @Nullable LivingEntity placer, ItemStack stack) {
+        Direction facing = state.getValue(BlockStateProperties.HORIZONTAL_FACING);
+        worldIn.setBlock(pos.above(), state.setValue(PLACING, DoorPlacing.LEFT_CENTER), 3);
+        worldIn.setBlock(pos.above(2), state.setValue(PLACING, DoorPlacing.LEFT_UP), 3);
+        worldIn.setBlock(pos.relative(facing.getCounterClockWise()),state.setValue(PLACING,DoorPlacing.RIGHT_DOWN),3);
+        worldIn.setBlock(pos.relative(facing.getCounterClockWise()).above(),state.setValue(PLACING,DoorPlacing.RIGHT_CENTER),3);
+        worldIn.setBlock(pos.relative(facing.getCounterClockWise()).above(2),state.setValue(PLACING,DoorPlacing.RIGHT_UP),3);
     }
 
     protected List<BlockPos> getPosOfNeighborBlock(BlockPos pos,DoorPlacing placing,Direction facing){
@@ -79,33 +79,33 @@ public class LargeDoor extends MultDoor {
         BlockPos offsetPos;
         BlockPos offsetPos2;
         if (placing.isUp()){
-            offsetPos = pos.down();
-            offsetPos2 = pos.down(2);
-            blockToDestroy.add(pos.down());
-            blockToDestroy.add(pos.down(2));
+            offsetPos = pos.below();
+            offsetPos2 = pos.below(2);
+            blockToDestroy.add(pos.below());
+            blockToDestroy.add(pos.below(2));
         }else if (placing.isCenterY()){
-            offsetPos = pos.up();
-            offsetPos2 = pos.down();
-            blockToDestroy.add(pos.up());
-            blockToDestroy.add(pos.down());
+            offsetPos = pos.above();
+            offsetPos2 = pos.below();
+            blockToDestroy.add(pos.above());
+            blockToDestroy.add(pos.below());
         } else {
-            offsetPos = pos.up();
-            offsetPos2 = pos.up(2);
-            blockToDestroy.add(pos.up());
-            blockToDestroy.add(pos.up(2));
+            offsetPos = pos.above();
+            offsetPos2 = pos.above(2);
+            blockToDestroy.add(pos.above());
+            blockToDestroy.add(pos.above(2));
         }
         if (placing.isLeft()){
-            offsetPos = offsetPos.offset(facing.rotateYCCW());
+            offsetPos = offsetPos.relative(facing.getCounterClockWise());
             blockToDestroy.add(offsetPos);
-            offsetPos2 = offsetPos2.offset(facing.rotateYCCW());
+            offsetPos2 = offsetPos2.relative(facing.getCounterClockWise());
             blockToDestroy.add(offsetPos2);
-            blockToDestroy.add(pos.offset(facing.rotateYCCW()));
+            blockToDestroy.add(pos.relative(facing.getCounterClockWise()));
         }else {
-            offsetPos = offsetPos.offset(facing.rotateY());
+            offsetPos = offsetPos.relative(facing.getClockWise());
             blockToDestroy.add(offsetPos);
-            offsetPos2 = offsetPos2.offset(facing.rotateY());
+            offsetPos2 = offsetPos2.relative(facing.getClockWise());
             blockToDestroy.add(offsetPos2);
-            blockToDestroy.add(pos.offset(facing.rotateY()));
+            blockToDestroy.add(pos.relative(facing.getClockWise()));
         }
         return blockToDestroy;
     }
@@ -118,8 +118,8 @@ public class LargeDoor extends MultDoor {
     protected boolean isInternUpdate(DoorPlacing placing,Direction facingUpdate,Direction blockFacing){
         return ( (placing.isUp()|| placing.isCenterY()) && facingUpdate == Direction.DOWN) ||
                 ((!placing.isUp()|| placing.isCenterY()) && facingUpdate == Direction.UP) ||
-                (placing.isLeft() && facingUpdate == blockFacing.rotateYCCW()) ||
-                (!placing.isLeft() && facingUpdate == blockFacing.rotateY());
+                (placing.isLeft() && facingUpdate == blockFacing.getCounterClockWise()) ||
+                (!placing.isLeft() && facingUpdate == blockFacing.getClockWise());
     }
 
 }

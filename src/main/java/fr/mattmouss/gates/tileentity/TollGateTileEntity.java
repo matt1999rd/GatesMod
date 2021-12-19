@@ -28,7 +28,7 @@ import net.minecraft.tileentity.ITickableTileEntity;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.Direction;
 import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.Vec3d;
+import net.minecraft.util.math.vector.Vector3d;
 import net.minecraft.util.text.ITextComponent;
 import net.minecraft.util.text.StringTextComponent;
 import net.minecraftforge.common.capabilities.Capability;
@@ -39,7 +39,6 @@ import net.minecraftforge.items.IItemHandler;
 import net.minecraftforge.items.ItemStackHandler;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -74,7 +73,7 @@ public class TollGateTileEntity extends TileEntity implements ITickableTileEntit
 
             @Override
             protected void onContentsChanged(int slot) {
-                markDirty();
+                setChanged();
             }
 
             @Override
@@ -99,20 +98,20 @@ public class TollGateTileEntity extends TileEntity implements ITickableTileEntit
     }
 
     public static void changePlayerId(PlayerEntity entity) {
-        last_user_player_id = entity.getEntityId();
+        last_user_player_id = entity.getId();
     }
 
     @Override
     public void tick() {
         //updatePrice();
-        if (!world.isRemote) {
+        if (!level.isClientSide) {
             BlockState state = this.getBlockState();
             //block for gestion of animation
             if (animationOpeningInProcess()) {
-                int animationStep = state.get(TollGate.ANIMATION);
+                int animationStep = state.getValue(TollGate.ANIMATION);
                 if (animationStep == 0) {
                     //add the sound of toll gate
-                    Minecraft.getInstance().getSoundHandler().play(SimpleSound.master(ModSound.TOLL_GATE_OPENING, 6.0F));
+                    Minecraft.getInstance().getSoundManager().play(SimpleSound.forUI(ModSound.TOLL_GATE_OPENING, 6.0F));
                 }
 
                 if (animationStep == 4) {
@@ -120,18 +119,18 @@ public class TollGateTileEntity extends TileEntity implements ITickableTileEntit
                 } else {
                     //add this condition to see the toll gate in opening process
                     //if (animationStep !=3) {
-                    this.world.setBlockState(this.pos, state.with(TollGate.ANIMATION, animationStep + 1));
+                    this.level.setBlockAndUpdate(this.worldPosition, state.setValue(TollGate.ANIMATION, animationStep + 1));
                     //}
                 }
             } else if (animationClosingInProcess()) {
-                int animationStep = state.get(TollGate.ANIMATION);
+                int animationStep = state.getValue(TollGate.ANIMATION);
                 if (animationStep == 4) {
-                    Minecraft.getInstance().getSoundHandler().play(SimpleSound.master(ModSound.TOLL_GATE_CLOSING, 6.0F));
+                    Minecraft.getInstance().getSoundManager().play(SimpleSound.forUI(ModSound.TOLL_GATE_CLOSING, 6.0F));
                 }
                 if (animationStep == 0) {
                     setBoolClose(false);
                 } else {
-                    this.world.setBlockState(this.pos, state.with(TollGate.ANIMATION, animationStep - 1));
+                    this.level.setBlockAndUpdate(this.worldPosition, state.setValue(TollGate.ANIMATION, animationStep - 1));
                 }
             } else {
                 manageEmeraldConsumption();
@@ -142,20 +141,20 @@ public class TollGateTileEntity extends TileEntity implements ITickableTileEntit
 
     private void checkTimer() {
         if (isRightTE()) {
-            if (this.getBlockState().get(TollGate.ANIMATION) == 4) {
-                PlayerEntity entity = (PlayerEntity) world.getEntityByID(last_user_player_id);
+            if (this.getBlockState().getValue(TollGate.ANIMATION) == 4) {
+                PlayerEntity entity = (PlayerEntity) level.getEntity(last_user_player_id);
                 if (entity == null) {
                     return;
                 }
                 double[] entity_pos = new double[3];
-                Vec3d vec3d = entity.getPositionVector();
+                Vector3d vec3d = entity.position();
                 entity_pos[0] = vec3d.x;
                 entity_pos[1] = vec3d.y;
                 entity_pos[2] = vec3d.z;
                 double[] block_pos = new double[3];
-                block_pos[0] = pos.getX();
-                block_pos[1] = pos.getY();
-                block_pos[2] = pos.getZ();
+                block_pos[0] = worldPosition.getX();
+                block_pos[1] = worldPosition.getY();
+                block_pos[2] = worldPosition.getZ();
                 System.out.println(Functions.Distance3(block_pos, entity_pos));
 
                 if (Functions.Distance3(block_pos, entity_pos) < 10) {
@@ -192,13 +191,13 @@ public class TollGateTileEntity extends TileEntity implements ITickableTileEntit
                 int number_of_emerald = stack0.getCount();
                 //System.out.println("remaining payment :"+this.getRemainingPayment());
                 //if the animation is in process or the toll gate is open it will stop the management of payment
-                if (this.getBlockState().get(TollGate.ANIMATION) != 0) {
+                if (this.getBlockState().getValue(TollGate.ANIMATION) != 0) {
                     return;
                 }
                 if (last_user_player_id == 0) {
                     return;
                 }
-                PlayerEntity entity = (PlayerEntity) world.getEntityByID(last_user_player_id);
+                PlayerEntity entity = (PlayerEntity) level.getEntity(last_user_player_id);
                 //when payment is not completely done
                 if (stack0.getItem() == Items.EMERALD) {
                     if (number_of_emerald >= this.getRemainingPayment()) {
@@ -212,11 +211,11 @@ public class TollGateTileEntity extends TileEntity implements ITickableTileEntit
 
                         //drop extra amount of emerald
                         if (entity != null) {
-                            entity.dropItem(stack2, false);
+                            entity.drop(stack2, false);
                         }
                         //we reset amound paid for next client
                         amount_paid = 0;
-                        markDirty();
+                        setChanged();
                     } else {
                         //System.out.println("payment not done !");
                         //when the amount paid is not enough we just extract the amount given and we register it
@@ -229,9 +228,9 @@ public class TollGateTileEntity extends TileEntity implements ITickableTileEntit
                     if (key_id == tg_id && UserGuiOpen){
                         h.extractItem(1,1,false);
                         //drop the card because it will be used later on
-                        entity.dropItem(stack1, false);
+                        entity.drop(stack1, false);
                         startAllAnimation();
-                        markDirty();
+                        setChanged();
                     }
 
                     /* old implementation of pos id checking
@@ -258,7 +257,7 @@ public class TollGateTileEntity extends TileEntity implements ITickableTileEntit
     //check if this TE is the control unit tile entity to avoid multiple definition of tollstorage that will be of no use
     public boolean isRightTE() {
         BlockState state = getBlockState();
-        return state.get(TollGate.TG_POSITION) == TollGPosition.CONTROL_UNIT;
+        return state.getValue(TollGate.TG_POSITION) == TollGPosition.CONTROL_UNIT;
     }
 
 
@@ -268,9 +267,9 @@ public class TollGateTileEntity extends TileEntity implements ITickableTileEntit
         startAnimation();
         List<BlockPos> posList = getPositionOfBlockConnected();
         for (BlockPos pos1 : posList){
-            if (!(world.getTileEntity(pos1) instanceof TollGateTileEntity)) throw new IllegalArgumentException("No tile entity on this blockPos :"+pos1);
+            if (!(level.getBlockEntity(pos1) instanceof TollGateTileEntity)) throw new IllegalArgumentException("No tile entity on this blockPos :"+pos1);
             //System.out.println("position du block animé :"+pos1);
-            TollGateTileEntity tgte2 = (TollGateTileEntity) world.getTileEntity(pos1);
+            TollGateTileEntity tgte2 = (TollGateTileEntity) level.getBlockEntity(pos1);
             assert tgte2 != null;
             tgte2.startAnimation();
         }
@@ -278,7 +277,7 @@ public class TollGateTileEntity extends TileEntity implements ITickableTileEntit
 
     public void startAnimation(){
         BlockState state = this.getBlockState();
-        int animationStep = state.get(TollGate.ANIMATION);
+        int animationStep = state.getValue(TollGate.ANIMATION);
         if (animationStep == 0) {
             setBoolOpen(true); //mettre en route l'animation d'ouverture
             System.out.println("starting animation open");
@@ -290,7 +289,7 @@ public class TollGateTileEntity extends TileEntity implements ITickableTileEntit
 
     public void startAnimation(boolean opening){
         BlockState state = this.getBlockState();
-        int animationStep = state.get(TollGate.ANIMATION);
+        int animationStep = state.getValue(TollGate.ANIMATION);
         if (animationStep == 0 && opening) {
             setBoolOpen(true); //mettre en route l'animation d'ouverture
             //System.out.println("starting animation open");
@@ -334,13 +333,13 @@ public class TollGateTileEntity extends TileEntity implements ITickableTileEntit
 
     public void setId(int id_in) {
         storage.ifPresent(s->{
-            if (!world.isRemote)s.setId(id_in,world);
+            if (!level.isClientSide)s.setId(id_in,level);
             else s.setId(id_in);
         });
     }
 
     public void changeId(){
-        storage.ifPresent(tollStorage -> tollStorage.changeId(world));
+        storage.ifPresent(tollStorage -> tollStorage.changeId(level));
 
     }
 
@@ -363,11 +362,11 @@ public class TollGateTileEntity extends TileEntity implements ITickableTileEntit
 
     public void lowerPrice(){
         storage.ifPresent(TollStorage::lowerPrice);
-        if (getBlockState().get(TollGate.TG_POSITION) == TollGPosition.CONTROL_UNIT) {
+        if (getBlockState().getValue(TollGate.TG_POSITION) == TollGPosition.CONTROL_UNIT) {
             List<BlockPos> posList = getPositionOfBlockConnected();
             for (BlockPos pos1 : posList) {
-                if (pos1.getX() != pos.getX() || pos1.getY() != pos.getY() || pos1.getZ() != pos.getZ()) {
-                    TollGateTileEntity tgte = (TollGateTileEntity) world.getTileEntity(pos1);
+                if (pos1.getX() != worldPosition.getX() || pos1.getY() != worldPosition.getY() || pos1.getZ() != worldPosition.getZ()) {
+                    TollGateTileEntity tgte = (TollGateTileEntity) level.getBlockEntity(pos1);
                     if (tgte == null){
                         System.out.println("la tile entity est null");
                         return;
@@ -381,11 +380,11 @@ public class TollGateTileEntity extends TileEntity implements ITickableTileEntit
     public void raisePrice(){
         System.out.println("raising price..");
         storage.ifPresent(TollStorage::raisePrice);
-        if (getBlockState().get(TollGate.TG_POSITION)==TollGPosition.CONTROL_UNIT){
+        if (getBlockState().getValue(TollGate.TG_POSITION)==TollGPosition.CONTROL_UNIT){
             List<BlockPos> posList = getPositionOfBlockConnected();
             for (BlockPos pos1 : posList){
-                if (pos1.getX()!=pos.getX() || pos1.getY()!=pos.getY() || pos1.getZ() != pos.getZ()){
-                    TollGateTileEntity tgte = (TollGateTileEntity)world.getTileEntity(pos1);
+                if (pos1.getX()!=worldPosition.getX() || pos1.getY()!=worldPosition.getY() || pos1.getZ() != worldPosition.getZ()){
+                    TollGateTileEntity tgte = (TollGateTileEntity)level.getBlockEntity(pos1);
                     if (tgte == null){
                         System.out.println("la tile entity est null");
                         return;
@@ -401,7 +400,7 @@ public class TollGateTileEntity extends TileEntity implements ITickableTileEntit
     }
 
     @Override
-    public void read(CompoundNBT compound) {
+    public void load(BlockState state,CompoundNBT compound) {
         boolean isRightTE = compound.getBoolean("isCU");
         if (isRightTE) {
             CompoundNBT invTag = compound.getCompound("inv");
@@ -409,11 +408,11 @@ public class TollGateTileEntity extends TileEntity implements ITickableTileEntit
             getCapability(TollStorageCapability.TOLL_STORAGE).ifPresent(s -> ((INBTSerializable<CompoundNBT>) s).deserializeNBT(storage_tag));
             getCapability(CapabilityItemHandler.ITEM_HANDLER_CAPABILITY).ifPresent(h -> ((INBTSerializable<CompoundNBT>) h).deserializeNBT(invTag));
         }
-        super.read(compound);
+        super.load(state, compound);
     }
 
     private boolean canWrite(){
-        if (world == null){
+        if (level == null){
             return true;
         }else {
             return isRightTE();
@@ -422,14 +421,14 @@ public class TollGateTileEntity extends TileEntity implements ITickableTileEntit
 
     private List<BlockPos> getPositionOfBlockConnected(){
         TollGate tollGate = (TollGate) this.getBlockState().getBlock();
-        Direction direction = this.getBlockState().get(BlockStateProperties.HORIZONTAL_FACING);
-        TollGPosition tgp = this.getBlockState().get(TollGate.TG_POSITION);
-        DoorHingeSide dhs = this.getBlockState().get(BlockStateProperties.DOOR_HINGE);
-        return tollGate.getPositionOfBlockConnected(direction,tgp,dhs,this.pos);
+        Direction direction = this.getBlockState().getValue(BlockStateProperties.HORIZONTAL_FACING);
+        TollGPosition tgp = this.getBlockState().getValue(TollGate.TG_POSITION);
+        DoorHingeSide dhs = this.getBlockState().getValue(BlockStateProperties.DOOR_HINGE);
+        return tollGate.getPositionOfBlockConnected(direction,tgp,dhs,this.worldPosition);
     }
 
     @Override
-    public CompoundNBT write(CompoundNBT tag) {
+    public CompoundNBT save(CompoundNBT tag) {
         if (canWrite()) {
             getCapability(TollStorageCapability.TOLL_STORAGE).ifPresent(storage -> {
                 CompoundNBT compoundNBT = ((INBTSerializable<CompoundNBT>) storage).serializeNBT();
@@ -440,12 +439,12 @@ public class TollGateTileEntity extends TileEntity implements ITickableTileEntit
                 tag.put("inv", compoundNBT);
             });
         }
-        if (world != null){
+        if (level != null){
             tag.putBoolean("isCU",isRightTE());
         }else{
             tag.putBoolean("isCU",false);
         }
-        return super.write(tag);
+        return super.save(tag);
     }
 
     @Nonnull
@@ -463,7 +462,7 @@ public class TollGateTileEntity extends TileEntity implements ITickableTileEntit
 
 
     public boolean isGateOpen(){
-        int animation_step = this.getBlockState().get(TollGate.ANIMATION);
+        int animation_step = this.getBlockState().getValue(TollGate.ANIMATION);
         return animation_step != 0;
     }
 
@@ -476,9 +475,9 @@ public class TollGateTileEntity extends TileEntity implements ITickableTileEntit
     @Override
     public Container createMenu(int i, PlayerInventory playerInventory, PlayerEntity playerEntity) {
         if (UserGuiOpen){
-            return new TGUserContainer(i,world,pos,playerInventory,playerEntity);
+            return new TGUserContainer(i,level,worldPosition,playerInventory,playerEntity);
         }else{
-            return new TGTechContainer(i,world,pos,playerInventory,playerEntity);
+            return new TGTechContainer(i,level,worldPosition,playerInventory,playerEntity);
         }
     }
 

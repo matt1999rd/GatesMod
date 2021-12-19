@@ -19,19 +19,19 @@ public class VoxelDefinition {
             for (int i=0;i<4;i++){
                 largeDoorCircleShape[8*j+2*i]=
                         Functions.makeCircleShape(placing,
-                                Direction.byHorizontalIndex(i),
+                                Direction.from2DDataValue(i),
                                 false);
                 largeDoorCircleShape[8*j+2*i+1]=
                         Functions.makeCircleShape(placing,
-                                Direction.byHorizontalIndex(i),
+                                Direction.from2DDataValue(i),
                                 true);
                 largeDoorSquareShape[8*j+2*i]=
                         Functions.makeSquareShape(placing,
-                                Direction.byHorizontalIndex(i),
+                                Direction.from2DDataValue(i),
                                 false);
                 largeDoorSquareShape[8*j+2*i+1]=
                         Functions.makeSquareShape(placing,
-                                Direction.byHorizontalIndex(i),
+                                Direction.from2DDataValue(i),
                                 true);
             }
             j++;
@@ -41,11 +41,11 @@ public class VoxelDefinition {
             for (int i=0;i<4;i++){
                 gardenDoorShape[8*j+2*i]=
                         Functions.makeGardenDoorShape(placing,
-                                Direction.byHorizontalIndex(i),
+                                Direction.from2DDataValue(i),
                                 false);
                 gardenDoorShape[8*j+2*i+1]=
                         Functions.makeGardenDoorShape(placing,
-                                Direction.byHorizontalIndex(i),
+                                Direction.from2DDataValue(i),
                                 true);
             }
             j++;
@@ -59,7 +59,7 @@ public class VoxelDefinition {
                     drawBridgeShape[20*j+4*animState+k]=
                             Functions.makeDrawBridgeShape(position,
                                     animState,
-                                    Direction.byHorizontalIndex(k));
+                                    Direction.from2DDataValue(k));
                 }
             }
             j++;

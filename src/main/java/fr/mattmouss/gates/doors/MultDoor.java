@@ -26,6 +26,7 @@ import net.minecraft.world.World;
 import javax.annotation.Nullable;
 import java.util.List;
 
+
 public abstract class MultDoor extends Block {
 
 
@@ -34,14 +35,14 @@ public abstract class MultDoor extends Block {
     }
 
     private boolean isNeighBorDoorBlockPowered(BlockPos pos, BlockState state, World world) {
-        DoorPlacing placing = state.get(getPlacingBSP());
-        Direction facing = state.get(BlockStateProperties.HORIZONTAL_FACING);
+        DoorPlacing placing = state.getValue(getPlacingBSP());
+        Direction facing = state.getValue(BlockStateProperties.HORIZONTAL_FACING);
         List<BlockPos> blockPosList = getPosOfNeighborBlock(pos,placing,facing);
-        if (world.isBlockPowered(pos)){
+        if (world.hasNeighborSignal(pos)){
             return true;
         }
         for (BlockPos neiPos : blockPosList){
-            if (world.isBlockPowered(neiPos)){
+            if (world.hasNeighborSignal(neiPos)){
                 return true;
             }
         }
@@ -55,104 +56,103 @@ public abstract class MultDoor extends Block {
     protected abstract boolean isInternUpdate(DoorPlacing placing,Direction facingUpdate,Direction blockFacing);
 
     @Override
-    protected void fillStateContainer(StateContainer.Builder<Block, BlockState> builder) {
+    protected void createBlockStateDefinition(StateContainer.Builder<Block, BlockState> builder) {
         builder.add(BlockStateProperties.HORIZONTAL_FACING,BlockStateProperties.OPEN,getPlacingBSP(),BlockStateProperties.POWERED);
     }
 
     //1.14 onBlockActivated
-    /*
+/*
     @Override
     public boolean func_220051_a(BlockState state, World world, BlockPos pos, PlayerEntity player, Hand hand, BlockRayTraceResult result) {
-        state = state.cycle(BlockStateProperties.OPEN);
-        world.setBlockState(pos,state,10);
+        state = state.func_177231_a(BlockStateProperties.OPEN);
+        world.setBlock(pos,state,10);
         return true;
     }
+*/
 
-     */
 
     //1.15 onBlockActivated
 
     @Override
-    public ActionResultType onBlockActivated(BlockState state, World world, BlockPos pos, PlayerEntity player, Hand hand, BlockRayTraceResult result) {
+    public ActionResultType use(BlockState state, World world, BlockPos pos, PlayerEntity player, Hand hand, BlockRayTraceResult result) {
         state = state.cycle(BlockStateProperties.OPEN);
-        world.setBlockState(pos,state,10);
+        world.setBlock(pos,state,10);
         return ActionResultType.SUCCESS;
     }
 
 
     @Override
-    public boolean isValidPosition(BlockState state, IWorldReader worldIn, BlockPos pos) {
-        BlockState downBlockState = worldIn.getBlockState(pos.down());
-        if (state.get(getPlacingBSP()).isUp()){
+    public boolean canSurvive(BlockState state, IWorldReader worldIn, BlockPos pos) {
+        BlockState downBlockState = worldIn.getBlockState(pos.below());
+        if (state.getValue(getPlacingBSP()).isUp()){
             Block block = downBlockState.getBlock();
             return (block == this);
         }else {
-            return downBlockState.isSolidSide(worldIn,pos.down(),Direction.UP);
+            return downBlockState.isFaceSturdy(worldIn,pos.below(),Direction.UP);
         }
     }
 
     @Nullable
     @Override
     public BlockState getStateForPlacement(BlockItemUseContext context) {
-        BlockPos pos = context.getPos();
-        Direction facing = context.getPlacementHorizontalFacing();
+        BlockPos pos = context.getClickedPos();
+        Direction facing = context.getHorizontalDirection();
         List<BlockPos> neighborFuturePos = getPosOfNeighborBlock(pos,DoorPlacing.LEFT_DOWN,facing);
         neighborFuturePos.add(pos);
         int n=neighborFuturePos.size();
         BlockPos[] positions = new BlockPos[n];
         neighborFuturePos.toArray(positions);
         if (Functions.testReplaceable(context,positions)){
-            BlockState state = getDefaultState();
-            return state.with(BlockStateProperties.HORIZONTAL_FACING,facing).with(BlockStateProperties.OPEN,false).with(getPlacingBSP(),DoorPlacing.LEFT_DOWN).with(BlockStateProperties.POWERED,false);
+            BlockState state = defaultBlockState();
+            return state.setValue(BlockStateProperties.HORIZONTAL_FACING,facing).setValue(BlockStateProperties.OPEN,false).setValue(getPlacingBSP(),DoorPlacing.LEFT_DOWN).setValue(BlockStateProperties.POWERED,false);
         }else {
             return null;
         }
     }
 
     @Override
-    public BlockState updatePostPlacement(BlockState stateIn, Direction facing, BlockState facingState, IWorld worldIn, BlockPos currentPos, BlockPos facingPos) {
-        DoorPlacing placing= stateIn.get(getPlacingBSP());
-        Direction blockFacing = stateIn.get(BlockStateProperties.HORIZONTAL_FACING);
+    public BlockState updateShape(BlockState stateIn, Direction facing, BlockState facingState, IWorld worldIn, BlockPos currentPos, BlockPos facingPos) {
+        DoorPlacing placing= stateIn.getValue(getPlacingBSP());
+        Direction blockFacing = stateIn.getValue(BlockStateProperties.HORIZONTAL_FACING);
         if (isInternUpdate(placing,facing,blockFacing)){
-            return (facingState.getBlock() == this && facingState.get(getPlacingBSP()) != placing) ?
-                    stateIn.with(BlockStateProperties.HORIZONTAL_FACING,facingState.get(BlockStateProperties.HORIZONTAL_FACING))
-                            .with(BlockStateProperties.OPEN,facingState.get(BlockStateProperties.OPEN))
-                            .with(BlockStateProperties.POWERED,facingState.get(BlockStateProperties.POWERED))
-                    : Blocks.AIR.getDefaultState();
+            return (facingState.getBlock() == this && facingState.getValue(getPlacingBSP()) != placing) ?
+                    stateIn.setValue(BlockStateProperties.HORIZONTAL_FACING,facingState.getValue(BlockStateProperties.HORIZONTAL_FACING))
+                            .setValue(BlockStateProperties.OPEN,facingState.getValue(BlockStateProperties.OPEN))
+                            .setValue(BlockStateProperties.POWERED,facingState.getValue(BlockStateProperties.POWERED))
+                    : Blocks.AIR.defaultBlockState();
         }
-        if (!placing.isUp() && facing == Direction.DOWN && !stateIn.isValidPosition(worldIn,currentPos)){
-            return Blocks.AIR.getDefaultState();
+        if (!placing.isUp() && facing == Direction.DOWN && !stateIn.canSurvive(worldIn,currentPos)){
+            return Blocks.AIR.defaultBlockState();
         }
         return stateIn;
     }
 
     //1.14.4 function replaced by notSolid()
-    /*
+/*
     @Override
     public BlockRenderLayer func_180664_k() {
         return BlockRenderLayer.CUTOUT_MIPPED;
     }
-
-     */
+*/
 
     @Override
     public void neighborChanged(BlockState state, World worldIn, BlockPos pos, Block blockIn, BlockPos fromPos, boolean isMoving) {
         boolean flag = isNeighBorDoorBlockPowered(pos,state,worldIn);
-        if (blockIn != this && flag != state.get(BlockStateProperties.POWERED)){
-            worldIn.setBlockState(pos, state.with(BlockStateProperties.POWERED, flag).with(BlockStateProperties.OPEN, flag), 2);
+        if (blockIn != this && flag != state.getValue(BlockStateProperties.POWERED)){
+            worldIn.setBlock(pos, state.setValue(BlockStateProperties.POWERED, flag).setValue(BlockStateProperties.OPEN, flag), 2);
         }
     }
 
-    public void onBlockHarvested(World world, BlockPos pos, BlockState state, PlayerEntity player) {
-        ItemStack itemstack = player.getHeldItemMainhand();
-        if (!world.isRemote && !player.isCreative()) {
-            Block.spawnDrops(state, world, pos, null, player, itemstack);
+    public void playerWillDestroy(World world, BlockPos pos, BlockState state, PlayerEntity player) {
+        ItemStack itemstack = player.getMainHandItem();
+        if (!world.isClientSide && !player.isCreative()) {
+            Block.dropResources(state, world, pos, null, player, itemstack);
         }
-        super.onBlockHarvested(world, pos, state, player);
+        super.playerWillDestroy(world, pos, state, player);
     }
 
-    public void harvestBlock(World worldIn, PlayerEntity player, BlockPos pos, BlockState state, @Nullable TileEntity te, ItemStack stack) {
-        super.harvestBlock(worldIn, player, pos, Blocks.AIR.getDefaultState(), te, stack);
+    public void playerDestroy(World worldIn, PlayerEntity player, BlockPos pos, BlockState state, @Nullable TileEntity te, ItemStack stack) {
+        super.playerDestroy(worldIn, player, pos, Blocks.AIR.defaultBlockState(), te, stack);
     }
 
 }

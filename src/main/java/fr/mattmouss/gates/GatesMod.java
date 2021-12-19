@@ -11,11 +11,14 @@ import fr.mattmouss.gates.setup.ModSetup;
 import fr.mattmouss.gates.setup.ServerProxy;
 import fr.mattmouss.gates.tileentity.*;
 import net.minecraft.block.Block;
+import net.minecraft.client.renderer.RenderType;
+import net.minecraft.client.renderer.RenderTypeLookup;
 import net.minecraft.inventory.container.ContainerType;
 import net.minecraft.item.BlockItem;
 import net.minecraft.item.Item;
 import net.minecraft.tileentity.TileEntityType;
 import net.minecraft.util.math.BlockPos;
+import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.common.extensions.IForgeContainerType;
 import net.minecraftforge.event.RegistryEvent;
@@ -25,6 +28,7 @@ import net.minecraftforge.fml.DistExecutor;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.event.lifecycle.FMLCommonSetupEvent;
 import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
+import net.minecraftforge.fml.loading.FMLEnvironment;
 
 import java.util.logging.Logger;
 
@@ -75,13 +79,17 @@ public class GatesMod {
             blockRegistryEvent.getRegistry().register(new TurnStile());
             blockRegistryEvent.getRegistry().register(new RedstoneTurnStile());
             blockRegistryEvent.getRegistry().register(new CardGetter());
-            blockRegistryEvent.getRegistry().register(new WindowDoor());
+            WindowDoor windowDoor = new WindowDoor();
+            blockRegistryEvent.getRegistry().register(windowDoor);
+            if (FMLEnvironment.dist == Dist.CLIENT){
+                RenderTypeLookup.setRenderLayer(windowDoor, RenderType.cutoutMipped());
+            }
         }
 
 
         @SubscribeEvent
         public static void onItemRegistry(final RegistryEvent.Register<Item> blockRegistryEvent) {
-            Item.Properties properties = new Item.Properties().group(ModSetup.itemGroup);
+            Item.Properties properties = new Item.Properties().tab(ModSetup.itemGroup);
             blockRegistryEvent.getRegistry().register(new TollGateItem(ModBlock.TOLL_GATE));
             blockRegistryEvent.getRegistry().register(new TollKeyItem());
             blockRegistryEvent.getRegistry().register(new CardKeyItem());
@@ -96,7 +104,7 @@ public class GatesMod {
         @SubscribeEvent
         public static void onTileEntityRegistry(final RegistryEvent.Register<TileEntityType<?>> event){
             event.getRegistry().register(
-                    TileEntityType.Builder.create(GarageTileEntity::new,
+                    TileEntityType.Builder.of(GarageTileEntity::new,
                             DoorRegister.ANDESITE_GARAGE,
                             DoorRegister.DIORITE_GARAGE,
                             DoorRegister.GRANITE_GARAGE,
@@ -122,31 +130,31 @@ public class GatesMod {
                             )
                             .build(null)
                             .setRegistryName("garage_door"));
-            event.getRegistry().register(TileEntityType.Builder.create(TollGateTileEntity::new,
+            event.getRegistry().register(TileEntityType.Builder.of(TollGateTileEntity::new,
                     ModBlock.TOLL_GATE)
                     .build(null)
                     .setRegistryName("toll_gate"));
-            event.getRegistry().register(TileEntityType.Builder.create(RedstoneTollGateTileEntity::new,
+            event.getRegistry().register(TileEntityType.Builder.of(RedstoneTollGateTileEntity::new,
                     ModBlock.RTOLL_GATE)
                     .build(null)
                     .setRegistryName("redstone_toll_gate"));
-            event.getRegistry().register(TileEntityType.Builder.create(TurnStileTileEntity::new,
+            event.getRegistry().register(TileEntityType.Builder.of(TurnStileTileEntity::new,
                     ModBlock.TURN_STILE)
                     .build(null)
                     .setRegistryName("turn_stile"));
-            event.getRegistry().register(TileEntityType.Builder.create(RedstoneTurnStileTileEntity::new,
+            event.getRegistry().register(TileEntityType.Builder.of(RedstoneTurnStileTileEntity::new,
                     ModBlock.RTURN_STILE)
                     .build(null)
                     .setRegistryName("redstone_turn_stile"));
-            event.getRegistry().register(TileEntityType.Builder.create(CardGetterTileEntity::new,
+            event.getRegistry().register(TileEntityType.Builder.of(CardGetterTileEntity::new,
                     ModBlock.CARD_GETTER)
                     .build(null)
                     .setRegistryName("card_getter"));
-            event.getRegistry().register(TileEntityType.Builder.create(WindowDoorTileEntity::new,
+            event.getRegistry().register(TileEntityType.Builder.of(WindowDoorTileEntity::new,
                     ModBlock.WINDOW_DOOR)
                     .build(null)
                     .setRegistryName("window_door"));
-            event.getRegistry().register(TileEntityType.Builder.create(DrawBridgeTileEntity::new,
+            event.getRegistry().register(TileEntityType.Builder.of(DrawBridgeTileEntity::new,
                     DoorRegister.ACACIA_DRAW_BRIDGE,
                     DoorRegister.DARK_OAK_DRAW_BRIDGE,
                     DoorRegister.BIRCH_DRAW_BRIDGE,

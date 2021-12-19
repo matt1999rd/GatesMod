@@ -1,11 +1,14 @@
 package fr.mattmouss.gates.doors;
 
 
+import fr.mattmouss.gates.energystorage.IdTracker;
 import fr.mattmouss.gates.enum_door.TurnSPosition;
 import fr.mattmouss.gates.items.ModItem;
 import fr.mattmouss.gates.items.TurnStileKeyItem;
 import fr.mattmouss.gates.network.Networking;
+import fr.mattmouss.gates.network.PacketRemoveId;
 import fr.mattmouss.gates.network.SetIdPacket;
+import fr.mattmouss.gates.tileentity.TollGateTileEntity;
 import fr.mattmouss.gates.tileentity.TurnStileTileEntity;
 import fr.mattmouss.gates.util.Functions;
 import net.minecraft.block.BlockState;
@@ -34,6 +37,7 @@ import static fr.mattmouss.gates.enum_door.TurnSPosition.*;
 
 public class TurnStile extends AbstractTurnStile {
 
+    //control unit part (which is left if left hinge and right if right hinge) is the part that contains the id and the tech key position
     public TurnStile() {
         super();
         this.setRegistryName("turn_stile");
@@ -46,82 +50,77 @@ public class TurnStile extends AbstractTurnStile {
     }
 
     @Override
-    public void onBlockPlacedBy(World world, BlockPos pos, BlockState state, @Nullable LivingEntity player, ItemStack stack) {
+    public void setPlacedBy(World world, BlockPos pos, BlockState state, @Nullable LivingEntity player, ItemStack stack) {
         if (player != null){
             Direction direction = Functions.getDirectionFromEntity(player,pos);
             DoorHingeSide dhs = Functions.getHingeSideFromEntity(player,pos,direction);
-            if (!world.isRemote) {
+            if (!world.isClientSide) {
                 //we change the id for the block Control Unit where the tech gui will open
-                TurnStileTileEntity tste = (TurnStileTileEntity) world.getTileEntity(pos);
+                TurnStileTileEntity tste = (TurnStileTileEntity) world.getBlockEntity(pos);
                 tste.changeId();
                 Networking.INSTANCE.send(PacketDistributor.PLAYER.with(()-> (ServerPlayerEntity)player),new SetIdPacket(pos,tste.getId()));
             }
-            super.onBlockPlacedBy(world, pos, state, player, stack);
+            super.setPlacedBy(world, pos, state, player, stack);
         }
     }
 
     @Override
-    public BlockState updatePostPlacement(BlockState stateIn, Direction facing, BlockState facingState, IWorld worldIn, BlockPos currentPos, BlockPos facingPos) {
-        TurnSPosition position = stateIn.get(TS_POSITION);
-        Direction blockFacing = stateIn.get(BlockStateProperties.HORIZONTAL_FACING);
+    public BlockState updateShape(BlockState stateIn, Direction facing, BlockState facingState, IWorld worldIn, BlockPos currentPos, BlockPos facingPos) {
+        TurnSPosition position = stateIn.getValue(TS_POSITION);
+        Direction blockFacing = stateIn.getValue(BlockStateProperties.HORIZONTAL_FACING);
         if (isInnerUpdate(position,facing,blockFacing) &&  !(facingState.getBlock() instanceof TurnStile)){
-            return Blocks.AIR.getDefaultState();
+            onTurnStileRemoved(worldIn,currentPos);
+            return Blocks.AIR.defaultBlockState();
         }
-        if (position.isSolid() && facing == Direction.DOWN && !facingState.getMaterial().blocksMovement()){
-            if (!worldIn.isRemote())removeUselessKey(worldIn.getWorld(),currentPos,stateIn);
-            return Blocks.AIR.getDefaultState();
+        if (position.isSolid() && facing == Direction.DOWN && !facingState.getMaterial().blocksMotion()){
+            onTurnStileRemoved(worldIn,currentPos);
+            return Blocks.AIR.defaultBlockState();
         }
         return stateIn;
     }
 
     //block facing is the direction of forth block
     private boolean isInnerUpdate(TurnSPosition position, Direction facingUpdate, Direction blockFacing){
-        return ( position == RIGHT_BLOCK && facingUpdate == blockFacing.rotateY()) ||
-                (position == LEFT_BLOCK  && facingUpdate == blockFacing.rotateYCCW()) ||
-                (position == MAIN && (facingUpdate.getAxis() == blockFacing.rotateY().getAxis() || facingUpdate == Direction.UP ) ) ||
+        return ( position == RIGHT_BLOCK && facingUpdate == blockFacing.getClockWise()) ||
+                (position == LEFT_BLOCK  && facingUpdate == blockFacing.getCounterClockWise()) ||
+                (position == MAIN && (facingUpdate.getAxis() == blockFacing.getClockWise().getAxis() || facingUpdate == Direction.UP ) ) ||
                 (position == UP_BLOCK && facingUpdate == Direction.DOWN);
     }
 
-    private void removeUselessKey(World world,BlockPos pos,BlockState state){
+    private void removeUselessKey(IWorld world,BlockPos keyPos){
         TurnStileKeyItem key = (TurnStileKeyItem) ModItem.TURN_STILE_KEY.asItem();
         ItemStack oldStack = new ItemStack(key);
-        BlockPos keyPos = getKeyPos(pos,state);
         key.setTSPosition(oldStack, world, keyPos);
-        List<? extends PlayerEntity> players = world.getPlayers();
+        List<? extends PlayerEntity> players = world.players();
         AtomicBoolean foundKey = new AtomicBoolean(false);
         players.forEach(p -> {
             PlayerInventory inventory = p.inventory;
             if (!foundKey.get()) {
-                if (inventory.hasItemStack(oldStack)) {
-                    int slot = inventory.getSlotFor(oldStack);
-                    inventory.mainInventory.set(slot, ItemStack.EMPTY);
-                    foundKey.set(true);
+                if (inventory.contains(oldStack)) {
+                    int slot = inventory.findSlotMatchingItem(oldStack);
+                    if (slot != -1) {
+                        inventory.items.set(slot, ItemStack.EMPTY);
+                        foundKey.set(true);
+                    }
                 }
             }
         });
     }
 
     @Override
-    public void onBlockHarvested(World world, BlockPos pos, BlockState state, PlayerEntity entity) {
-        if (!world.isRemote){
-            removeUselessKey(world,pos,state);
-        }
-        super.onBlockHarvested(world, pos, state, entity);
+    public void playerWillDestroy(World world, BlockPos pos, BlockState state, PlayerEntity entity) {
+        onTurnStileRemoved(world,pos);
+        super.playerWillDestroy(world, pos, state, entity);
     }
 
-    private BlockPos getKeyPos(BlockPos pos, BlockState state) {
-        TurnSPosition turnSPosition = state.get(TS_POSITION);
-        Direction facing = state.get(BlockStateProperties.HORIZONTAL_FACING);
-        switch (turnSPosition){
-            case RIGHT_BLOCK:
-                return pos.offset(facing.rotateY());
-            case LEFT_BLOCK:
-                return pos.offset(facing.rotateYCCW());
-            case UP_BLOCK:
-                return pos.down();
-            case MAIN:
-            default:
-                return pos;
+    private void onTurnStileRemoved(IWorld world, BlockPos pos){
+        BlockState state = world.getBlockState(pos);
+        TurnStileTileEntity tste = (TurnStileTileEntity) world.getBlockEntity(pos);
+        assert tste != null;
+        int id = tste.getId();
+        if (isControlUnit(state) && !world.isClientSide()) {
+            Networking.INSTANCE.sendToServer(new PacketRemoveId(pos,id));
+            removeUselessKey(world,pos);
         }
     }
 }

@@ -3,28 +3,43 @@ package fr.mattmouss.gates.util;
 import com.google.common.collect.Lists;
 import fr.mattmouss.gates.enum_door.DoorPlacing;
 import fr.mattmouss.gates.enum_door.DrawBridgePosition;
+import fr.mattmouss.gates.enum_door.TurnSPosition;
 import fr.mattmouss.gates.voxels.VoxelDoubles;
 import fr.mattmouss.gates.windows.WindowBlock;
 import fr.mattmouss.gates.windows.WindowPlace;
 import net.minecraft.block.*;
 import net.minecraft.entity.LivingEntity;
+import net.minecraft.entity.player.PlayerEntity;
+import net.minecraft.inventory.EquipmentSlotType;
 import net.minecraft.item.BlockItemUseContext;
+import net.minecraft.item.ItemStack;
 import net.minecraft.state.properties.BlockStateProperties;
 import net.minecraft.state.properties.DoorHingeSide;
 import net.minecraft.util.Direction;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.MathHelper;
-import net.minecraft.util.math.Vec3d;
 import net.minecraft.util.math.shapes.VoxelShape;
 import net.minecraft.util.math.shapes.VoxelShapes;
+import net.minecraft.util.math.vector.Vector3d;
 import net.minecraft.world.World;
 
 import java.util.List;
 
 public class Functions {
+
+    public static void moveMainOldStackToFreeSlot(PlayerEntity entity){
+        ItemStack oldStack = entity.getItemBySlot(EquipmentSlotType.MAINHAND);
+        oldStack.shrink(1);
+        int freeSlot= entity.inventory.getFreeSlot();
+        if (freeSlot != -1){
+            entity.setSlot(freeSlot,oldStack);
+        }else {
+            entity.spawnAtLocation(oldStack);
+        }
+    }
     public static Direction getDirectionFromEntity(LivingEntity placer,BlockPos pos){
-        Vec3d vec3d = placer.getPositionVec();
-        Direction d= Direction.getFacingFromVector(vec3d.x-pos.getX(),vec3d.y-pos.getY(),vec3d.z-pos.getZ());
+        Vector3d vec3d = placer.position();
+        Direction d= Direction.getNearest(vec3d.x-pos.getX(),vec3d.y-pos.getY(),vec3d.z-pos.getZ());
         if (d== Direction.DOWN || d== Direction.UP){
             return Direction.NORTH;
         }
@@ -34,22 +49,22 @@ public class Functions {
     public static ExtendDirection getDirectionFromEntityAndNeighbor(LivingEntity placer, BlockPos pos, World world){
         WindowBlock window = (WindowBlock)world.getBlockState(pos).getBlock();
         ExtendDirection defaultDir = ExtendDirection.getFacingFromPlayer(placer,pos);
-        Vec3d vec3d = placer.getPositionVec();
+        Vector3d vec3d = placer.position();
         boolean ns = false;
         boolean ew = false;
         boolean nwse = false;
         boolean nesw = false;
         Direction neiWindowFacing = null;
         for (int i=0;i<6;i++){
-            Direction dir = Direction.byIndex(i);
-            BlockPos neighPos = pos.offset(dir);
+            Direction dir = Direction.from3DDataValue(i);
+            BlockPos neighPos = pos.relative(dir);
             BlockState neighState = world.getBlockState(neighPos);
             if (window.equals(neighState.getBlock())){
                 //check for problem in neighbor block that are rotated (future non rotated block here)
-                if (neighState.get(WindowBlock.WINDOW_PLACE) == WindowPlace.FULL || !neighState.get(WindowBlock.ROTATED)) {
+                if (neighState.getValue(WindowBlock.WINDOW_PLACE) == WindowPlace.FULL || !neighState.getValue(WindowBlock.ROTATED)) {
                     //we need to avoid problems with windows with bad facing
-                    if (neighState.get(BlockStateProperties.HORIZONTAL_FACING).getAxis() != dir.getAxis()) {
-                        neiWindowFacing = neighState.get(BlockStateProperties.HORIZONTAL_FACING);
+                    if (neighState.getValue(BlockStateProperties.HORIZONTAL_FACING).getAxis() != dir.getAxis()) {
+                        neiWindowFacing = neighState.getValue(BlockStateProperties.HORIZONTAL_FACING);
                         if (i == 2 || i == 3) {
                             ns = true;
                         } else if (i == 4 || i == 5) {
@@ -57,7 +72,7 @@ public class Functions {
                         }
                     }
                 }
-            }else if (neighState.getMaterial().blocksMovement()) {
+            }else if (neighState.getMaterial().blocksMotion()) {
                 if (i==2 || i==3){
                     ns = true;
                 }else if (i==4 || i==5){
@@ -67,12 +82,12 @@ public class Functions {
         }
         for (int i=0;i<4;i++){
             // fd = [SOUTH WEST NORTH EAST]
-            Direction first_dir = Direction.byHorizontalIndex(i);
+            Direction first_dir = Direction.from2DDataValue(i);
             // sd = [WEST NORTH EAST SOUTH]
-            Direction second_dir = Direction.byHorizontalIndex((i+1)%4);
-            BlockPos neighPos = pos.offset(first_dir).offset(second_dir);
+            Direction second_dir = Direction.from2DDataValue((i+1)%4);
+            BlockPos neighPos = pos.relative(first_dir).relative(second_dir);
             BlockState neighState = world.getBlockState(neighPos);
-            if (neighState.getMaterial().blocksMovement()){
+            if (neighState.getMaterial().blocksMotion()){
                 //SW or NE
                 if (i==0 || i==2){
                     nesw = true;
@@ -107,7 +122,7 @@ public class Functions {
 
     //give the side where the barrier is extending
     public static Direction getDirectionOfExtBlock(Direction direction, DoorHingeSide dhs){
-        return  (dhs == DoorHingeSide.RIGHT)?direction.rotateYCCW():direction.rotateY();
+        return  (dhs == DoorHingeSide.RIGHT)?direction.getCounterClockWise():direction.getClockWise();
     }
 
     public static DoorHingeSide getHingeSideFromEntity(LivingEntity entity, BlockPos pos, Direction direction) {
@@ -117,14 +132,31 @@ public class Functions {
             default:
                 throw new IllegalArgumentException("No such direction authorised !!");
             case NORTH:
-                return (entity.getPositionVec().x<pos.getX()+0.5)?DoorHingeSide.RIGHT:DoorHingeSide.LEFT;
+                return (entity.position().x<pos.getX()+0.5)?DoorHingeSide.RIGHT:DoorHingeSide.LEFT;
             case SOUTH:
-                return (entity.getPositionVec().x<pos.getX()+0.5)?DoorHingeSide.LEFT:DoorHingeSide.RIGHT;
+                return (entity.position().x<pos.getX()+0.5)?DoorHingeSide.LEFT:DoorHingeSide.RIGHT;
             case WEST:
-                return (entity.getPositionVec().z<pos.getZ()+0.5)?DoorHingeSide.LEFT:DoorHingeSide.RIGHT;
+                return (entity.position().z<pos.getZ()+0.5)?DoorHingeSide.LEFT:DoorHingeSide.RIGHT;
             case EAST:
-                return (entity.getPositionVec().z<pos.getZ()+0.5)?DoorHingeSide.RIGHT:DoorHingeSide.LEFT;
+                return (entity.position().z<pos.getZ()+0.5)?DoorHingeSide.RIGHT:DoorHingeSide.LEFT;
         }
+    }
+
+    public static BlockPos getMainPosition(BlockPos pos, LivingEntity entity){
+        Direction direction = Functions.getDirectionFromEntity(entity,pos);
+        DoorHingeSide dhs = Functions.getHingeSideFromEntity(entity,pos,direction);
+        BlockPos MainPos = (dhs == DoorHingeSide.RIGHT) ? pos.relative(direction.getClockWise()): pos.relative(direction.getCounterClockWise());
+        return MainPos;
+    }
+
+    public static TurnSPosition getCUPosition(BlockPos pos,LivingEntity player){
+        Direction direction = Functions.getDirectionFromEntity(player,pos);
+        DoorHingeSide dhs = Functions.getHingeSideFromEntity(player,pos,direction);
+        //boolean that return true when Control Unit is on the right
+        boolean CUisOnRight = (dhs == DoorHingeSide.RIGHT);
+        //the control unit block (left if DHS.left and right if DHS.right)
+        TurnSPosition tsp = (CUisOnRight) ? TurnSPosition.RIGHT_BLOCK : TurnSPosition.LEFT_BLOCK;
+        return tsp;
     }
 
     public static int getIdFromBlockPos(BlockPos pos){
@@ -175,7 +207,7 @@ public class Functions {
     public static boolean testReplaceable(BlockItemUseContext context,BlockPos... positions){
         boolean isReplaceable = true;
         for (BlockPos pos : positions){
-            isReplaceable = isReplaceable && context.getWorld().getBlockState(pos).isReplaceable(context);
+            isReplaceable = isReplaceable && context.getLevel().getBlockState(pos).canBeReplaced(context);
         }
         return isReplaceable;
     }

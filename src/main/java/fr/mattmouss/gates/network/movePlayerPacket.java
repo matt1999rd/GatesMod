@@ -1,6 +1,5 @@
 package fr.mattmouss.gates.network;
 
-import fr.mattmouss.gates.tileentity.TurnStileTileEntity;
 import net.minecraft.client.entity.player.ClientPlayerEntity;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.player.ServerPlayerEntity;
@@ -9,9 +8,8 @@ import net.minecraft.state.properties.BlockStateProperties;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.Direction;
 import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.Vec2f;
+import net.minecraft.util.math.vector.Vector2f;
 import net.minecraft.world.server.ServerWorld;
-import net.minecraftforge.common.ForgeConfig;
 import net.minecraftforge.fml.network.NetworkEvent;
 
 import java.util.function.Supplier;
@@ -24,7 +22,7 @@ public class movePlayerPacket {
 
     public movePlayerPacket(BlockPos pos, ClientPlayerEntity player,boolean isAnimationInWork_in,boolean fromExit_in){
         te_pos = pos;
-        player_id = player.getEntityId();
+        player_id = player.getId();
         isAnimationInWork = isAnimationInWork_in;
         fromExit=fromExit_in;
     }
@@ -45,9 +43,9 @@ public class movePlayerPacket {
 
     public void handle(Supplier<NetworkEvent.Context> context){
         context.get().enqueueWork(()->{
-            ServerWorld serverWorld = context.get().getSender().getServerWorld();
-            TileEntity te = serverWorld.getTileEntity(te_pos);
-            Entity entity =  serverWorld.getEntityByID(player_id);
+            ServerWorld serverWorld = context.get().getSender().getLevel();
+            TileEntity te = serverWorld.getBlockEntity(te_pos);
+            Entity entity =  serverWorld.getEntity(player_id);
             if (entity == null){
                 System.out.println("no entity found with given id !!");
             }
@@ -56,11 +54,11 @@ public class movePlayerPacket {
                 return;
             }
             ServerPlayerEntity player = (ServerPlayerEntity)entity;
-            Direction facing = te.getBlockState().get(BlockStateProperties.HORIZONTAL_FACING);
-            Vec2f rot =player.getPitchYaw();
+            Direction facing = te.getBlockState().getValue(BlockStateProperties.HORIZONTAL_FACING);
+            Vector2f rot =player.getRotationVector();
             Direction offsetDirection=(fromExit)? facing : facing.getOpposite();
-            BlockPos final_pos = (isAnimationInWork)? te_pos.offset(offsetDirection) : te_pos;
-            player.moveToBlockPosAndAngles(final_pos,rot.y,rot.x);
+            BlockPos final_pos = (isAnimationInWork)? te_pos.relative(offsetDirection) : te_pos;
+            player.moveTo(final_pos,rot.y,rot.x);
         });
     }
 

@@ -100,8 +100,8 @@ public class VoxelDoubles {
 
 
     private boolean isRotatedCW(Direction.Axis axis,Direction present_direction,Direction changing_direction) {
-        int pd_ind = present_direction.getIndex();
-        int cd_ind = changing_direction.getIndex();
+        int pd_ind = present_direction.get3DDataValue();
+        int cd_ind = changing_direction.get3DDataValue();
         switch (axis){
             case X:
                 return (pd_ind==0 && cd_ind==2) ||
@@ -158,9 +158,9 @@ public class VoxelDoubles {
         if (this == EMPTY){
             return VoxelShapes.empty();
         }else if (this == FULL){
-            return VoxelShapes.fullCube();
+            return VoxelShapes.block();
         }
-        return Block.makeCuboidShape(
+        return Block.box(
                 plane_val[0], plane_val[1], plane_val[2],
                 plane_val[3], plane_val[4], plane_val[5]);
     }

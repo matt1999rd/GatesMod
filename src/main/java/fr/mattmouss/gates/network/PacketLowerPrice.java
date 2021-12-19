@@ -1,17 +1,11 @@
 package fr.mattmouss.gates.network;
 
-import fr.mattmouss.gates.tileentity.IControlIdTE;
 import fr.mattmouss.gates.tileentity.IPriceControllingTE;
-import fr.mattmouss.gates.tileentity.TollGateTileEntity;
 import net.minecraft.network.PacketBuffer;
-import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.math.BlockPos;
-import net.minecraft.world.dimension.DimensionType;
 import net.minecraftforge.fml.network.NetworkEvent;
-import net.minecraftforge.fml.network.PacketDistributor;
-import org.lwjgl.system.CallbackI;
 
-import java.util.concurrent.atomic.AtomicInteger;
+
 import java.util.function.Supplier;
 
 public class PacketLowerPrice {
@@ -31,7 +25,7 @@ public class PacketLowerPrice {
 
     public void handle(Supplier<NetworkEvent.Context> context){
         context.get().enqueueWork(()->{
-            IPriceControllingTE ipcte = (IPriceControllingTE) context.get().getSender().getServerWorld().getTileEntity(pos);
+            IPriceControllingTE ipcte = (IPriceControllingTE) context.get().getSender().getLevel().getBlockEntity(pos);
             ipcte.lowerPrice();
         });
         context.get().setPacketHandled(true);

@@ -22,7 +22,7 @@ public enum Placing implements IStringSerializable {
         return meta;
     }
 
-    public String getName() {
+    public String getSerializedName() {
         return name;
     }
 

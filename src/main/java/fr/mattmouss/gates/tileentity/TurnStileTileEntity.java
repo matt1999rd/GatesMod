@@ -34,8 +34,8 @@ import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.Direction;
 import net.minecraft.util.Hand;
 import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.Vec3d;
 
+import net.minecraft.util.math.vector.Vector3d;
 import net.minecraft.util.text.ITextComponent;
 import net.minecraft.util.text.StringTextComponent;
 
@@ -68,7 +68,7 @@ public class TurnStileTileEntity extends TileEntity implements IControlIdTE,ITic
 
             @Override
             protected void onContentsChanged(int slot) {
-                markDirty();
+                setChanged();
             }
 
             @Override
@@ -93,27 +93,27 @@ public class TurnStileTileEntity extends TileEntity implements IControlIdTE,ITic
 
     public List<BlockPos> getPositionOfBlockConnected() {
         List<BlockPos> posList = new ArrayList<>();
-        Direction direction = this.getBlockState().get(BlockStateProperties.HORIZONTAL_FACING);
+        Direction direction = this.getBlockState().getValue(BlockStateProperties.HORIZONTAL_FACING);
         BlockPos main_pos = getMainPos();
         posList.add(main_pos);
-        posList.add(main_pos.offset(direction.rotateY()));
-        posList.add(main_pos.offset(direction.rotateYCCW()));
-        posList.add(main_pos.offset(Direction.UP));
+        posList.add(main_pos.relative(direction.getClockWise()));
+        posList.add(main_pos.relative(direction.getCounterClockWise()));
+        posList.add(main_pos.relative(Direction.UP));
         return posList;
     }
 
     public BlockPos getMainPos(){
-        TurnSPosition tsp = this.getBlockState().get(TurnStile.TS_POSITION);
-        Direction direction = this.getBlockState().get(BlockStateProperties.HORIZONTAL_FACING);
+        TurnSPosition tsp = this.getBlockState().getValue(TurnStile.TS_POSITION);
+        Direction direction = this.getBlockState().getValue(BlockStateProperties.HORIZONTAL_FACING);
         switch (tsp.getMeta()){
             case 0:
-                return pos;
+                return worldPosition;
             case 1:
-                return pos.offset(direction.rotateY());
+                return worldPosition.relative(direction.getClockWise());
             case 2:
-                return pos.offset(direction.rotateYCCW());
+                return worldPosition.relative(direction.getCounterClockWise());
             case 3:
-                return pos.offset(Direction.DOWN);
+                return worldPosition.relative(Direction.DOWN);
             default:
                 throw new IllegalArgumentException("unknown meta value for tsp :"+tsp.getMeta());
         }
@@ -122,23 +122,23 @@ public class TurnStileTileEntity extends TileEntity implements IControlIdTE,ITic
     @Override
     public void tick() {
         BlockState state = this.getBlockState();
-        if (this.isRightTSB()) {
-            if (!world.isRemote && !state.get(TurnStile.WAY_IS_ON)) {
+        if (this.isControlUnit()) {
+            if (!level.isClientSide && !state.getValue(TurnStile.WAY_IS_ON)) {
                 findPlayerGoingThrough();
             }
-            if (state.get(TurnStile.WAY_IS_ON)) {
+            if (state.getValue(TurnStile.WAY_IS_ON)) {
                 BlockPos mainPos = this.getMainPos();
                 double x = mainPos.getX() + 0.5D;
                 double y = mainPos.getY() + 0.5D;
                 double z = mainPos.getZ() + 0.5D;
-                PlayerEntity player = world.getClosestPlayer(x, y, z, 2, false);
+                PlayerEntity player = level.getNearestPlayer(x, y, z, 2, false);
                 if (this.isAnimationInWork()){
                     movePlayerGoingThrough(player);
                     return;
                 }
                 if (playerIsGoingThrough(player)) {
                     movePlayerGoingThrough(player);
-                    Minecraft.getInstance().getSoundHandler().play(SimpleSound.master(ModSound.TURN_STILE_PASS,1.0F));
+                    Minecraft.getInstance().getSoundManager().play(SimpleSound.forUI(ModSound.TURN_STILE_PASS,1.0F));
                 }
             }
         }
@@ -146,24 +146,24 @@ public class TurnStileTileEntity extends TileEntity implements IControlIdTE,ITic
 
     //this function check if the player in argument is going into this turn stile with a certain speed
     private boolean playerIsGoingThrough(PlayerEntity entity) {
-        Direction facing = this.getBlockState().get(BlockStateProperties.HORIZONTAL_FACING);
+        Direction facing = this.getBlockState().getValue(BlockStateProperties.HORIZONTAL_FACING);
         BlockPos mainPos = this.getMainPos();
         double x = mainPos.getX();
         double y = mainPos.getY();
         double z = mainPos.getZ();
         if (entity != null){
-            Vec3d vec3d = entity.getMotion();
+            Vector3d vec3d = entity.getDeltaMovement();
             //the player is going in the direction of the turn stile
-            boolean isRightMove = (Direction.getFacingFromVector(vec3d.x,vec3d.y,vec3d.z) == facing.getOpposite());
-            Vec3d player_pos = entity.getPositionVec();
+            boolean isRightMove = (Direction.getNearest(vec3d.x,vec3d.y,vec3d.z) == facing.getOpposite());
+            Vector3d player_pos = entity.position();
             double x_player = player_pos.x;
             double y_player = player_pos.y;
             double z_player = player_pos.z;
             boolean isPlayerInFrontOfMainBlock;
             Direction.Axis axis = facing.getAxis();
-            double coor_player =axis.getCoordinate(x_player,y_player,z_player);
-            double coor_pos = axis.getCoordinate(x,y,z);
-            int axisDirOffset = facing.getAxisDirection().getOffset();
+            double coor_player =axis.choose(x_player,y_player,z_player);
+            double coor_pos = axis.choose(x,y,z);
+            int axisDirOffset = facing.getAxisDirection().getStep();
             //it is a very simplified expression which check in each direction for placement of player
             // if NORTH or SOUTH it will check the coordinate z and verify if
             // for NORTH posZ-0.5<z<posZ for SOUTH posZ+1<z<posZ+1.5
@@ -190,7 +190,7 @@ public class TurnStileTileEntity extends TileEntity implements IControlIdTE,ITic
             this.endAnimation();
             Networking.INSTANCE.sendToServer(new blockTSPacket(pos,false));
             for (BlockPos pos1 : this.getPositionOfBlockConnected()) {
-                TurnStileTileEntity tste = (TurnStileTileEntity) world.getTileEntity(pos1);
+                TurnStileTileEntity tste = (TurnStileTileEntity) level.getBlockEntity(pos1);
                 tste.blockTS();
             }
         }else {
@@ -203,14 +203,14 @@ public class TurnStileTileEntity extends TileEntity implements IControlIdTE,ITic
     //this function is opening the door using function notifyTileEntityOfCardId when the player is well placed
     private void findPlayerGoingThrough() {
         //to get the player in a 2 block distance from the following middle pos of the block
-        double x = pos.getX()+0.5D;
-        double y = pos.getY()+0.5D;
-        double z = pos.getZ()+0.5D;
-        PlayerEntity entity = world.getClosestPlayer(x,y,z,2,false);
+        double x = worldPosition.getX()+0.5D;
+        double y = worldPosition.getY()+0.5D;
+        double z = worldPosition.getZ()+0.5D;
+        PlayerEntity entity = level.getNearestPlayer(x,y,z,2,false);
         if (entity != null){
             //System.out.println("player find : "+entity);
             if (playerIsAtRightPos(entity)){
-                DoorHingeSide dhs = this.getBlockState().get(BlockStateProperties.DOOR_HINGE);
+                DoorHingeSide dhs = this.getBlockState().getValue(BlockStateProperties.DOOR_HINGE);
                 //from which side is the hinge we check the other hand
                 if (notifyTileEntityOfCardId(entity,dhs == DoorHingeSide.RIGHT)){
                     System.out.println("opening turn stile door and waiting for player");
@@ -225,7 +225,7 @@ public class TurnStileTileEntity extends TileEntity implements IControlIdTE,ITic
     //this return true if ids match between id of card in player hand and id of the tile entity
     //it is also opening the door when it works
     private boolean notifyTileEntityOfCardId(PlayerEntity player,boolean checkMainHand){
-        ItemStack stack =(checkMainHand) ? player.getHeldItemMainhand() : player.getHeldItem(Hand.OFF_HAND);
+        ItemStack stack =(checkMainHand) ? player.getMainHandItem() : player.getItemInHand(Hand.OFF_HAND);
         if (stack.getItem() == ModItem.CARD_KEY.asItem()){
             CardKeyItem key = (CardKeyItem)stack.getItem();
             int key_id = key.getId(stack);
@@ -234,7 +234,7 @@ public class TurnStileTileEntity extends TileEntity implements IControlIdTE,ITic
                 System.out.println("The way is open");
                 //TODO : add here the sound ok
                 for (BlockPos pos1 : this.getPositionOfBlockConnected()){
-                    TurnStileTileEntity tste = (TurnStileTileEntity) world.getTileEntity(pos1);
+                    TurnStileTileEntity tste = (TurnStileTileEntity) level.getBlockEntity(pos1);
                     tste.openTS();
                 }
                 return true;
@@ -249,16 +249,16 @@ public class TurnStileTileEntity extends TileEntity implements IControlIdTE,ITic
     //return true when the player is in a box of 1 block with the center of the block
     // placed at the corner where the player is going to put its card
     private boolean playerIsAtRightPos(PlayerEntity entity) {
-        Direction facing = this.getBlockState().get(BlockStateProperties.HORIZONTAL_FACING);
-        DoorHingeSide dhs = this.getBlockState().get(BlockStateProperties.DOOR_HINGE);
-        double x_detect = (increaseXCube(facing,dhs))? pos.getX()+0.5:pos.getX()-0.5;
-        double z_detect = (increaseZCube(facing,dhs))? pos.getZ()+0.5:pos.getZ()-0.5;
-        Vec3d pos = entity.getPositionVec();
+        Direction facing = this.getBlockState().getValue(BlockStateProperties.HORIZONTAL_FACING);
+        DoorHingeSide dhs = this.getBlockState().getValue(BlockStateProperties.DOOR_HINGE);
+        double x_detect = (increaseXCube(facing,dhs))? worldPosition.getX()+0.5:worldPosition.getX()-0.5;
+        double z_detect = (increaseZCube(facing,dhs))? worldPosition.getZ()+0.5:worldPosition.getZ()-0.5;
+        Vector3d pos = entity.position();
         double x_player = pos.x;
         double y_player = pos.y;
         double z_player = pos.z;
         if (x_detect<x_player && x_player<x_detect+1){
-            if (y_player<pos.getY()+1){
+            if (y_player<pos.y()+1){
                 if (z_detect<z_player && z_player<z_detect+1){
                     return true;
                 }else {
@@ -294,15 +294,15 @@ public class TurnStileTileEntity extends TileEntity implements IControlIdTE,ITic
     public void changeAllAnim() {
         List<BlockPos> posList = getPositionOfBlockConnected();
         for (BlockPos pos1 : posList){
-            TurnStileTileEntity tste = (TurnStileTileEntity) world.getTileEntity(pos1);
+            TurnStileTileEntity tste = (TurnStileTileEntity) level.getBlockEntity(pos1);
             tste.changeAnim();
         }
     }
 
     public void changeAnim(){
         BlockState state = this.getBlockState();
-        int i = state.get(TurnStile.ANIMATION);
-        world.setBlockState(pos,state.with(TurnStile.ANIMATION,1-i));
+        int i = state.getValue(TurnStile.ANIMATION);
+        level.setBlockAndUpdate(worldPosition,state.setValue(TurnStile.ANIMATION,1-i));
     }
 
     @Override
@@ -316,26 +316,27 @@ public class TurnStileTileEntity extends TileEntity implements IControlIdTE,ITic
 
     @Override
     public void changeId() {
-        storage.ifPresent(ts->ts.changeId(world));
+        storage.ifPresent(ts->ts.changeId(level));
     }
 
     @Override
     public void setId(int id_in) {
         storage.ifPresent(s-> {
-            if (world.isRemote)s.setId(id_in);
-            else s.setId(id_in,world);
+            if (level.isClientSide)s.setId(id_in);
+            else s.setId(id_in,level);
         });
+
     }
 
 
     public void openTS(){
         BlockState state =this.getBlockState();
-        world.setBlockState(pos,state.with(TurnStile.WAY_IS_ON,true));
+        level.setBlockAndUpdate(worldPosition,state.setValue(TurnStile.WAY_IS_ON,true));
     }
 
     public void blockTS(){
         BlockState state = this.getBlockState();
-        world.setBlockState(pos,state.with(TurnStile.WAY_IS_ON,false));
+        level.setBlockAndUpdate(worldPosition,state.setValue(TurnStile.WAY_IS_ON,false));
     }
 
     @Override
@@ -354,7 +355,7 @@ public class TurnStileTileEntity extends TileEntity implements IControlIdTE,ITic
     }
 
     @Override
-    public CompoundNBT write(CompoundNBT tag) {
+    public CompoundNBT save(CompoundNBT tag) {
         if (canWrite()){
             getCapability(TurnStileCapability.TURN_STILE_STORAGE).ifPresent(e->{
                 CompoundNBT nbt =((INBTSerializable<CompoundNBT>)e).serializeNBT();
@@ -365,19 +366,19 @@ public class TurnStileTileEntity extends TileEntity implements IControlIdTE,ITic
                 tag.put("inv",nbt);
             });
         }
-        if (world != null){
-            tag.putBoolean("isCU",isRightTSB());
+        if (level != null){
+            tag.putBoolean("isCU", isControlUnit());
         }else{
             tag.putBoolean("isCU",false);
         }
-        return super.write(tag);
+        return super.save(tag);
     }
 
     private boolean canWrite() {
-        if (world == null){
+        if (level == null){
             return true;
         }else {
-            return isRightTSB() ;
+            return isControlUnit() ;
         }
     }
 
@@ -395,7 +396,7 @@ public class TurnStileTileEntity extends TileEntity implements IControlIdTE,ITic
 
 
     @Override
-    public void read(CompoundNBT tag) {
+    public void load(BlockState state,CompoundNBT tag) {
         boolean isRightTSB = tag.getBoolean("isCU");
         if (isRightTSB) {
             CompoundNBT storage_tag = tag.getCompound("storage");
@@ -403,17 +404,17 @@ public class TurnStileTileEntity extends TileEntity implements IControlIdTE,ITic
             getCapability(TurnStileCapability.TURN_STILE_STORAGE).ifPresent(s -> ((INBTSerializable<CompoundNBT>) s).deserializeNBT(storage_tag));
             getCapability(CapabilityItemHandler.ITEM_HANDLER_CAPABILITY).ifPresent(h -> ((INBTSerializable<CompoundNBT>) h).deserializeNBT(inv_tag));
         }
-        super.read(tag);
+        super.load(state,tag);
     }
 
     //check if this TE is the control unit tile entity to avoid multiple definition of idstorage that will be of no use
-    public boolean isRightTSB() {
+    public boolean isControlUnit() {
         Block block=this.getBlockState().getBlock();
         if (!(block instanceof TurnStile)){
             return false;
         }
         TurnStile turnStile = (TurnStile)block;
-        return turnStile.isRightTSB(this.getBlockState());
+        return turnStile.isControlUnit(this.getBlockState());
     }
 
 
@@ -437,6 +438,6 @@ public class TurnStileTileEntity extends TileEntity implements IControlIdTE,ITic
     @Nullable
     @Override
     public Container createMenu(int i, PlayerInventory playerInventory, PlayerEntity playerEntity) {
-        return new TSContainer(i,world,pos,playerInventory,playerEntity);
+        return new TSContainer(i,level,worldPosition,playerInventory,playerEntity);
     }
 }

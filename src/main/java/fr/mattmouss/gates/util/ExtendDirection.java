@@ -1,15 +1,11 @@
 package fr.mattmouss.gates.util;
 
 import net.minecraft.entity.LivingEntity;
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.state.BooleanProperty;
-import net.minecraft.state.properties.BlockStateProperties;
 import net.minecraft.util.Direction;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.MathHelper;
-import net.minecraft.util.math.Vec3d;
+import net.minecraft.util.math.vector.Vector3d;
 
-import java.util.function.Predicate;
 
 public enum ExtendDirection {
     SOUTH(0, Direction.SOUTH,Axis.Z,false),
@@ -101,26 +97,26 @@ public enum ExtendDirection {
 
     public BlockPos offset(BlockPos pos){
         if (!this.isRotated()){
-            return pos.offset(this.direction);
+            return pos.relative(this.direction);
         }else {
-            return pos.offset(this.direction).offset(this.direction.rotateYCCW());
+            return pos.relative(this.direction).relative(this.direction.getCounterClockWise());
         }
     }
 
     public BlockPos offset(BlockPos pos,int n){
         if (!this.isRotated()){
-            return pos.offset(this.direction,n);
+            return pos.relative(this.direction,n);
         } else {
-            return pos.offset(this.direction,n).offset(this.direction.rotateYCCW(),n);
+            return pos.relative(this.direction,n).relative(this.direction.getCounterClockWise(),n);
         }
     }
 
     public ExtendDirection rotateYCCW(){
-        return ExtendDirection.getExtendedDirection(direction.rotateYCCW(),isRotated());
+        return ExtendDirection.getExtendedDirection(direction.getCounterClockWise(),isRotated());
     }
 
     public ExtendDirection rotateY(){
-        return ExtendDirection.getExtendedDirection(direction.rotateY(),isRotated());
+        return ExtendDirection.getExtendedDirection(direction.getClockWise(),isRotated());
     }
 
     public static ExtendDirection byIndex(int meta){
@@ -143,8 +139,8 @@ public enum ExtendDirection {
     }
 
     public float getAngleFrom(Direction direction){
-        float dir_angle = direction.getHorizontalAngle();
-        float base_angle = this.rotated ? this.direction.getHorizontalAngle()-45 : this.direction.getHorizontalAngle();
+        float dir_angle = direction.toYRot();
+        float base_angle = this.rotated ? this.direction.toYRot()-45 : this.direction.toYRot();
         float angleDiff = dir_angle - base_angle;
         return toRadian(angleDiff);
     }
@@ -172,8 +168,8 @@ public enum ExtendDirection {
     public static ExtendDirection getFacingFromPlayer(LivingEntity player, BlockPos pos){
         //for the purpose of getting the state of the panel we divide space around the center of the support in 8 part
         //division are for angle 22.5/67.5/112.5/157.5/202.5/247.5/292.5/337.5 (22.5+45*i for 0<=i<=7)
-        Vec3d future_window_center = getVecFromBlockPos(pos,0.5F);
-        Vec3d offsetPlayerPos = player.getPositionVec().subtract(future_window_center);
+        Vector3d future_window_center = getVecFromBlockPos(pos,0.5F);
+        Vector3d offsetPlayerPos = player.position().subtract(future_window_center);
         //we compare our player position to the position of the support's center
         //we get angle using arctan function
         double angle = MathHelper.atan2(offsetPlayerPos.x,offsetPlayerPos.z);
@@ -191,7 +187,7 @@ public enum ExtendDirection {
         //we get facing using a special index that is for i : 0->7 --> 0 0 3 3 2 2 1 1
         //we have translated 0 to 8 and 1 to 9 to get a decreasing linear function -->
         // 2->3 3->3 4->2 5->2 6->1 7->1 8->0 9->0
-        Direction facing = Direction.byHorizontalIndex((9-index)/2);
+        Direction facing = Direction.from2DDataValue((9-index)/2);
         boolean isRotated = (index%2 == 1);
         ExtendDirection direction = ExtendDirection.getExtendedDirection(facing,isRotated);
         return direction;
@@ -200,8 +196,8 @@ public enum ExtendDirection {
     //convert a blockpos into vec3d and adding an offset on x and z coordinate
     // (use in the convertion to vec3d of support and grid center blockpos)
 
-    public static Vec3d getVecFromBlockPos (BlockPos pos,float horOffset){
-        return new Vec3d(pos.getX()+horOffset,pos.getY(),pos.getZ()+horOffset);
+    public static Vector3d getVecFromBlockPos (BlockPos pos,float horOffset){
+        return new Vector3d(pos.getX()+horOffset,pos.getY(),pos.getZ()+horOffset);
     }
 
     public enum Axis{

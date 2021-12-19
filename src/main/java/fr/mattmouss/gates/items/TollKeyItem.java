@@ -2,7 +2,6 @@ package fr.mattmouss.gates.items;
 
 import fr.mattmouss.gates.doors.TollGate;
 import fr.mattmouss.gates.enum_door.TollGPosition;
-import fr.mattmouss.gates.tileentity.CardGetterTileEntity;
 import fr.mattmouss.gates.tileentity.TollGateTileEntity;
 import fr.mattmouss.gates.util.Functions;
 import net.minecraft.block.BlockState;
@@ -28,17 +27,26 @@ public class TollKeyItem extends KeyItem {
     }
 
     @Override
-    public ActionResultType onItemUse(ItemUseContext context) {
-        BlockPos pos = context.getPos();
+    public ActionResultType useOn(ItemUseContext context) {
+        BlockPos pos = context.getClickedPos();
         PlayerEntity entity = context.getPlayer();
-        World world = context.getWorld();
+        World world = context.getLevel();
         Hand hand = context.getHand();
-        ItemStack stack = entity.getHeldItem(hand);
-        TileEntity te = world.getTileEntity(pos);
+        ItemStack stack = entity.getItemInHand(hand);
+        TileEntity te = world.getBlockEntity(pos);
         if (!(te instanceof TollGateTileEntity)){
             //we exit the function if it is not a TollGateTileEntity
-            return super.onItemUse(context);
+            return super.useOn(context);
         }
+        if (!(te.getBlockState().getBlock() instanceof TollGate)){
+            throw new IllegalStateException("Corrupted world : a tile entity exists when the block associated did not");
+        }
+        boolean isControlUnit = te.getBlockState().getValue(TollGate.TG_POSITION) == TollGPosition.CONTROL_UNIT;
+        if (!isControlUnit){
+            //we don't open the gui if the block clicked is not compared to the control unit part
+            return super.useOn(context);
+        }
+
         BlockPos registeredPos = getTGPosition(stack, world);
         //if someone takes the key from the creative tab it will not have any BlockPos and we set the blockPos to the present toll gate
         //if this key has a blockPos that don't correspond to a toll gate anymore (because of destroyed block) we set the blockPos also
@@ -52,18 +60,18 @@ public class TollKeyItem extends KeyItem {
             //System.out.println("the registered pos is not the pos of this block");
             //System.out.println("pos of toll gate key attribute :"+registeredPos);
             //System.out.println("pos of toll gate :"+pos);
-            return super.onItemUse(context);
+            return super.useOn(context);
         }
         TollGateTileEntity tgte = (TollGateTileEntity) te;
 
         if (isPlayerFacingTheRightFace(tgte, entity, pos)) {
             //System.out.println("the player is a technician ");
             tgte.setSide(false);
-            if (!world.isRemote) {
-                NetworkHooks.openGui((ServerPlayerEntity) entity, tgte, tgte.getPos());
+            if (!world.isClientSide) {
+                NetworkHooks.openGui((ServerPlayerEntity) entity, tgte, tgte.getBlockPos());
             }
         }
-        return super.onItemUse(context);
+        return super.useOn(context);
 
     }
 
@@ -71,17 +79,17 @@ public class TollKeyItem extends KeyItem {
     private boolean isPlayerFacingTheRightFace(TollGateTileEntity tgte, PlayerEntity entity,BlockPos pos) {
         BlockState state = tgte.getBlockState();
 
-        Direction facing = state.get(BlockStateProperties.HORIZONTAL_FACING);
+        Direction facing = state.getValue(BlockStateProperties.HORIZONTAL_FACING);
         Direction entity_looking_direction = Functions.getDirectionFromEntity(entity,pos);
-        DoorHingeSide dhs = state.get(BlockStateProperties.DOOR_HINGE);
+        DoorHingeSide dhs = state.getValue(BlockStateProperties.DOOR_HINGE);
         /*for that we need to click on the control-unit part(1) and on the side corresponding to the rotate direction
                      ClockWise if the rotation axe is right(2)
          and CounterClockWise  if the rotation axe is left(3)
 
          * */
-        return (state.get(TollGate.TG_POSITION) == TollGPosition.CONTROL_UNIT) &&
-                ((entity_looking_direction==facing.rotateY() && (dhs == DoorHingeSide.RIGHT))||
-                (entity_looking_direction==facing.rotateYCCW() && (dhs == DoorHingeSide.LEFT)));
+        return (state.getValue(TollGate.TG_POSITION) == TollGPosition.CONTROL_UNIT) &&
+                ((entity_looking_direction==facing.getClockWise() && (dhs == DoorHingeSide.RIGHT))||
+                (entity_looking_direction==facing.getCounterClockWise() && (dhs == DoorHingeSide.LEFT)));
 
     }
 

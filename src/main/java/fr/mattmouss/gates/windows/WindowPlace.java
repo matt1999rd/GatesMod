@@ -65,7 +65,7 @@ public enum WindowPlace implements IStringSerializable {
             usedVoxels[i] = new VoxelDoubles(i, 0, i, 2, 16, 2, true);
         }
         for (int i=0;i<4;i++) {
-            windows_closed[i] = Functions.getShapeFromVoxelIntsTab(usedVoxels, Direction.byHorizontalIndex(i), VoxelShapes.empty());
+            windows_closed[i] = Functions.getShapeFromVoxelIntsTab(usedVoxels, Direction.from2DDataValue(i), VoxelShapes.empty());
         }
     }
 
@@ -127,8 +127,8 @@ public enum WindowPlace implements IStringSerializable {
         Places places = new Places();
         ExtendDirection extDirProperty;
         if (future_facing == null) {
-            boolean isRotated = state.get(WindowBlock.ROTATED);
-            Direction facing = state.get(BlockStateProperties.HORIZONTAL_FACING);
+            boolean isRotated = state.getValue(WindowBlock.ROTATED);
+            Direction facing = state.getValue(BlockStateProperties.HORIZONTAL_FACING);
             extDirProperty = ExtendDirection.getExtendedDirection(facing,isRotated);
         } else {
             extDirProperty = future_facing;
@@ -300,8 +300,8 @@ public enum WindowPlace implements IStringSerializable {
         if (this.isCorner()){
             BlockState state = world.getBlockState(verDir.offset(pos));
             boolean flag = false;
-            if (state.has(WindowBlock.WINDOW_PLACE)){
-                flag = (state.get(WindowBlock.WINDOW_PLACE).isMiddle());
+            if (state.hasProperty(WindowBlock.WINDOW_PLACE)){
+                flag = (state.getValue(WindowBlock.WINDOW_PLACE).isMiddle());
             }
             //we add the opposite corner
             directions.add(new WindowDirection(1,horDir,1,verDir));
@@ -320,14 +320,14 @@ public enum WindowPlace implements IStringSerializable {
             int i =1;
             //a code that allow people to make extra high windows
             //if there is middle in up direction
-            while (world.getBlockState(pos.offset(Direction.UP,i)).get(WindowBlock.WINDOW_PLACE).isMiddle() && i<32){
+            while (world.getBlockState(pos.relative(Direction.UP,i)).getValue(WindowBlock.WINDOW_PLACE).isMiddle() && i<32){
                 directions.add(new WindowDirection(1,horDir,i+1,ExtendDirection.UP));
                 directions.add(new WindowDirection(i+1, ExtendDirection.UP));
                 i++;
             }
             i=1;
             //if there is middle in down direction
-            while (world.getBlockState(pos.offset(Direction.DOWN,i)).get(WindowBlock.WINDOW_PLACE).isMiddle() && i<32){
+            while (world.getBlockState(pos.relative(Direction.DOWN,i)).getValue(WindowBlock.WINDOW_PLACE).isMiddle() && i<32){
                 directions.add(new WindowDirection(1,horDir,i+1,ExtendDirection.DOWN));
                 directions.add(new WindowDirection(i+1,ExtendDirection.DOWN));
                 i++;
@@ -399,8 +399,8 @@ public enum WindowPlace implements IStringSerializable {
         WindowBlock windowBlock = (WindowBlock)windowState.getBlock();
 
         if (future_facing == null) {
-            boolean isRotated = state.get(WindowBlock.ROTATED);
-            Direction facing = state.get(BlockStateProperties.HORIZONTAL_FACING);
+            boolean isRotated = state.getValue(WindowBlock.ROTATED);
+            Direction facing = state.getValue(BlockStateProperties.HORIZONTAL_FACING);
             ExtendDirection dir = ExtendDirection.getExtendedDirection(facing,isRotated);
             FrontalAxis = dir.getAxis();
         }else {
@@ -413,8 +413,8 @@ public enum WindowPlace implements IStringSerializable {
                 Block block = neiState.getBlock();
                 if (!(windowBlock.equals(block))){
                     NeighborDirs.add(direction);
-                }else if ((neiState.get(WindowBlock.ROTATED) != future_facing.isRotated()) ||
-                            (neiState.get(BlockStateProperties.HORIZONTAL_FACING) !=future_facing.getDirection())) {
+                }else if ((neiState.getValue(WindowBlock.ROTATED) != future_facing.isRotated()) ||
+                            (neiState.getValue(BlockStateProperties.HORIZONTAL_FACING) !=future_facing.getDirection())) {
                         NeighborDirs.add(direction);
                 }
             }
@@ -423,7 +423,7 @@ public enum WindowPlace implements IStringSerializable {
     }
 
     @Override
-    public String getName() {
+    public String getSerializedName() {
         return this.name;
     }
 
@@ -447,9 +447,9 @@ public enum WindowPlace implements IStringSerializable {
 
     public VoxelShape getVoxels(boolean isOpen,Direction facing){
         if (!isOpen) {
-            return windows_closed[facing.getHorizontalIndex()];
+            return windows_closed[facing.get2DDataValue()];
         }else {
-            return this.shape[facing.getHorizontalIndex()];
+            return this.shape[facing.get2DDataValue()];
         }
     }
 
@@ -473,7 +473,7 @@ public enum WindowPlace implements IStringSerializable {
         for (int i=0;i<4;i++){
             glass_height = 16;
             VoxelShape shape= VoxelShapes.empty();
-            Direction facing = Direction.byHorizontalIndex(i);
+            Direction facing = Direction.from2DDataValue(i);
             if (!isRight){
                 shape = VoxelShapes.or(shape, leftMainPilar.rotate(Direction.EAST, facing).getAssociatedShape());
             } else {

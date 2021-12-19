@@ -34,7 +34,7 @@ public class blockTSPacket {
     public void handle(Supplier<NetworkEvent.Context> context){
         context.get().enqueueWork(()->{
             System.out.println("packet blockTS handled !");
-            TileEntity te=context.get().getSender().getServerWorld().getTileEntity(pos);
+            TileEntity te=context.get().getSender().getLevel().getBlockEntity(pos);
             List<BlockPos> posList;
             if (!isRedStoneSpecified) {
                 TurnStileTileEntity tste = (TurnStileTileEntity) te;
@@ -45,10 +45,10 @@ public class blockTSPacket {
             }
             for (BlockPos pos1 : posList){
                 if (!isRedStoneSpecified){
-                    TurnStileTileEntity tste1 = (TurnStileTileEntity) context.get().getSender().getServerWorld().getTileEntity(pos1);
+                    TurnStileTileEntity tste1 = (TurnStileTileEntity) context.get().getSender().getLevel().getBlockEntity(pos1);
                     tste1.blockTS();
                 }else {
-                    RedstoneTurnStileTileEntity rtste1 = (RedstoneTurnStileTileEntity) context.get().getSender().getServerWorld().getTileEntity(pos1);
+                    RedstoneTurnStileTileEntity rtste1 = (RedstoneTurnStileTileEntity) context.get().getSender().getLevel().getBlockEntity(pos1);
                     rtste1.blockTS();
                 }
             }

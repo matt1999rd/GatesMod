@@ -49,7 +49,7 @@ public enum DrawBridgePosition implements IStringSerializable {
     public boolean isBridgeExt() { return meta > 7;}
 
     @Override
-    public String getName() {
+    public String getSerializedName() {
         return id;
     }
     //how to get position of a block based on leftDownPos
@@ -57,23 +57,23 @@ public enum DrawBridgePosition implements IStringSerializable {
         BlockPos finalPos = new BlockPos(leftDownPos);
         //add up function
         if (isUp()){
-            finalPos=finalPos.up();
+            finalPos=finalPos.above();
         }
         //add an additionnal up function
         if (isUpUp()){
-            finalPos=finalPos.up();
+            finalPos=finalPos.above();
         }
         //add offset on right
         if (isRight()){
-            finalPos=finalPos.offset(facing.rotateY());
+            finalPos=finalPos.relative(facing.getClockWise());
         }
         //add offset on deepness
         if (isBridge()){
-            finalPos=finalPos.offset(facing);
+            finalPos=finalPos.relative(facing);
         }
         //add an additional offset on deepness
         if (isBridgeExt()){
-            finalPos=finalPos.offset(facing);
+            finalPos=finalPos.relative(facing);
         }
         return finalPos;
     }
@@ -83,23 +83,23 @@ public enum DrawBridgePosition implements IStringSerializable {
         BlockPos finalPos = new BlockPos(ourPos);
         //add down function
         if (isUp()){
-            finalPos=finalPos.down();
+            finalPos=finalPos.below();
         }
         //add an additional down function
         if (isUpUp()){
-            finalPos=finalPos.down();
+            finalPos=finalPos.below();
         }
         //add offset on left
         if (isRight()){
-            finalPos=finalPos.offset(facing.rotateYCCW());
+            finalPos=finalPos.relative(facing.getCounterClockWise());
         }
         //add offset on deepness
         if (isBridge()){
-            finalPos=finalPos.offset(facing.getOpposite());
+            finalPos=finalPos.relative(facing.getOpposite());
         }
         //add an additional offset on deepness
         if (isBridgeExt()){
-            finalPos=finalPos.offset(facing.getOpposite());
+            finalPos=finalPos.relative(facing.getOpposite());
         }
         return finalPos;
     }
@@ -114,8 +114,8 @@ public enum DrawBridgePosition implements IStringSerializable {
     }
 
     private boolean isLateralUpdate(Direction facingUpdate,Direction blockFacing){
-        return (isRight() && (facingUpdate == blockFacing.rotateYCCW()) ) ||
-                (!isRight() && (facingUpdate == blockFacing.rotateY()));
+        return (isRight() && (facingUpdate == blockFacing.getCounterClockWise()) ) ||
+                (!isRight() && (facingUpdate == blockFacing.getClockWise()));
     }
 
 }

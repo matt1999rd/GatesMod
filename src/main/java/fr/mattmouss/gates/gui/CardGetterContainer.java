@@ -18,6 +18,7 @@ import net.minecraftforge.items.SlotItemHandler;
 import net.minecraftforge.items.wrapper.InvWrapper;
 import javax.annotation.Nonnull;
 import java.util.HashMap;
+import java.util.Vector;
 
 public class CardGetterContainer extends Container {
 
@@ -28,23 +29,25 @@ public class CardGetterContainer extends Container {
     private CardGetterTileEntity tileEntity ;
     private PlayerEntity playerEntity;
     private IItemHandler inventory;
+    public final int leftCol = 107;
+    public final int topRow = 83;
 
 
     public CardGetterContainer(int windowId, World world, BlockPos pos, PlayerInventory inventory, PlayerEntity player) {
         super(ModBlock.CARD_GETTER_CONTAINER, windowId);
-        tileEntity = (CardGetterTileEntity) world.getTileEntity(pos);
+        tileEntity = (CardGetterTileEntity) world.getBlockEntity(pos);
         playerEntity= player;
         this.inventory= new InvWrapper(inventory);
         tileEntity.getCapability(CapabilityItemHandler.ITEM_HANDLER_CAPABILITY).ifPresent(h->{
             addSlot(new SlotItemHandler(h,0,135,36){
                 @Override
-                public boolean isItemValid(@Nonnull ItemStack stack) {
+                public boolean mayPlace(@Nonnull ItemStack stack) {
                     return stack.getItem()== Items.EMERALD;
                 }
             });
             addSlot(new SlotItemHandler(h,1,219,37){
                 @Override
-                public boolean isItemValid(@Nonnull ItemStack stack) {
+                public boolean mayPlace(@Nonnull ItemStack stack) {
                     return false;
                 }
                 @Override
@@ -55,7 +58,7 @@ public class CardGetterContainer extends Container {
                 }
             });
         });
-        layoutPlayerInventorySlots(107,83);
+        layoutPlayerInventorySlots(leftCol,topRow);
     }
 
     public HashMap<Integer,Integer> getIdPriceMap(){
@@ -65,9 +68,9 @@ public class CardGetterContainer extends Container {
 
 
     @Override
-    public boolean canInteractWith(PlayerEntity playerIn) {
-        return isWithinUsableDistance(
-                IWorldPosCallable.of(tileEntity.getWorld(),tileEntity.getPos()),
+    public boolean stillValid(PlayerEntity playerIn) {
+        return stillValid(
+                IWorldPosCallable.create(tileEntity.getLevel(),tileEntity.getBlockPos()),
                 playerEntity,
                 ModBlock.CARD_GETTER
         );
@@ -79,38 +82,38 @@ public class CardGetterContainer extends Container {
 
 
     @Override
-    public ItemStack transferStackInSlot(PlayerEntity player, int index) {
+    public ItemStack quickMoveStack(PlayerEntity player, int index) {
         ItemStack stack = ItemStack.EMPTY;
-        Slot slot = this.inventorySlots.get(index);
-        if (slot != null && slot.getHasStack()){
-            ItemStack selecStack = slot.getStack();
+        Slot slot = this.slots.get(index);
+        if (slot != null && slot.hasItem()){
+            ItemStack selecStack = slot.getItem();
             stack = selecStack.copy();
             if (index == 0 || index ==1){//item that are in the two container slot
-                if (!mergeItemStack(selecStack,2,38,false)){
+                if (!moveItemStackTo(selecStack,2,38,false)){
                     return ItemStack.EMPTY;
                 }
-                slot.onSlotChange(selecStack,stack);
+                slot.onQuickCraft(selecStack,stack);
             }else {
                 if (stack.getItem() == Items.EMERALD){//item in inventories that are emerald
-                    if (!mergeItemStack(selecStack,0,1,false)){
+                    if (!moveItemStackTo(selecStack,0,1,false)){
                         return ItemStack.EMPTY;
                     }
                 }else {
                     if (index >1 && index <29){//item in intern inventory that are not emerald
-                        if (!mergeItemStack(selecStack,29,38,false)){
+                        if (!moveItemStackTo(selecStack,29,38,false)){
                             return ItemStack.EMPTY;
                         }
                     }else {//item in inventory bar that are not emerald
-                        if (!mergeItemStack(selecStack,2,29,false)){
+                        if (!moveItemStackTo(selecStack,2,29,false)){
                             return ItemStack.EMPTY;
                         }
                     }
                 }
             }
             if (selecStack.isEmpty()) {
-                slot.putStack(ItemStack.EMPTY);
+                slot.set(ItemStack.EMPTY);
             } else {
-                slot.onSlotChanged();
+                slot.setChanged();
             }
 
             if (selecStack.getCount() == stack.getCount()) {

@@ -22,13 +22,13 @@ import java.util.List;
 
 public class GarageDoorItem extends BlockItem {
     public GarageDoorItem(GarageDoor garageDoor) {
-        super(garageDoor,new Item.Properties().group(ModSetup.itemGroup));
+        super(garageDoor,new Item.Properties().tab(ModSetup.itemGroup));
     }
 
     @Override
-    public ActionResultType onItemUse(ItemUseContext context) {
+    public ActionResultType useOn(ItemUseContext context) {
         if (allBlockReplacedisAir(new BlockItemUseContext(context)) && hasSupportToStay(new BlockItemUseContext(context))){
-            return super.onItemUse(context);
+            return super.useOn(context);
         }
         System.out.println("block non fabriqué");
         return ActionResultType.FAIL;
@@ -37,22 +37,22 @@ public class GarageDoorItem extends BlockItem {
     // the function is not working  because we need to know where the first block will be created it depends on where the player clicked
     // need to check the onItemUse function of blockItem to know where it put the first value
     private boolean allBlockReplacedisAir(BlockItemUseContext context){
-        World world = context.getWorld();
+        World world = context.getLevel();
         PlayerEntity entity=context.getPlayer();
-        BlockPos pos_base =context.getPos();
+        BlockPos pos_base =context.getClickedPos();
         Direction facing = Functions.getDirectionFromEntity(entity,pos_base);
-        Direction dir_left_section=facing.rotateY();
+        Direction dir_left_section=facing.getClockWise();
         List<BlockPos> posList = new ArrayList<>();
         //block where we put the base block
         posList.add(pos_base);
         //back blocks
-        posList.add(pos_base.up().offset(facing.getOpposite()));
-        posList.add(pos_base.up()
-                .offset(facing.getOpposite())
-                .offset(dir_left_section));
+        posList.add(pos_base.above().relative(facing.getOpposite()));
+        posList.add(pos_base.above()
+                .relative(facing.getOpposite())
+                .relative(dir_left_section));
         //left block
-        posList.add(pos_base.offset(dir_left_section));
-        posList.add(pos_base.offset(dir_left_section).up());
+        posList.add(pos_base.relative(dir_left_section));
+        posList.add(pos_base.relative(dir_left_section).above());
 
         for (BlockPos pos_in : posList){
             //si le block n'est pas de l'air on retourne false
@@ -66,31 +66,31 @@ public class GarageDoorItem extends BlockItem {
     }
 
     private boolean hasSupportToStay(BlockItemUseContext context){
-        World world = context.getWorld();
+        World world = context.getLevel();
         PlayerEntity entity=context.getPlayer();
-        BlockPos pos_base =context.getPos();
+        BlockPos pos_base =context.getClickedPos();
         Direction facing = Functions.getDirectionFromEntity(entity,pos_base);
-        Direction dir_left_section=facing.rotateY();
+        Direction dir_left_section=facing.getClockWise();
         List<BlockPos> posList = new ArrayList<>();
         //support at the bottom
-        posList.add(pos_base.down());
-        posList.add(pos_base.offset(dir_left_section).down());
+        posList.add(pos_base.below());
+        posList.add(pos_base.relative(dir_left_section).below());
         //support on the right
-        posList.add(pos_base.offset(dir_left_section.getOpposite()));
-        posList.add(pos_base.offset(dir_left_section.getOpposite()).up());
+        posList.add(pos_base.relative(dir_left_section.getOpposite()));
+        posList.add(pos_base.relative(dir_left_section.getOpposite()).above());
         //support on the left
-        posList.add(pos_base.offset(dir_left_section,2));
-        posList.add(pos_base.offset(dir_left_section,2).up());
+        posList.add(pos_base.relative(dir_left_section,2));
+        posList.add(pos_base.relative(dir_left_section,2).above());
         //support on the top front
-        posList.add(pos_base.up(2).offset(dir_left_section.getOpposite()));
-        posList.add(pos_base.up(2));
-        posList.add(pos_base.up(2).offset(dir_left_section));
-        posList.add(pos_base.up(2).offset(dir_left_section,2));
+        posList.add(pos_base.above(2).relative(dir_left_section.getOpposite()));
+        posList.add(pos_base.above(2));
+        posList.add(pos_base.above(2).relative(dir_left_section));
+        posList.add(pos_base.above(2).relative(dir_left_section,2));
         //support on the top back
-        posList.add(pos_base.up(2).offset(dir_left_section.getOpposite()).offset(facing.getOpposite()));
-        posList.add(pos_base.up(2).offset(dir_left_section,2).offset(facing.getOpposite()));
+        posList.add(pos_base.above(2).relative(dir_left_section.getOpposite()).relative(facing.getOpposite()));
+        posList.add(pos_base.above(2).relative(dir_left_section,2).relative(facing.getOpposite()));
         for (BlockPos pos : posList){
-            if (!(world.getBlockState(pos).getMaterial().blocksMovement())){
+            if (!(world.getBlockState(pos).getMaterial().blocksMotion())){
                 System.out.println("la blockPos qui fait foirer :"+pos);
                 System.out.println("Block qui bloque :"+world.getBlockState(pos).getBlock());
                 return false;

@@ -37,7 +37,7 @@ public class ChangeIdPacket {
         AtomicInteger val = new AtomicInteger(0);
         context.get().enqueueWork(()->{
             if (key_id == -1) {
-                TileEntity te = context.get().getSender().getServerWorld().getTileEntity(pos);
+                TileEntity te = context.get().getSender().getLevel().getBlockEntity(pos);
                 System.out.println("packet handled : no key found");
                 if (te instanceof TollGateTileEntity) {
                     ((TollGateTileEntity) te).changeId();
@@ -49,7 +49,7 @@ public class ChangeIdPacket {
                     return;
                 }
             }else {
-                TileEntity te = context.get().getSender().getServerWorld().getTileEntity(pos);
+                TileEntity te = context.get().getSender().getLevel().getBlockEntity(pos);
                 System.out.println("packet handled : a key found with id :"+key_id);
                 if (te instanceof TollGateTileEntity) {
                     ((TollGateTileEntity) te).setId(key_id);

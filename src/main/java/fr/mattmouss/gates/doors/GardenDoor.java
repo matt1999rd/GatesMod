@@ -20,6 +20,7 @@ import net.minecraft.world.World;
 import javax.annotation.Nullable;
 import java.util.List;
 
+
 public class GardenDoor extends MultDoor {
 
     public static EnumProperty<DoorPlacing> PLACING = EnumProperty.create("position",DoorPlacing.class,placing -> {
@@ -28,17 +29,17 @@ public class GardenDoor extends MultDoor {
 
 
     public GardenDoor(String name) {
-        super(Properties.create(Material.IRON));
+        super(Properties.of(Material.METAL));
         this.setRegistryName(name);
     }
 
     @Override
     public VoxelShape getShape(BlockState state, IBlockReader worldIn, BlockPos pos, ISelectionContext context) {
-        if (!state.get(PLACING).isSide() ||state.get(PLACING).isCenterY())return VoxelShapes.empty();
-        int meta=state.get(PLACING).getMeta();
-        Direction facing=state.get(BlockStateProperties.HORIZONTAL_FACING);
-        boolean isOpen = state.get(BlockStateProperties.OPEN);
-        int index=8*meta+2*facing.getHorizontalIndex()+(isOpen?1:0);
+        if (!state.getValue(PLACING).isSide() ||state.getValue(PLACING).isCenterY())return VoxelShapes.empty();
+        int meta=state.getValue(PLACING).getMeta();
+        Direction facing=state.getValue(BlockStateProperties.HORIZONTAL_FACING);
+        boolean isOpen = state.getValue(BlockStateProperties.OPEN);
+        int index=8*meta+2*facing.get2DDataValue()+(isOpen?1:0);
         if (!VoxelDefinition.isInit){
             VoxelDefinition.init();
         }
@@ -46,11 +47,11 @@ public class GardenDoor extends MultDoor {
     }
 
     @Override
-    public void onBlockPlacedBy(World worldIn, BlockPos pos, BlockState state, @Nullable LivingEntity placer, ItemStack stack) {
-        Direction facing = state.get(BlockStateProperties.HORIZONTAL_FACING);
-        worldIn.setBlockState(pos.up(), state.with(PLACING, DoorPlacing.LEFT_UP), 3);
-        worldIn.setBlockState(pos.offset(facing.rotateYCCW()),state.with(PLACING,DoorPlacing.RIGHT_DOWN),3);
-        worldIn.setBlockState(pos.offset(facing.rotateYCCW()).up(),state.with(PLACING,DoorPlacing.RIGHT_UP),3);
+    public void setPlacedBy(World worldIn, BlockPos pos, BlockState state, @Nullable LivingEntity placer, ItemStack stack) {
+        Direction facing = state.getValue(BlockStateProperties.HORIZONTAL_FACING);
+        worldIn.setBlock(pos.above(), state.setValue(PLACING, DoorPlacing.LEFT_UP), 3);
+        worldIn.setBlock(pos.relative(facing.getCounterClockWise()),state.setValue(PLACING,DoorPlacing.RIGHT_DOWN),3);
+        worldIn.setBlock(pos.relative(facing.getCounterClockWise()).above(),state.setValue(PLACING,DoorPlacing.RIGHT_UP),3);
     }
 
 
@@ -58,20 +59,20 @@ public class GardenDoor extends MultDoor {
         List<BlockPos> blockToDestroy = Lists.newArrayList();
         BlockPos offsetPos;
         if (placing.isUp()){
-            offsetPos = pos.down();
-            blockToDestroy.add(pos.down());
+            offsetPos = pos.below();
+            blockToDestroy.add(pos.below());
         } else {
-            offsetPos = pos.up();
-            blockToDestroy.add(pos.up());
+            offsetPos = pos.above();
+            blockToDestroy.add(pos.above());
         }
         if (placing.isLeft()){
-            offsetPos = offsetPos.offset(facing.rotateYCCW());
+            offsetPos = offsetPos.relative(facing.getCounterClockWise());
             blockToDestroy.add(offsetPos);
-            blockToDestroy.add(pos.offset(facing.rotateYCCW()));
+            blockToDestroy.add(pos.relative(facing.getCounterClockWise()));
         }else {
-            offsetPos = offsetPos.offset(facing.rotateY());
+            offsetPos = offsetPos.relative(facing.getClockWise());
             blockToDestroy.add(offsetPos);
-            blockToDestroy.add(pos.offset(facing.rotateY()));
+            blockToDestroy.add(pos.relative(facing.getClockWise()));
         }
         return blockToDestroy;
     }
@@ -84,8 +85,8 @@ public class GardenDoor extends MultDoor {
     public boolean isInternUpdate(DoorPlacing placing,Direction facingUpdate,Direction blockFacing){
         return ( placing.isUp() && facingUpdate == Direction.DOWN) ||
                (!placing.isUp() && facingUpdate == Direction.UP)   ||
-                (placing.isLeft() && facingUpdate == blockFacing.rotateYCCW()) ||
-                (!placing.isLeft() && facingUpdate == blockFacing.rotateY());
+                (placing.isLeft() && facingUpdate == blockFacing.getCounterClockWise()) ||
+                (!placing.isLeft() && facingUpdate == blockFacing.getClockWise());
     }
 
 }

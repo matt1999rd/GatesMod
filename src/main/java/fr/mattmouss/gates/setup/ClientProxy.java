@@ -11,16 +11,16 @@ public class ClientProxy implements IProxy {
 
     @Override
     public void init() {
-        ScreenManager.registerFactory(ModBlock.TOLLGATE_USER_CONTAINER, TGUserScreen::new);
-        ScreenManager.registerFactory(ModBlock.TOLLGATE_TECH_CONTAINER, TGTechnicianScreen::new);
-        ScreenManager.registerFactory(ModBlock.TURN_STILE_CONTAINER, TSScreen::new);
-        ScreenManager.registerFactory(ModBlock.CARD_GETTER_CONTAINER, CardGetterScreen::new);
-        ScreenManager.registerFactory(ModBlock.CARD_GETTER_CHOICE_CONTAINER, CardGetterChoiceScreen::new);
+        ScreenManager.register(ModBlock.TOLLGATE_USER_CONTAINER, TGUserScreen::new);
+        ScreenManager.register(ModBlock.TOLLGATE_TECH_CONTAINER, TGTechnicianScreen::new);
+        ScreenManager.register(ModBlock.TURN_STILE_CONTAINER, TSScreen::new);
+        ScreenManager.register(ModBlock.CARD_GETTER_CONTAINER, CardGetterScreen::new);
+        ScreenManager.register(ModBlock.CARD_GETTER_CHOICE_CONTAINER, CardGetterChoiceScreen::new);
     }
 
     @Override
     public World getClientWorld() {
-        return Minecraft.getInstance().world;
+        return Minecraft.getInstance().level;
     }
 
     @Override

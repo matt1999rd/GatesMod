@@ -1,5 +1,7 @@
 package fr.mattmouss.gates.doors;
 
+
+
 import fr.mattmouss.gates.enum_door.TurnSPosition;
 import fr.mattmouss.gates.util.Functions;
 import fr.mattmouss.gates.voxels.VoxelDoubles;
@@ -24,11 +26,15 @@ import net.minecraft.util.math.shapes.ISelectionContext;
 import net.minecraft.util.math.shapes.VoxelShape;
 import net.minecraft.util.math.shapes.VoxelShapes;
 import net.minecraft.world.IBlockReader;
+import net.minecraft.world.IWorld;
 import net.minecraft.world.World;
 
 import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.List;
+
+import static fr.mattmouss.gates.enum_door.TurnSPosition.*;
+
 
 public abstract class AbstractTurnStile extends Block {
 
@@ -43,23 +49,23 @@ public abstract class AbstractTurnStile extends Block {
     }
 
     public AbstractTurnStile() {
-        super(Properties.create(Material.IRON)
-                        .hardnessAndResistance(2.0f)
+        super(Properties.of(Material.METAL)
+                        .strength(2.0f)
                         .sound(SoundType.METAL)
                 //1.15 function
-                .notSolid()
+                //.notSolid()
         );
     }
 
 
     @Override
     public VoxelShape getShape(BlockState state, IBlockReader reader, BlockPos pos, ISelectionContext context) {
-        if (state.get(TS_POSITION)!= TurnSPosition.MAIN && state.get(TS_POSITION)!=TurnSPosition.UP_BLOCK){
+        if (state.getValue(TS_POSITION)!= TurnSPosition.MAIN && state.getValue(TS_POSITION)!=TurnSPosition.UP_BLOCK){
             //we need to block the jumping of player on the turn stile which mean fraud.
-            return Block.makeCuboidShape(0,0,0,16,18,16);
-        }else if (state.get(TS_POSITION) == TurnSPosition.UP_BLOCK){
+            return Block.box(0,0,0,16,18,16);
+        }else if (state.getValue(TS_POSITION) == TurnSPosition.UP_BLOCK){
             //we had this block because player is jumping on the turn stile without this block
-            return (state.get(WAY_IS_ON))?VoxelShapes.empty():makeUpBlockShape(state.get(BlockStateProperties.HORIZONTAL_FACING));
+            return (state.getValue(WAY_IS_ON))?VoxelShapes.empty():makeUpBlockShape(state.getValue(BlockStateProperties.HORIZONTAL_FACING));
         }
 
         return getTurnStileShape(state);
@@ -67,17 +73,17 @@ public abstract class AbstractTurnStile extends Block {
 
 
     //1.14.4 function replaced by notSolid()
-    /*
+/*
     @Override
     public BlockRenderLayer func_180664_k() {
         return BlockRenderLayer.CUTOUT_MIPPED;
     }
+*/
 
-     */
 
     private VoxelShape getTurnStileShape(BlockState state){
-        int anim = state.get(ANIMATION);
-        Direction facing = state.get(BlockStateProperties.HORIZONTAL_FACING);
+        int anim = state.getValue(ANIMATION);
+        Direction facing = state.getValue(BlockStateProperties.HORIZONTAL_FACING);
         VoxelShape shape;
         VoxelDoubles RotationBlock;
         VoxelDoubles[] ForwardPart,BackwardPart,MiddlePart;
@@ -169,13 +175,13 @@ public abstract class AbstractTurnStile extends Block {
     private VoxelShape makeUpBlockShape(Direction facing){
         switch (facing){
             case EAST:
-                return Block.makeCuboidShape(6,0,0,16,16,16);
+                return Block.box(6,0,0,16,16,16);
             case NORTH:
-                return Block.makeCuboidShape(0,0,0,16,16,10);
+                return Block.box(0,0,0,16,16,10);
             case WEST:
-                return Block.makeCuboidShape(0,0,0,10,16,16);
+                return Block.box(0,0,0,10,16,16);
             case SOUTH:
-                return Block.makeCuboidShape(0,0,6,16,16,16);
+                return Block.box(0,0,6,16,16,16);
             default:
                 return null;
         }
@@ -188,114 +194,114 @@ public abstract class AbstractTurnStile extends Block {
     }
 
     @Override
-    protected void fillStateContainer(StateContainer.Builder<Block, BlockState> builder) {
+    protected void createBlockStateDefinition(StateContainer.Builder<Block, BlockState> builder) {
         builder.add(BlockStateProperties.HORIZONTAL_FACING,TS_POSITION,ANIMATION,BlockStateProperties.DOOR_HINGE,WAY_IS_ON);
     }
 
     @Nullable
     @Override
     public BlockState getStateForPlacement(BlockItemUseContext context) {
-        Direction facing = context.getPlacementHorizontalFacing();
+        Direction facing = context.getHorizontalDirection();
         if (checkFeasibility(context)){
-            BlockState state = getDefaultState();
-            return state.with(BlockStateProperties.HORIZONTAL_FACING,facing).with(TS_POSITION, TurnSPosition.MAIN).with(ANIMATION,0);
+            BlockState state = defaultBlockState();
+            return state.setValue(BlockStateProperties.HORIZONTAL_FACING,facing).setValue(TS_POSITION, TurnSPosition.MAIN).setValue(ANIMATION,0);
         }else {
             return null;
         }
     }
 
     @Override
-    public void onBlockPlacedBy(World world, BlockPos pos, BlockState state, @Nullable LivingEntity player, ItemStack stack) {
+    public void setPlacedBy(World world, BlockPos pos, BlockState state, @Nullable LivingEntity player, ItemStack stack) {
         if (player != null){
             Direction direction = Functions.getDirectionFromEntity(player,pos);
             DoorHingeSide dhs = Functions.getHingeSideFromEntity(player,pos,direction);
             //boolean that return true when Control Unit is on the right
             boolean CUisOnRight = (dhs == DoorHingeSide.RIGHT);
             //the control unit block (left if DHS.left and right if DHS.right)
-            TurnSPosition tsp = (CUisOnRight) ? TurnSPosition.RIGHT_BLOCK : TurnSPosition.LEFT_BLOCK;
-            world.setBlockState(pos,
+            TurnSPosition tsp = Functions.getCUPosition(pos,player);
+            world.setBlockAndUpdate(pos,
                     state
-                            .with(BlockStateProperties.HORIZONTAL_FACING,direction)
-                            .with(BlockStateProperties.DOOR_HINGE,dhs)
-                            .with(ANIMATION,0)
-                            .with(TS_POSITION,tsp)
-                            .with(WAY_IS_ON,false)
+                            .setValue(BlockStateProperties.HORIZONTAL_FACING,direction)
+                            .setValue(BlockStateProperties.DOOR_HINGE,dhs)
+                            .setValue(ANIMATION,0)
+                            .setValue(TS_POSITION,tsp)
+                            .setValue(WAY_IS_ON,false)
             );
             //the main block
             //offset with rotateY is for left block and rotateYCCW is for right block regarding direction of facing
-            BlockPos MainPos = (CUisOnRight) ? pos.offset(direction.rotateY()): pos.offset(direction.rotateYCCW());
-            world.setBlockState(MainPos,
+            BlockPos MainPos = Functions.getMainPosition(pos,player);
+            world.setBlockAndUpdate(MainPos,
                     state
-                            .with(BlockStateProperties.HORIZONTAL_FACING,direction)
-                            .with(BlockStateProperties.DOOR_HINGE,dhs)
-                            .with(ANIMATION,0)
-                            .with(TS_POSITION,TurnSPosition.MAIN)
-                            .with(WAY_IS_ON,false)
+                            .setValue(BlockStateProperties.HORIZONTAL_FACING,direction)
+                            .setValue(BlockStateProperties.DOOR_HINGE,dhs)
+                            .setValue(ANIMATION,0)
+                            .setValue(TS_POSITION,TurnSPosition.MAIN)
+                            .setValue(WAY_IS_ON,false)
             );
             //the up block
-            world.setBlockState(MainPos.offset(Direction.UP),
+            world.setBlockAndUpdate(MainPos.relative(Direction.UP),
                     state
-                            .with(BlockStateProperties.HORIZONTAL_FACING,direction)
-                            .with(BlockStateProperties.DOOR_HINGE,dhs)
-                            .with(ANIMATION,0)
-                            .with(TS_POSITION,TurnSPosition.UP_BLOCK)
-                            .with(WAY_IS_ON,false)
+                            .setValue(BlockStateProperties.HORIZONTAL_FACING,direction)
+                            .setValue(BlockStateProperties.DOOR_HINGE,dhs)
+                            .setValue(ANIMATION,0)
+                            .setValue(TS_POSITION,TurnSPosition.UP_BLOCK)
+                            .setValue(WAY_IS_ON,false)
             );
 
             //the right block
-            BlockPos ExtremityPos = (CUisOnRight) ? pos.offset(direction.rotateY(),2) : pos.offset(direction.rotateYCCW(),2);
+            BlockPos ExtremityPos = (CUisOnRight) ? pos.relative(direction.getClockWise(),2) : pos.relative(direction.getCounterClockWise(),2);
             TurnSPosition ExtremityTsp = (CUisOnRight) ? TurnSPosition.LEFT_BLOCK : TurnSPosition.RIGHT_BLOCK;
-            world.setBlockState(ExtremityPos,
+            world.setBlockAndUpdate(ExtremityPos,
                     state
-                            .with(BlockStateProperties.HORIZONTAL_FACING,direction)
-                            .with(BlockStateProperties.DOOR_HINGE,dhs)
-                            .with(ANIMATION,0)
-                            .with(TS_POSITION,ExtremityTsp)
-                            .with(WAY_IS_ON,false)
+                            .setValue(BlockStateProperties.HORIZONTAL_FACING,direction)
+                            .setValue(BlockStateProperties.DOOR_HINGE,dhs)
+                            .setValue(ANIMATION,0)
+                            .setValue(TS_POSITION,ExtremityTsp)
+                            .setValue(WAY_IS_ON,false)
             );
         }
     }
 
 
     @Override
-    public void harvestBlock(World world, PlayerEntity entity, BlockPos pos, BlockState state, @Nullable TileEntity tileEntity, ItemStack stack) {
-        super.harvestBlock(world, entity, pos, Blocks.AIR.getDefaultState(), tileEntity, stack);
+    public void playerDestroy(World world, PlayerEntity entity, BlockPos pos, BlockState state, @Nullable TileEntity tileEntity, ItemStack stack) {
+        super.playerDestroy(world, entity, pos, Blocks.AIR.defaultBlockState(), tileEntity, stack);
     }
 
     @Override
-    public void onBlockHarvested(World world, BlockPos pos, BlockState state, PlayerEntity entity) {
+    public void playerWillDestroy(World world, BlockPos pos, BlockState state, PlayerEntity entity) {
         System.out.println("destroying all block of turn stile");
-        ItemStack stack = entity.getHeldItemMainhand();
-        if (!world.isRemote) {
-            Block.spawnDrops(state, world, pos, null, entity, stack);
+        ItemStack stack = entity.getMainHandItem();
+        if (!world.isClientSide) {
+            Block.dropResources(state, world, pos, null, entity, stack);
         }
-        super.onBlockHarvested(world, pos, state, entity);
+        super.playerWillDestroy(world, pos, state, entity);
     }
 
-    public boolean allowsMovement(BlockState state, IBlockReader reader, BlockPos pos, PathType pathType) {
+    public boolean isPathfindable(BlockState state, IBlockReader reader, BlockPos pos, PathType pathType) {
         switch(pathType) {
             case LAND:
             case AIR:
-                return (state.get(ANIMATION)==1);
+                return (state.getValue(ANIMATION)==1);
             default:
                 return false;
         }
     }
 
     private boolean checkFeasibility(BlockItemUseContext context) {
-        BlockPos pos =context.getPos();
-        World world = context.getWorld();
+        BlockPos pos =context.getClickedPos();
+        World world = context.getLevel();
         PlayerEntity entity = context.getPlayer();
         Direction facing = Functions.getDirectionFromEntity(entity,pos);
         DoorHingeSide dhs = Functions.getHingeSideFromEntity(entity,pos,facing);
-        Direction dir_other_block = (dhs == DoorHingeSide.RIGHT) ? facing.rotateY() : facing.rotateYCCW();
+        Direction dir_other_block = (dhs == DoorHingeSide.RIGHT) ? facing.getClockWise() : facing.getCounterClockWise();
         List<BlockPos> posList = new ArrayList<>();
         //block Control Unit
         posList.add(pos);
         //block main
-        posList.add(pos.offset(dir_other_block));
+        posList.add(pos.relative(dir_other_block));
         //block opposite CU
-        posList.add(pos.offset(dir_other_block,2));
+        posList.add(pos.relative(dir_other_block,2));
 
         for (BlockPos pos_in : posList){
             //return false if the position of this future block is occupied by another solid block
@@ -305,9 +311,9 @@ public abstract class AbstractTurnStile extends Block {
                 return false;
             }
             //return false if the position of this future block is above a air or bush or leaves block
-            Block underBlock = world.getBlockState(pos_in.down()).getBlock();
+            Block underBlock = world.getBlockState(pos_in.below()).getBlock();
             if (underBlock instanceof AirBlock || underBlock instanceof BushBlock || underBlock instanceof LeavesBlock){
-                System.out.println("la blockPos qui fait foirer :"+pos_in.down());
+                System.out.println("la blockPos qui fait foirer :"+pos_in.below());
                 System.out.println("Block qui ne stabilise pas :"+underBlock);
                 return false;
             }
@@ -316,43 +322,71 @@ public abstract class AbstractTurnStile extends Block {
 
     }
 
-    public List<BlockPos> getPositionOfBlockConnected(Direction direction,TurnSPosition tsp,DoorHingeSide dhs,BlockPos pos) {
+    public List<BlockPos> getPositionOfBlockConnected(BlockState state,BlockPos pos) {
+        BlockPos mainPos = getMainPos(state,pos);
+        Direction direction = state.getValue(BlockStateProperties.HORIZONTAL_FACING);
+        DoorHingeSide dhs = state.getValue(BlockStateProperties.DOOR_HINGE);
         //ajout de tout les blocks
         List<BlockPos> posList = new ArrayList<>();
-        Direction leftBlockDirection=(dhs==DoorHingeSide.RIGHT)? direction.rotateY() : direction.rotateYCCW();
-        BlockPos mainPos = getMainPos(leftBlockDirection,pos,tsp);
+        Direction leftBlockDirection=(dhs==DoorHingeSide.RIGHT)? direction.getClockWise() : direction.getCounterClockWise();
         //block main
         posList.add(mainPos);
         //block left
-        posList.add(mainPos.offset(leftBlockDirection));
+        posList.add(mainPos.relative(leftBlockDirection));
         //block right
-        posList.add(mainPos.offset(leftBlockDirection.getOpposite()));
+        posList.add(mainPos.relative(leftBlockDirection.getOpposite()));
         //block up
-        posList.add(mainPos.up());
+        posList.add(mainPos.above());
         return posList;
     }
 
-    private BlockPos getMainPos(Direction leftBlockDirection,BlockPos pos,TurnSPosition tsp){
+    public BlockPos getMainPos(BlockState state,BlockPos pos){
+        TurnSPosition tsp = state.getValue(TS_POSITION);
+        Direction direction = state.getValue(BlockStateProperties.HORIZONTAL_FACING);
+        DoorHingeSide dhs = state.getValue(BlockStateProperties.DOOR_HINGE);
+        Direction leftBlockDirection=(dhs==DoorHingeSide.RIGHT)? direction.getClockWise() : direction.getCounterClockWise();
         switch (tsp) {
             case MAIN:
                 return pos;
             case LEFT_BLOCK:
-                return pos.offset(leftBlockDirection);
+                return pos.relative(leftBlockDirection);
             case UP_BLOCK:
-                return pos.down();
+                return pos.below();
             case RIGHT_BLOCK:
-                return pos.offset(leftBlockDirection.getOpposite());
+                return pos.relative(leftBlockDirection.getOpposite());
             default:
                 throw new NullPointerException("TollGatePosition of block at position :" + pos + "has null attribut for tollgateposition");
         }
     }
 
+    @Override
+    public BlockState updateShape(BlockState stateIn, Direction facing, BlockState facingState, IWorld worldIn, BlockPos currentPos, BlockPos facingPos) {
+        TurnSPosition position = stateIn.getValue(TS_POSITION);
+        Direction blockFacing = stateIn.getValue(BlockStateProperties.HORIZONTAL_FACING);
+        DoorHingeSide dhs = stateIn.getValue(BlockStateProperties.DOOR_HINGE);
+        if (isInnerUpdate(position,facing,blockFacing,dhs) &&  !(facingState.getBlock().getClass().equals(this.getClass()))){
+            return Blocks.AIR.defaultBlockState();
+        }
+        if (position.isDown() && facing == Direction.DOWN && !facingState.getMaterial().blocksMotion()){
+            return Blocks.AIR.defaultBlockState();
+        }
+        return stateIn;
+    }
+
+    //block facing is the direction of forth block
+    private boolean isInnerUpdate(TurnSPosition position, Direction facingUpdate, Direction blockFacing, DoorHingeSide side){
+        return ((position == RIGHT_BLOCK && facingUpdate == blockFacing.getCounterClockWise()) ||
+                (position == LEFT_BLOCK && facingUpdate == blockFacing.getClockWise()) ||
+                (position == MAIN && (facingUpdate.getAxis() == blockFacing.getClockWise().getAxis() || facingUpdate == Direction.UP) ) ||
+                (position == UP_BLOCK && facingUpdate == Direction.DOWN));
+    }
+
     //check if this TE is the control unit tile entity to avoid multiple definition of idstorage that will be of no use
-    public boolean isRightTSB(BlockState state) {
-        DoorHingeSide dhs = state.get(BlockStateProperties.DOOR_HINGE);
+    public boolean isControlUnit(BlockState state) {
+        DoorHingeSide dhs = state.getValue(BlockStateProperties.DOOR_HINGE);
         return (dhs == DoorHingeSide.RIGHT) ?
-                state.get(TurnStile.TS_POSITION) == TurnSPosition.RIGHT_BLOCK :
-                state.get(TurnStile.TS_POSITION) == TurnSPosition.LEFT_BLOCK;
+                state.getValue(TurnStile.TS_POSITION) == TurnSPosition.RIGHT_BLOCK :
+                state.getValue(TurnStile.TS_POSITION) == TurnSPosition.LEFT_BLOCK;
     }
 
 

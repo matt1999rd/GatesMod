@@ -18,7 +18,7 @@ public class IdTracker extends WorldSavedData {
     }
 
     @Override
-    public void read(CompoundNBT compoundNBT) {
+    public void load(CompoundNBT compoundNBT) {
         if (compoundNBT.contains("idlist") && compoundNBT.get("idlist") instanceof ListNBT){
             ListNBT nbt = (ListNBT) compoundNBT.get("idlist");
             for (INBT inbt : nbt){
@@ -39,7 +39,7 @@ public class IdTracker extends WorldSavedData {
     }
 
     @Override
-    public CompoundNBT write(CompoundNBT compound) {
+    public CompoundNBT save(CompoundNBT compound) {
         ListNBT nbt = new ListNBT();
         all_id.forEach((id,number)->{//for each key we add a compound inbt which contains
             //a compound "id" for stocking an int "id" -> id of gates
@@ -66,7 +66,7 @@ public class IdTracker extends WorldSavedData {
         }else { //if the id doesn't exist we should create it with 1 as number of gates with this id
             all_id.put(id,1);
         }
-        this.markDirty();
+        this.setDirty();
     }
 
     public void removeId(int id){ //it return the number of gates with this id counting 0 if no gates has this id
@@ -79,7 +79,7 @@ public class IdTracker extends WorldSavedData {
             number--;
             all_id.replace(id,number);
         }
-        this.markDirty();
+        this.setDirty();
     }
 
     public List<Integer> getList(){

@@ -1,5 +1,6 @@
 package fr.mattmouss.gates.gui;
 
+import com.mojang.blaze3d.matrix.MatrixStack;
 import fr.mattmouss.gates.GatesMod;
 import fr.mattmouss.gates.network.ChangeIdPacket;
 import fr.mattmouss.gates.network.Networking;
@@ -18,44 +19,47 @@ public class TSScreen extends ContainerScreen<TSContainer> {
     private static final int white = 0xffffff;
 
     public TSScreen(TSContainer container, PlayerInventory inventory, ITextComponent title) {
-        super(container, inventory, title);
+        super(container, inventory, ITextComponent.nullToEmpty("Turn Stile Technician Screen"));
+        this.titleLabelX = 11;
+        this.titleLabelY = 6;
+        this.inventoryLabelX = container.leftCol-1;
+        this.inventoryLabelY = container.topRow-1-9;
     }
 
     @Override
     protected void init() {
         super.init();
-        Button changeIdButton = new Button(guiLeft+98,  guiTop+44, 66, 20, "change Id", button -> changeId());
-        Button doneButton = new Button(guiLeft+11, guiTop+44, 66, 20, "Done", button -> onClose());
+        Button changeIdButton = new Button(leftPos+98,  topPos+44, 66, 20, ITextComponent.nullToEmpty("change Id"), button -> changeId());
+        Button doneButton = new Button(leftPos+11, topPos+44, 66, 20, ITextComponent.nullToEmpty("Done"), button -> onClose());
         addButton(doneButton);
         addButton(changeIdButton);
     }
 
     @Override
-    public void render(int mouseX, int mouseY, float partialTicks) {
-        this.renderBackground();
-        super.render(mouseX, mouseY, partialTicks);
-        this.renderHoveredToolTip(mouseX,mouseY);
+    public void render(MatrixStack stack,int mouseX, int mouseY, float partialTicks) {
+        this.renderBackground(stack);
+        super.render(stack,mouseX, mouseY, partialTicks);
+        this.renderTooltip(stack,mouseX,mouseY);
     }
 
     private void changeId(){
         System.out.println("changing Id");
-        Networking.INSTANCE.sendToServer(new ChangeIdPacket(container.getTileEntity().getPos(),container.getKeyId()));
+        Networking.INSTANCE.sendToServer(new ChangeIdPacket(menu.getTileEntity().getBlockPos(),menu.getKeyId()));
     }
 
     @Override
-    protected void drawGuiContainerForegroundLayer(int p_146979_1_, int p_146979_2_) {
-        int pos_id = Functions.getIdFromBlockPos(container.getPos());
-        int id = container.getId();
-        FontRenderer font = Minecraft.getInstance().fontRenderer;
-        this.drawString(font,pos_id+" ",33,27,white);
-        this.drawString(font,id+" ",117,27,white);
-        this.drawString(font,"Turn Stile Technician Screen",11,6,white);
-        super.drawGuiContainerForegroundLayer(p_146979_1_,p_146979_2_);
+    protected void renderLabels(MatrixStack stack,int p_146979_1_, int p_146979_2_) {
+        int pos_id = Functions.getIdFromBlockPos(menu.getPos());
+        int id = menu.getId();
+        FontRenderer font = Minecraft.getInstance().font;
+        drawString(stack,font,pos_id+" ",33,27,white);
+        drawString(stack,font,id+" ",117,27,white);
+        super.renderLabels(stack,p_146979_1_,p_146979_2_);
     }
 
     @Override
-    protected void drawGuiContainerBackgroundLayer(float partialTicks, int mouseX, int mouseY) {
-        this.minecraft.getTextureManager().bindTexture(GUI);
-        this.blit(guiLeft, guiTop, 0, 0, this.xSize, this.ySize);
+    protected void renderBg(MatrixStack stack,float partialTicks, int mouseX, int mouseY) {
+        this.minecraft.getTextureManager().bind(GUI);
+        this.blit(stack,leftPos, topPos, 0, 0, this.imageWidth, this.imageHeight);
     }
 }

@@ -5,7 +5,6 @@ import fr.mattmouss.gates.tileentity.CardGetterTileEntity;
 import net.minecraft.network.PacketBuffer;
 import net.minecraft.util.math.BlockPos;
 import net.minecraftforge.fml.network.NetworkEvent;
-import sun.nio.ch.Net;
 
 import java.util.HashMap;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -51,7 +50,7 @@ public class PutIdsToClientPacket {
     public void handle(Supplier<NetworkEvent.Context> context){
         AtomicBoolean needToMarkDirty = new AtomicBoolean(false);
         context.get().enqueueWork(()->{
-            CardGetterTileEntity cgte = (CardGetterTileEntity) GatesMod.proxy.getClientWorld().getTileEntity(pos);
+            CardGetterTileEntity cgte = (CardGetterTileEntity) GatesMod.proxy.getClientWorld().getBlockEntity(pos);
             if (cgte==null){
                 needToMarkDirty.set(true);
             }

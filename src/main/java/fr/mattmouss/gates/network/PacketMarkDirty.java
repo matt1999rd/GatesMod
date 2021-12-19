@@ -29,8 +29,8 @@ public class PacketMarkDirty {
 
     public void handle(Supplier<NetworkEvent.Context> context){
         context.get().enqueueWork(()->{
-            World world = context.get().getSender().world;
-            CardGetterTileEntity cgte = (CardGetterTileEntity)world.getTileEntity(pos);
+            World world = context.get().getSender().level;
+            CardGetterTileEntity cgte = (CardGetterTileEntity)world.getBlockEntity(pos);
             if (cgte == null) GatesMod.logger.warning("NO more of this fucking function that are not working !! ");
             else cgte.markIdDirty(isDirty);
         });

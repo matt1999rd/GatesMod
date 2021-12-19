@@ -27,18 +27,19 @@ import net.minecraftforge.fml.network.NetworkHooks;
 
 import javax.annotation.Nullable;
 
+
 public class CardGetter extends Block {
     public CardGetter() {
-        super(Properties.create(Material.IRON)
-        .hardnessAndResistance(2f)
+        super(Properties.of(Material.METAL)
+        .strength(2f)
         .sound(SoundType.METAL)
         //1.15 function
-        .notSolid()
-        .lightValue(5));
+        //.notSolid()
+        .lightLevel(value -> 5));
         this.setRegistryName("card_getter");
     }
 
-    private static final VoxelShape SHAPE = Block.makeCuboidShape(0,0,0,16,32,16);
+    private static final VoxelShape SHAPE = Block.box(0,0,0,16,32,16);
 
     @Override
     public VoxelShape getShape(BlockState p_220053_1_, IBlockReader p_220053_2_, BlockPos p_220053_3_, ISelectionContext p_220053_4_) {
@@ -57,24 +58,24 @@ public class CardGetter extends Block {
     }
 
     @Override
-    public void onBlockPlacedBy(World world, BlockPos pos, BlockState state, @Nullable LivingEntity entity, ItemStack stack) {
+    public void setPlacedBy(World world, BlockPos pos, BlockState state, @Nullable LivingEntity entity, ItemStack stack) {
         if (entity != null){
-            world.setBlockState(pos,state.with(BlockStateProperties.HORIZONTAL_FACING, Functions.getDirectionFromEntity(entity,pos)));
+            world.setBlockAndUpdate(pos,state.setValue(BlockStateProperties.HORIZONTAL_FACING, Functions.getDirectionFromEntity(entity,pos)));
         }
     }
 
     //1.14.4 function replaced by notSolid()
-    /*
+/*
     @Override
     public BlockRenderLayer func_180664_k() {
         return BlockRenderLayer.CUTOUT_MIPPED;
     }
+*/
 
-     */
 
 
     @Override
-    protected void fillStateContainer(StateContainer.Builder<Block, BlockState> builder) {
+    protected void createBlockStateDefinition(StateContainer.Builder<Block, BlockState> builder) {
         builder.add(BlockStateProperties.HORIZONTAL_FACING);
     }
 
@@ -82,14 +83,14 @@ public class CardGetter extends Block {
 
 
     @Override
-    public ActionResultType onBlockActivated(BlockState state, World world, BlockPos pos, PlayerEntity player, Hand hand, BlockRayTraceResult result) {
+    public ActionResultType use(BlockState state, World world, BlockPos pos, PlayerEntity player, Hand hand, BlockRayTraceResult result) {
         if (player != null){
             Direction looking_direction = Functions.getDirectionFromEntity(player,pos);
-            Direction facing = state.get(BlockStateProperties.HORIZONTAL_FACING);
-            CardGetterTileEntity cgte = (CardGetterTileEntity) world.getTileEntity(pos);
+            Direction facing = state.getValue(BlockStateProperties.HORIZONTAL_FACING);
+            CardGetterTileEntity cgte = (CardGetterTileEntity) world.getBlockEntity(pos);
             if (facing == looking_direction){
                 cgte.setSide(true); // player is a user
-                if (!world.isRemote) NetworkHooks.openGui((ServerPlayerEntity) player,cgte,cgte.getPos());
+                if (!world.isClientSide) NetworkHooks.openGui((ServerPlayerEntity) player,cgte,cgte.getBlockPos());
                 return ActionResultType.SUCCESS;
             }
         }
@@ -98,24 +99,24 @@ public class CardGetter extends Block {
 
 
 
-
+/*
     //1.14.4 function onBlockActivated
-    /*
+
     @Override
     public boolean func_220051_a(BlockState state, World world, BlockPos pos, PlayerEntity player, Hand p_220051_5_, BlockRayTraceResult p_220051_6_) {
         if (player != null){
             Direction looking_direction = Functions.getDirectionFromEntity(player,pos);
-            Direction facing = state.get(BlockStateProperties.HORIZONTAL_FACING);
-            CardGetterTileEntity cgte = (CardGetterTileEntity) world.getTileEntity(pos);
+            Direction facing = state.getValue(BlockStateProperties.HORIZONTAL_FACING);
+            CardGetterTileEntity cgte = (CardGetterTileEntity) world.getBlockEntity(pos);
             if (facing == looking_direction){
                 cgte.setSide(true); // player is a user
-                if (!world.isRemote) NetworkHooks.openGui((ServerPlayerEntity) player,cgte,cgte.getPos());
+                if (!world.isClientSide) NetworkHooks.openGui((ServerPlayerEntity) player,cgte,cgte.getBlockPos());
                 return true;
             }
         }
         return false;
     }
+*/
 
-     */
 
 }

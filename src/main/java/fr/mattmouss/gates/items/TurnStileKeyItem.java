@@ -1,6 +1,6 @@
 package fr.mattmouss.gates.items;
 
-import fr.mattmouss.gates.tileentity.TollGateTileEntity;
+import fr.mattmouss.gates.doors.TurnStile;
 import fr.mattmouss.gates.tileentity.TurnStileTileEntity;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.player.ServerPlayerEntity;
@@ -20,16 +20,26 @@ public class TurnStileKeyItem extends KeyItem {
     }
 
     @Override
-    public ActionResultType onItemUse(ItemUseContext context) {
-        BlockPos pos = context.getPos();
+    public ActionResultType useOn(ItemUseContext context) {
+        BlockPos pos = context.getClickedPos();
         PlayerEntity entity = context.getPlayer();
-        World world = context.getWorld();
+        World world = context.getLevel();
         Hand hand = context.getHand();
-        ItemStack stack = entity.getHeldItem(hand);
-        TileEntity te= world.getTileEntity(pos);
+        ItemStack stack = entity.getItemInHand(hand);
+        TileEntity te= world.getBlockEntity(pos);
         if (!(te instanceof TurnStileTileEntity)){
-            //we exit the function if it is not a TollGateTileEntity
-            return super.onItemUse(context);
+            //we exit the function if it is not a TurnStileTileEntity
+            return super.useOn(context);
+        }
+
+        if (!(te.getBlockState().getBlock() instanceof TurnStile)){
+            throw new IllegalStateException("Corrupted world : a tile entity exists when the block associated did not");
+        }
+        TurnStile clickedTurnStile = (TurnStile) te.getBlockState().getBlock();
+        boolean isControlUnit = clickedTurnStile.isControlUnit(te.getBlockState());
+        if (!isControlUnit){
+            //we don't open the gui if the block clicked is not compared to the control unit part
+            return super.useOn(context);
         }
 
         //if someone takes the key from the creative tab it will not have any BlockPos and we set the blockPos to the present turn stile
@@ -39,17 +49,20 @@ public class TurnStileKeyItem extends KeyItem {
             setTSPosition(stack,world,pos);
             registeredPos = getTSPosition(stack,world);
         }
+
+
         if (!pos.equals(registeredPos)){
             System.out.println("the registered pos is not the pos of this block");
             System.out.println("pos of turn stile key attribute :"+registeredPos);
             System.out.println("pos of turn stile :"+pos);
-            return super.onItemUse(context);
+            // the player try to configure a turn stile which is not his own
+            return super.useOn(context);
         }
-        TurnStileTileEntity tste = (TurnStileTileEntity) world.getTileEntity(pos);
-        if (!world.isRemote) {
-            NetworkHooks.openGui((ServerPlayerEntity) entity, tste, tste.getPos());
+        TurnStileTileEntity tste = (TurnStileTileEntity) world.getBlockEntity(pos);
+        if (!world.isClientSide) {
+            NetworkHooks.openGui((ServerPlayerEntity) entity, tste, tste.getBlockPos());
         }
-        return super.onItemUse(context);
+        return super.useOn(context);
 
     }
 

@@ -32,7 +32,7 @@ public class SetIdPacket {
 
     public void handle(Supplier<NetworkEvent.Context> context){
         context.get().enqueueWork(()->{
-            TileEntity te =GatesMod.proxy.getClientWorld().getTileEntity(pos);
+            TileEntity te =GatesMod.proxy.getClientWorld().getBlockEntity(pos);
             System.out.println("packet handled");
             if (te instanceof TollGateTileEntity){
                 ((TollGateTileEntity)te).setId(server_id);

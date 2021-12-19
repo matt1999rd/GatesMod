@@ -3,7 +3,6 @@ package fr.mattmouss.gates.tscapability;
 import fr.mattmouss.gates.energystorage.IdTracker;
 import net.minecraft.nbt.CompoundNBT;
 import net.minecraft.world.World;
-import net.minecraft.world.dimension.DimensionType;
 import net.minecraft.world.storage.DimensionSavedDataManager;
 import net.minecraftforge.common.util.INBTSerializable;
 
@@ -40,12 +39,12 @@ public class TSStorage implements ITSStorage, INBTSerializable<CompoundNBT> {
 
     @Override
     public void setId(int newId, World world) {
-        DimensionSavedDataManager manager = world.getServer().getWorld(DimensionType.OVERWORLD).getSavedData();
+        DimensionSavedDataManager manager = world.getServer().overworld().getDataStorage();
         if (id != -1){
-            manager.getOrCreate(IdTracker::new,"idgates").removeId(id);
+            manager.computeIfAbsent(IdTracker::new,"idgates").removeId(id);
         }
         id = newId;
-        manager.getOrCreate(IdTracker::new,"idgates").addNewId(newId);
+        manager.computeIfAbsent(IdTracker::new,"idgates").addNewId(newId);
     }
 
     @Override

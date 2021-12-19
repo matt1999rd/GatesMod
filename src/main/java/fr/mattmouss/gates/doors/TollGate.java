@@ -1,14 +1,16 @@
 package fr.mattmouss.gates.doors;
 
-import fr.mattmouss.gates.energystorage.IdTracker;
 import fr.mattmouss.gates.enum_door.TollGPosition;
 import fr.mattmouss.gates.items.ModItem;
 import fr.mattmouss.gates.items.TollKeyItem;
 import fr.mattmouss.gates.network.Networking;
+import fr.mattmouss.gates.network.PacketRemoveId;
 import fr.mattmouss.gates.network.SetIdPacket;
 import fr.mattmouss.gates.tileentity.TollGateTileEntity;
+import fr.mattmouss.gates.tileentity.TurnStileTileEntity;
 import fr.mattmouss.gates.util.Functions;
 import net.minecraft.block.BlockState;
+import net.minecraft.block.Blocks;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.player.PlayerInventory;
@@ -26,7 +28,6 @@ import net.minecraft.util.math.BlockRayTraceResult;
 import net.minecraft.world.IBlockReader;
 import net.minecraft.world.IWorld;
 import net.minecraft.world.World;
-import net.minecraft.world.dimension.DimensionType;
 import net.minecraftforge.fml.network.NetworkHooks;
 import net.minecraftforge.fml.network.PacketDistributor;
 
@@ -51,106 +52,122 @@ public class TollGate extends AbstractTollGate {
     }
 
     @Override
-    public void onBlockPlacedBy(World world, BlockPos pos, BlockState state, @Nullable LivingEntity entity, ItemStack stack) {
+    public void setPlacedBy(World world, BlockPos pos, BlockState state, @Nullable LivingEntity entity, ItemStack stack) {
         //on pose le block central au niveau du block selectionné
         //le coté de la barrière sera défini selon la position du joueur vis à vis du block
         if (entity != null){
             //on initialise l'id
-            if (!world.isRemote ) {
-                TollGateTileEntity tgte = (TollGateTileEntity) world.getTileEntity(pos);
+            if (!world.isClientSide ) {
+                TollGateTileEntity tgte = (TollGateTileEntity) world.getBlockEntity(pos);
                 tgte.changeId();
                 Networking.INSTANCE.send(PacketDistributor.PLAYER.with(()-> (ServerPlayerEntity)entity),new SetIdPacket(pos,tgte.getId()));
             }
-            super.onBlockPlacedBy(world, pos, state, entity, stack);
+            super.setPlacedBy(world, pos, state, entity, stack);
         }
     }
 
     @Override
-    public BlockState updatePostPlacement(BlockState stateIn, Direction facing, BlockState facingState, IWorld worldIn, BlockPos currentPos, BlockPos facingPos) {
-        TollGPosition position = stateIn.get(TG_POSITION);
-        if (position == CONTROL_UNIT && facing == Direction.DOWN && !facingState.getMaterial().blocksMovement()) {
-            if (!worldIn.isRemote()) removeUselessKey(worldIn.getWorld(), currentPos, stateIn);
+    public BlockState updateShape(BlockState stateIn, Direction facing, BlockState facingState, IWorld worldIn, BlockPos currentPos, BlockPos facingPos) {
+        BlockState futureState = super.updateShape(stateIn, facing, facingState, worldIn, currentPos, facingPos);
+        if (futureState.getBlock() == Blocks.AIR){
+            onTollGateRemoved(worldIn,currentPos);
         }
-        return super.updatePostPlacement(stateIn, facing, facingState, worldIn, currentPos, facingPos);
+        return super.updateShape(stateIn, facing, facingState, worldIn, currentPos, facingPos);
     }
 
+
+
     @Override
-    public void onBlockHarvested(World world, BlockPos pos, BlockState state, PlayerEntity entity) {
+    public void playerWillDestroy(World world, BlockPos pos, BlockState state, PlayerEntity entity) {
         System.out.println("destroying all block of toll gate");
-        TollGateTileEntity tgte = (TollGateTileEntity) world.getTileEntity(pos);
-        if (!world.isRemote){
-            IdTracker idTracker = world.getServer().getWorld(DimensionType.OVERWORLD).getSavedData().getOrCreate(IdTracker::new,"idgates");
-            idTracker.removeId(tgte.getId());
-            removeUselessKey(world,pos,state);
-        }
-        super.onBlockHarvested(world, pos, state, entity);
+        onTollGateRemoved(world,pos);
+        super.playerWillDestroy(world, pos, state, entity);
     }
 
-    private void removeUselessKey(World world,BlockPos pos,BlockState state){
+    private void removeUselessKey(IWorld world,BlockPos pos){
         TollKeyItem key = (TollKeyItem) ModItem.TOLL_GATE_KEY.asItem();
+        BlockState state = world.getBlockState(pos);
         ItemStack oldStack = new ItemStack(key);
         BlockPos keyPos = getKeyPos(pos,state);
         key.setTGPosition(oldStack, world, keyPos);
-        List<? extends PlayerEntity> players = world.getPlayers();
+        List<? extends PlayerEntity> players = world.players();
         AtomicBoolean foundKey = new AtomicBoolean(false);
         players.forEach(p -> {
             PlayerInventory inventory = p.inventory;
             if (!foundKey.get()) {
-                if (inventory.hasItemStack(oldStack)) {
-                    int slot = inventory.getSlotFor(oldStack);
-                    inventory.mainInventory.set(slot, ItemStack.EMPTY);
-                    foundKey.set(true);
+                if (inventory.contains(oldStack)) {
+                    int slot = inventory.findSlotMatchingItem(oldStack);
+                    if (slot != -1){
+                        inventory.items.set(slot, ItemStack.EMPTY);
+                        foundKey.set(true);
+                    }
                 }
             }
         });
     }
 
     private BlockPos getKeyPos(BlockPos pos, BlockState state) {
-        TollGPosition tollGPosition = state.get(TG_POSITION);
-        DoorHingeSide side = state.get(BlockStateProperties.DOOR_HINGE);
-        Direction facing = state.get(BlockStateProperties.HORIZONTAL_FACING);
+        TollGPosition tollGPosition = state.getValue(TG_POSITION);
+        DoorHingeSide side = state.getValue(BlockStateProperties.DOOR_HINGE);
+        Direction facing = state.getValue(BlockStateProperties.HORIZONTAL_FACING);
         Direction extDirection = Functions.getDirectionOfExtBlock(facing,side);
         switch (tollGPosition){
             case EMPTY_EXT:
-                return pos.offset(facing).offset(extDirection.getOpposite(),2);
+                return pos.relative(facing).relative(extDirection.getOpposite(),2);
             case UP_BLOCK:
-                return pos.offset(facing).down();
+                return pos.relative(facing).below();
             case MAIN:
-                return pos.offset(facing).offset(extDirection.getOpposite());
+                return pos.relative(facing).relative(extDirection.getOpposite());
             case EMPTY_BASE:
-                return pos.offset(facing);
+                return pos.relative(facing);
             case CONTROL_UNIT:
             default:
                 return pos;
         }
     }
 
+    private void onTollGateRemoved(IWorld world, BlockPos pos){
+        BlockState state = world.getBlockState(pos);
+        TollGateTileEntity tgte = (TollGateTileEntity) world.getBlockEntity(pos);
+        assert tgte != null;
+        int id = tgte.getId();
+        if (isControlUnit(state) && !world.isClientSide()) {
+            Networking.INSTANCE.sendToServer(new PacketRemoveId(pos,id));
+            removeUselessKey(world,pos);
+        }
+    }
 
-    //1.15 function
+    private boolean isControlUnit(BlockState state){
+        return state.getValue(TG_POSITION) == CONTROL_UNIT;
+    }
+
+
+    //1.15-1.16 function
+
     @Override
-    public ActionResultType onBlockActivated(BlockState state, World world, BlockPos pos, PlayerEntity entity, Hand hand, BlockRayTraceResult blockRayTraceResult) {
+    public ActionResultType use(BlockState state, World world, BlockPos pos, PlayerEntity entity, Hand hand, BlockRayTraceResult blockRayTraceResult) {
         //old functionnality of block
 
-        TollGateTileEntity tgte = (TollGateTileEntity) world.getTileEntity(pos);
+        TollGateTileEntity tgte = (TollGateTileEntity) world.getBlockEntity(pos);
         assert tgte != null;
         //we reupload the player using the gui
         tgte.changePlayerId(entity);
 
-        if (state.get(TG_POSITION) != TollGPosition.CONTROL_UNIT){
+        if (state.getValue(TG_POSITION) != TollGPosition.CONTROL_UNIT){
             return ActionResultType.FAIL;
         }
-        Direction facing = state.get(BlockStateProperties.HORIZONTAL_FACING);
+        Direction facing = state.getValue(BlockStateProperties.HORIZONTAL_FACING);
         Direction entity_looking_direction = Functions.getDirectionFromEntity(entity,pos);
-        DoorHingeSide dhs = state.get(BlockStateProperties.DOOR_HINGE);
+        DoorHingeSide dhs = state.getValue(BlockStateProperties.DOOR_HINGE);
 
         //the player is a user
-        if ((entity_looking_direction==facing.rotateYCCW() && (dhs == DoorHingeSide.RIGHT))||
-                (entity_looking_direction==facing.rotateY() && (dhs == DoorHingeSide.LEFT))){
+        if ((entity_looking_direction==facing.getCounterClockWise() && (dhs == DoorHingeSide.RIGHT))||
+                (entity_looking_direction==facing.getClockWise() && (dhs == DoorHingeSide.LEFT))){
             System.out.println("the player is a user ");
             System.out.println("openning user gui !!");
-            ((TollGateTileEntity) world.getTileEntity(pos)).setSide(true);
-            if (!world.isRemote) {
-                NetworkHooks.openGui((ServerPlayerEntity) entity, tgte, tgte.getPos());
+            ((TollGateTileEntity) world.getBlockEntity(pos)).setSide(true);
+            if (!world.isClientSide) {
+                NetworkHooks.openGui((ServerPlayerEntity) entity, tgte, tgte.getBlockPos());
             }
             return ActionResultType.SUCCESS;
         }
@@ -159,40 +176,41 @@ public class TollGate extends AbstractTollGate {
 
 
 
-
-    /*
+/*
     //1.14.4 function onBlockActivated
 
     @Override
     public boolean func_220051_a(BlockState state, World world, BlockPos pos, PlayerEntity player, Hand p_220051_5_, BlockRayTraceResult p_220051_6_) {
         //old functionnality of block
 
-        TollGateTileEntity tgte = (TollGateTileEntity) world.getTileEntity(pos);
+        TollGateTileEntity tgte = (TollGateTileEntity) world.getBlockEntity(pos);
         assert tgte != null;
         //we reupload the player using the gui
         tgte.changePlayerId(player);
 
-        if (state.get(TG_POSITION) != TollGPosition.CONTROL_UNIT){
+        if (state.getValue(TG_POSITION) != TollGPosition.CONTROL_UNIT){
             return false;
         }
-        Direction facing = state.get(BlockStateProperties.HORIZONTAL_FACING);
+        Direction facing = state.getValue(BlockStateProperties.HORIZONTAL_FACING);
         Direction entity_looking_direction = Functions.getDirectionFromEntity(player,pos);
-        DoorHingeSide dhs = state.get(BlockStateProperties.DOOR_HINGE);
+        DoorHingeSide dhs = state.getValue(BlockStateProperties.DOOR_HINGE);
 
         //the player is a user
-        if ((entity_looking_direction==facing.rotateYCCW() && (dhs == DoorHingeSide.RIGHT))||
-                (entity_looking_direction==facing.rotateY() && (dhs == DoorHingeSide.LEFT))){
+        if ((entity_looking_direction==facing.getCounterClockWise() && (dhs == DoorHingeSide.RIGHT))||
+                (entity_looking_direction==facing.getClockWise() && (dhs == DoorHingeSide.LEFT))){
             System.out.println("the player is a user ");
             System.out.println("openning user gui !!");
-            ((TollGateTileEntity) world.getTileEntity(pos)).setSide(true);
-            if (!world.isRemote) {
-                NetworkHooks.openGui((ServerPlayerEntity) player, tgte, tgte.getPos());
+            ((TollGateTileEntity) world.getBlockEntity(pos)).setSide(true);
+            if (!world.isClientSide) {
+                NetworkHooks.openGui((ServerPlayerEntity) player, tgte, tgte.getBlockPos());
             }
             return true;
         }
         return false;
     }
 
-     */
+
+ */
+
 
 }

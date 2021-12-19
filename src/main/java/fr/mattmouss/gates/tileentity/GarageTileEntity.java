@@ -43,27 +43,27 @@ public class GarageTileEntity extends TileEntity implements ITickableTileEntity 
 
     @Override
     public void tick() {
-        if (!world.isRemote) {
+        if (!level.isClientSide) {
             BlockState state = this.getBlockState();
             if (animationOpeningInProcess()) {
-                int animationStep = state.get(GarageDoor.ANIMATION);
+                int animationStep = state.getValue(GarageDoor.ANIMATION);
                 if (animationStep == 0){
-                    Minecraft.getInstance().getSoundHandler().play(SimpleSound.master(ModSound.ANIMATION_GARAGE,1.0F));
+                    Minecraft.getInstance().getSoundManager().play(SimpleSound.forUI(ModSound.ANIMATION_GARAGE,1.0F));
                 }
                 if (animationStep == 5) {
                     setBoolOpen(false);
                 } else {
-                    this.world.setBlockState(this.pos, state.with(GarageDoor.ANIMATION, animationStep + 1));
+                    this.level.setBlockAndUpdate(this.worldPosition, state.setValue(GarageDoor.ANIMATION, animationStep + 1));
                 }
             } else if (animationClosingInProcess()) {
-                int animationStep = state.get(GarageDoor.ANIMATION);
+                int animationStep = state.getValue(GarageDoor.ANIMATION);
                 if (animationStep == 5) {
-                    Minecraft.getInstance().getSoundHandler().play(SimpleSound.master(ModSound.ANIMATION_GARAGE, 1.0F));
+                    Minecraft.getInstance().getSoundManager().play(SimpleSound.forUI(ModSound.ANIMATION_GARAGE, 1.0F));
                 }
                 if (animationStep == 0) {
                     setBoolClose(false);
                 } else {
-                    this.world.setBlockState(this.pos, state.with(GarageDoor.ANIMATION, animationStep - 1));
+                    this.level.setBlockAndUpdate(this.worldPosition, state.setValue(GarageDoor.ANIMATION, animationStep - 1));
                 }
             }
             //checkStability();
@@ -74,7 +74,7 @@ public class GarageTileEntity extends TileEntity implements ITickableTileEntity 
 
     public void startAnimation(){
         BlockState state = this.getBlockState();
-        int animationStep = state.get(GarageDoor.ANIMATION);
+        int animationStep = state.getValue(GarageDoor.ANIMATION);
         if (animationStep == 0) {
             setBoolOpen(true); //mettre en route l'animation d'ouverture
             //System.out.println("starting animation open");
@@ -86,7 +86,7 @@ public class GarageTileEntity extends TileEntity implements ITickableTileEntity 
 
     public void startAnimation(boolean opening){
         BlockState state = this.getBlockState();
-        int animationStep = state.get(GarageDoor.ANIMATION);
+        int animationStep = state.getValue(GarageDoor.ANIMATION);
         if (animationStep == 0 && opening) {
             setBoolOpen(true); //mettre en route l'animation d'ouverture
             //System.out.println("starting animation open");
@@ -117,105 +117,105 @@ public class GarageTileEntity extends TileEntity implements ITickableTileEntity 
     }
 
     @Override
-    public void read(CompoundNBT compound) {
+    public void load(BlockState state,CompoundNBT compound) {
         CompoundNBT switch_tag = compound.getCompound("anim");
         getCapability(AnimationBooleanCapability.ANIMATION_BOOLEAN_CAPABILITY).ifPresent(animationBoolean -> ((INBTSerializable<CompoundNBT>)animationBoolean).deserializeNBT(switch_tag));
-        super.read(compound);
+        super.load(state,compound);
 
     }
 
     @Override
-    public CompoundNBT write(CompoundNBT tag) {
+    public CompoundNBT save(CompoundNBT tag) {
         getCapability(AnimationBooleanCapability.ANIMATION_BOOLEAN_CAPABILITY).ifPresent(animationBoolean -> {
             CompoundNBT compoundNBT = ((INBTSerializable<CompoundNBT>)animationBoolean).serializeNBT();
             tag.put("anim",compoundNBT);
         });
-        return super.write(tag);
+        return super.save(tag);
     }
 
 
     public List<BlockPos> getPositionOfBlockConnected(){
         BlockState state = this.getBlockState();
         List<BlockPos> posList = new ArrayList<>();
-        Direction dir_facing = state.get(BlockStateProperties.HORIZONTAL_FACING);
-        Placing placing = state.get(GarageDoor.GARAGE_PLACING);
-        Direction dir_left_section = dir_facing.rotateY();
+        Direction dir_facing = state.getValue(BlockStateProperties.HORIZONTAL_FACING);
+        Placing placing = state.getValue(GarageDoor.GARAGE_PLACING);
+        Direction dir_left_section = dir_facing.getClockWise();
         switch (placing){
             case DOWN_LEFT://block en bas à gauche
                 //position au dessus
-                posList.add(pos.up());
+                posList.add(worldPosition.above());
                 //blocks de l'arrière
-                posList.add(pos.up().offset(dir_facing.getOpposite()));
-                posList.add(pos.up()
-                        .offset(dir_facing.getOpposite())
-                        .offset(dir_left_section.getOpposite()));
+                posList.add(worldPosition.above().relative(dir_facing.getOpposite()));
+                posList.add(worldPosition.above()
+                        .relative(dir_facing.getOpposite())
+                        .relative(dir_left_section.getOpposite()));
                 //block à droite
-                posList.add(pos.offset(dir_left_section.getOpposite()));
-                posList.add(pos.offset(dir_left_section.getOpposite()).up());
+                posList.add(worldPosition.relative(dir_left_section.getOpposite()));
+                posList.add(worldPosition.relative(dir_left_section.getOpposite()).above());
                 break;
             case DOWN_RIGHT://block en bas à droite
                 //position au dessus
-                posList.add(pos.up());
+                posList.add(worldPosition.above());
                 //blocks de l'arrière
-                posList.add(pos.up().offset(dir_facing.getOpposite()));
-                posList.add(pos.up()
-                        .offset(dir_facing.getOpposite())
-                        .offset(dir_left_section));
+                posList.add(worldPosition.above().relative(dir_facing.getOpposite()));
+                posList.add(worldPosition.above()
+                        .relative(dir_facing.getOpposite())
+                        .relative(dir_left_section));
                 //block à gauche
-                posList.add(pos.offset(dir_left_section));
-                posList.add(pos.offset(dir_left_section).up());
+                posList.add(worldPosition.relative(dir_left_section));
+                posList.add(worldPosition.relative(dir_left_section).above());
                 break;
             case UP_LEFT://block en haut à gauche
                 //position au dessous
-                posList.add(pos.down());
+                posList.add(worldPosition.below());
                 //blocks de l'arrière
-                posList.add(pos.offset(dir_facing.getOpposite()));
-                posList.add(pos
-                        .offset(dir_facing.getOpposite())
-                        .offset(dir_left_section.getOpposite()));
+                posList.add(worldPosition.relative(dir_facing.getOpposite()));
+                posList.add(worldPosition
+                        .relative(dir_facing.getOpposite())
+                        .relative(dir_left_section.getOpposite()));
                 //block à droite
-                posList.add(pos.offset(dir_left_section.getOpposite()));
-                posList.add(pos.offset(dir_left_section.getOpposite()).down());
+                posList.add(worldPosition.relative(dir_left_section.getOpposite()));
+                posList.add(worldPosition.relative(dir_left_section.getOpposite()).below());
                 break;
             case UP_RIGHT://block en haut à droite
                 //position au dessous
-                posList.add(pos.down());
+                posList.add(worldPosition.below());
                 //blocks de l'arrière
-                posList.add(pos.offset(dir_facing.getOpposite()));
-                posList.add(pos.offset(dir_facing.getOpposite()).offset(dir_left_section));
+                posList.add(worldPosition.relative(dir_facing.getOpposite()));
+                posList.add(worldPosition.relative(dir_facing.getOpposite()).relative(dir_left_section));
                 //block à gauche
-                posList.add(pos.offset(dir_left_section));
-                posList.add(pos.offset(dir_left_section).down());
+                posList.add(worldPosition.relative(dir_left_section));
+                posList.add(worldPosition.relative(dir_left_section).below());
                 break;
             case BACK_LEFT://block derrière à gauche
                 //position à droite
-                posList.add(pos.offset(dir_left_section.getOpposite()));
+                posList.add(worldPosition.relative(dir_left_section.getOpposite()));
                 //position devant en haut et en bas
-                posList.add(pos.offset(dir_facing));
-                posList.add(pos.offset(dir_facing).down());
+                posList.add(worldPosition.relative(dir_facing));
+                posList.add(worldPosition.relative(dir_facing).below());
                 //position devant à droite
-                posList.add(pos
-                        .offset(dir_facing)
-                        .offset(dir_left_section.getOpposite()));
-                posList.add(pos
-                        .offset(dir_facing)
-                        .offset(dir_left_section.getOpposite())
-                        .down());
+                posList.add(worldPosition
+                        .relative(dir_facing)
+                        .relative(dir_left_section.getOpposite()));
+                posList.add(worldPosition
+                        .relative(dir_facing)
+                        .relative(dir_left_section.getOpposite())
+                        .below());
                 break;
             case BACK_RIGHT://block derrière à droite
                 //position à gauche
-                posList.add(pos.offset(dir_left_section));
+                posList.add(worldPosition.relative(dir_left_section));
                 //position devant en haut et en bas
-                posList.add(pos.offset(dir_facing));
-                posList.add(pos.offset(dir_facing).down());
+                posList.add(worldPosition.relative(dir_facing));
+                posList.add(worldPosition.relative(dir_facing).below());
                 //position devant à gauche
-                posList.add(pos
-                        .offset(dir_facing)
-                        .offset(dir_left_section));
-                posList.add(pos
-                        .offset(dir_facing)
-                        .offset(dir_left_section)
-                        .down());
+                posList.add(worldPosition
+                        .relative(dir_facing)
+                        .relative(dir_left_section));
+                posList.add(worldPosition
+                        .relative(dir_facing)
+                        .relative(dir_left_section)
+                        .below());
                 break;
             default:
                 throw new IllegalStateException("Unexpected value: " + placing);
@@ -228,14 +228,14 @@ public class GarageTileEntity extends TileEntity implements ITickableTileEntity 
         List<BlockPos> commonGarageBlock = getPositionOfBlockConnected();
         Boolean isPowered = false;
         for(int i = 0; i<6;i++){
-            if (!commonGarageBlock.contains(pos.offset(Direction.byIndex(i))) && isBlockPowered(pos.offset(Direction.byIndex(i)))){
+            if (!commonGarageBlock.contains(worldPosition.relative(Direction.from3DDataValue(i))) && isBlockPowered(worldPosition.relative(Direction.from3DDataValue(i)))){
                 isPowered = true;
             }
-            if (!commonGarageBlock.contains(pos.offset(Direction.byIndex(i)))){
+            if (!commonGarageBlock.contains(worldPosition.relative(Direction.from3DDataValue(i)))){
                 System.out.println("le block à la position "+
-                        pos.offset(Direction.byIndex(i))
+                        worldPosition.relative(Direction.from3DDataValue(i))
                         +"est il powered ? R :"
-                        + isBlockPowered(pos.offset(Direction.byIndex(i))));
+                        + isBlockPowered(worldPosition.relative(Direction.from3DDataValue(i))));
             }
         }
         System.out.println("is Powered :"+isPowered);
@@ -243,18 +243,18 @@ public class GarageTileEntity extends TileEntity implements ITickableTileEntity 
         //on démarre l'animation ouverture si alimenté et à 0 ou fermeture si non alimnté et à 5
         this.startAnimation(isPowered);
         for (BlockPos pos : commonGarageBlock){
-            ((GarageTileEntity)world.getTileEntity(pos)).startAnimation(isPowered);
+            ((GarageTileEntity)level.getBlockEntity(pos)).startAnimation(isPowered);
         }
     }
 
     private boolean isBlockPowered(BlockPos offset) {
-        BlockState state =world.getBlockState(offset);
+        BlockState state =level.getBlockState(offset);
         Boolean res = false;
-        if (state.has(BlockStateProperties.POWERED)){
-            res = state.get(BlockStateProperties.POWERED);
+        if (state.hasProperty(BlockStateProperties.POWERED)){
+            res = state.getValue(BlockStateProperties.POWERED);
         }
-        if (state.has(BlockStateProperties.POWER_0_15)){
-            res = state.get(BlockStateProperties.POWER_0_15)>10;
+        if (state.hasProperty(BlockStateProperties.POWER)){
+            res = state.getValue(BlockStateProperties.POWER)>10;
         }
 
         return res;

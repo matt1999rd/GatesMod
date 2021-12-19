@@ -47,6 +47,7 @@ public class AnimationBoolean implements INBTSerializable<CompoundNBT>,IAnimatio
         if (nbt.contains("anim")) {
             CompoundNBT tag_bool = (CompoundNBT) nbt.get("anim");
 
+            assert tag_bool != null;
             startOpeningAnimation = tag_bool.getBoolean("open");
 
             startClosingAnimation = tag_bool.getBoolean("close");

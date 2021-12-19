@@ -30,15 +30,16 @@ public class TGUserContainer extends Container {
     private TollGateTileEntity tileEntity ;
     private PlayerEntity playerEntity;
     private IItemHandler inventory;
-
+    public final int leftCol = 10;
+    public final int topRow = 70;
 
 
     public TGUserContainer(int windowId, World world, BlockPos pos, PlayerInventory inventory, PlayerEntity player) {
         super(ModBlock.TOLLGATE_USER_CONTAINER, windowId);
-        tileEntity = (TollGateTileEntity) world.getTileEntity(pos);
+        tileEntity = (TollGateTileEntity) world.getBlockEntity(pos);
         playerEntity= player;
         this.inventory= new InvWrapper(inventory);
-        trackInt(new IntReferenceHolder() {
+        addDataSlot(new IntReferenceHolder() {
             @Override
             public int get() {
                 return getPrice();
@@ -52,7 +53,7 @@ public class TGUserContainer extends Container {
         });
 
 
-        trackInt(new IntReferenceHolder() {
+        addDataSlot(new IntReferenceHolder() {
             @Override
             public int get() {
                 return getId();
@@ -68,18 +69,18 @@ public class TGUserContainer extends Container {
         tileEntity.getCapability(CapabilityItemHandler.ITEM_HANDLER_CAPABILITY).ifPresent(h->{
             addSlot(new SlotItemHandler(h,0,64,24){
                 @Override
-                public boolean isItemValid(@Nonnull ItemStack stack) {
+                public boolean mayPlace(@Nonnull ItemStack stack) {
                     return stack.getItem()==Items.EMERALD;
                 }
             });
             addSlot(new SlotItemHandler(h,1,149,24){
                 @Override
-                public boolean isItemValid(@Nonnull ItemStack stack) {
+                public boolean mayPlace(@Nonnull ItemStack stack) {
                     return (stack.getItem() == ModItem.CARD_KEY.asItem());
                 }
             });
         });
-        layoutPlayerInventorySlots(10,70);
+        layoutPlayerInventorySlots(leftCol,topRow);
 
 
     }
@@ -97,43 +98,43 @@ public class TGUserContainer extends Container {
     }
 
     @Override
-    public ItemStack transferStackInSlot(PlayerEntity playerIn, int index) {
+    public ItemStack quickMoveStack(PlayerEntity playerIn, int index) {
         ItemStack itemStack =ItemStack.EMPTY;
-        Slot slot = this.inventorySlots.get(index);
-        if (slot !=null && slot.getHasStack()) {
-            ItemStack stack = slot.getStack();
+        Slot slot = this.slots.get(index);
+        if (slot !=null && slot.hasItem()) {
+            ItemStack stack = slot.getItem();
             itemStack = stack.copy();
             if (index ==0) {
-                if (!this.mergeItemStack(stack,2,38,true)) {
+                if (!this.moveItemStackTo(stack,2,38,true)) {
                     return ItemStack.EMPTY;
                 }
-                slot.onSlotChange(stack,itemStack);
+                slot.onQuickCraft(stack,itemStack);
             } else if (index == 1) {
-                if (!this.mergeItemStack(stack,2,38,true)) {
+                if (!this.moveItemStackTo(stack,2,38,true)) {
                     return ItemStack.EMPTY;
                 }
-                slot.onSlotChange(stack,itemStack);
+                slot.onQuickCraft(stack,itemStack);
             }else{
                 if (stack.getItem() == Items.EMERALD) {
-                    if (!this.mergeItemStack(stack, 0, 2, false)) {
+                    if (!this.moveItemStackTo(stack, 0, 2, false)) {
                         return ItemStack.EMPTY;
                     }
                 }else if (stack.getItem() == ModItem.CARD_KEY.asItem()){
-                    if (!this.mergeItemStack(stack,1,2,false)){
+                    if (!this.moveItemStackTo(stack,1,2,false)){
                         return ItemStack.EMPTY;
                     }
                 } else if (index < 28) {
-                    if (!this.mergeItemStack(stack, 28, 37, false)) {
+                    if (!this.moveItemStackTo(stack, 28, 37, false)) {
                         return ItemStack.EMPTY;
                     }
-                }else if (index < 38 && !this.mergeItemStack(stack, 2, 28, false)) {
+                }else if (index < 38 && !this.moveItemStackTo(stack, 2, 28, false)) {
                     return ItemStack.EMPTY;
                 }
             }
             if (stack.isEmpty()) {
-                slot.putStack(ItemStack.EMPTY);
+                slot.set(ItemStack.EMPTY);
             } else {
-                slot.onSlotChanged();
+                slot.setChanged();
             }
 
             if (stack.getCount() == itemStack.getCount()) {
@@ -153,7 +154,7 @@ public class TGUserContainer extends Container {
     }
 
     public BlockPos getPos(){
-        return tileEntity.getPos();
+        return tileEntity.getBlockPos();
     }
 
     private int addSlotRange(IItemHandler handler, int index, int x, int y, int amount, int dx) {
@@ -176,9 +177,9 @@ public class TGUserContainer extends Container {
 
 
     @Override
-    public boolean canInteractWith(PlayerEntity playerIn) {
-        return isWithinUsableDistance(
-                IWorldPosCallable.of(tileEntity.getWorld(),tileEntity.getPos()),
+    public boolean stillValid(PlayerEntity playerIn) {
+        return stillValid(
+                IWorldPosCallable.create(tileEntity.getLevel(),tileEntity.getBlockPos()),
                 playerEntity,
                 ModBlock.TOLL_GATE
         );

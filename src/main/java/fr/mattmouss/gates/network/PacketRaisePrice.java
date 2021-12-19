@@ -1,14 +1,10 @@
 package fr.mattmouss.gates.network;
 
 import fr.mattmouss.gates.tileentity.IPriceControllingTE;
-import fr.mattmouss.gates.tileentity.TollGateTileEntity;
 import net.minecraft.network.PacketBuffer;
 import net.minecraft.util.math.BlockPos;
-import net.minecraft.world.dimension.DimensionType;
 import net.minecraftforge.fml.network.NetworkEvent;
-import net.minecraftforge.fml.network.PacketDistributor;
 
-import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Supplier;
 
 public class PacketRaisePrice {
@@ -28,7 +24,7 @@ public class PacketRaisePrice {
 
     public void handle(Supplier<NetworkEvent.Context> context){
         context.get().enqueueWork(()->{
-            IPriceControllingTE ipcte = (IPriceControllingTE) context.get().getSender().getServerWorld().getTileEntity(pos);
+            IPriceControllingTE ipcte = (IPriceControllingTE) context.get().getSender().getLevel().getBlockEntity(pos);
             ipcte.raisePrice();
         });
         context.get().setPacketHandled(true);

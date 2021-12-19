@@ -7,20 +7,23 @@ import net.minecraft.block.Block;
 
 import net.minecraft.block.DoorBlock;
 
-//1.15 import for windows
-//import net.minecraft.client.renderer.RenderType;
-//import net.minecraft.client.renderer.RenderTypeLookup;
+//1.15+ import for windows
+import net.minecraft.client.renderer.RenderType;
+import net.minecraft.client.renderer.RenderTypeLookup;
 
 import net.minecraft.block.material.Material;
 import net.minecraft.item.BlockItem;
 import net.minecraft.item.Item;
 
+import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.event.RegistryEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
 
 import java.util.ArrayList;
 import java.util.List;
+
+import net.minecraftforge.fml.loading.FMLEnvironment;
 
 @Mod.EventBusSubscriber(bus = Mod.EventBusSubscriber.Bus.MOD)
 
@@ -124,9 +127,9 @@ public class DoorRegister {
     public static final GarageDoor YELLOW_GARAGE = Gregister("yellow_garage");
 
     //enregistrement des grandes portes de taille 3x2
-    public static final LargeDoor HAUSSMANN_LARGE_DOOR = LDregister("haussmann_large_door",Material.ROCK);
-    public static final LargeDoor HAUSSMANN2_LARGE_DOOR = LDregister("haussmann2_large_door",Material.ROCK);
-    public static final LargeDoor IRON_LARGE_DOOR = LDregister("iron_large_door",Material.IRON);
+    public static final LargeDoor HAUSSMANN_LARGE_DOOR = LDregister("haussmann_large_door",Material.STONE);
+    public static final LargeDoor HAUSSMANN2_LARGE_DOOR = LDregister("haussmann2_large_door",Material.STONE);
+    public static final LargeDoor IRON_LARGE_DOOR = LDregister("iron_large_door",Material.METAL);
     public static final LargeDoor OAK_LARGE_DOOR = LDregister("oak_large_door",Material.WOOD);
     public static final LargeDoor BIRCH_LARGE_DOOR = LDregister("birch_large_door",Material.WOOD);
     public static final LargeDoor DARK_OAK_LARGE_DOOR = LDregister("dark_oak_large_door",Material.WOOD);
@@ -165,7 +168,7 @@ public class DoorRegister {
 
     private static DoorBlock register(String key){
         MoreDoor newDoor = new MoreDoor(key);
-        BlockItem item = new BlockItem(newDoor,new Item.Properties().group(ModSetup.itemGroup));
+        BlockItem item = new BlockItem(newDoor,new Item.Properties().tab(ModSetup.itemGroup));
         item.setRegistryName(key);
         System.out.println("-----------------Block "+key+" registered !------------------");
         System.out.println("------------------ Registry Name : "+newDoor.getRegistryName()+"-------------");
@@ -177,7 +180,7 @@ public class DoorRegister {
 
     private static WindowBlock Wregister(String key){
         WindowBlock newWindow = new WindowBlock(key);
-        BlockItem item = new BlockItem(newWindow,new Item.Properties().group(ModSetup.itemGroup));
+        BlockItem item = new BlockItem(newWindow,new Item.Properties().tab(ModSetup.itemGroup));
         item.setRegistryName(key);
         System.out.println("-----------------Block "+key+" registered !------------------");
         System.out.println("------------------ Registry Name : "+newWindow.getRegistryName()+"-------------");
@@ -199,7 +202,7 @@ public class DoorRegister {
 
     private static LargeDoor LDregister(String key,Material material){
         LargeDoor largeDoor = new LargeDoor(key, material);
-        BlockItem item = new BlockItem(largeDoor,new Item.Properties().group(ModSetup.itemGroup));
+        BlockItem item = new BlockItem(largeDoor,new Item.Properties().tab(ModSetup.itemGroup));
         item.setRegistryName(key);
         System.out.println("-----------------Block "+key+" registered !------------------");
         System.out.println("------------------ Registry Name : "+largeDoor.getRegistryName()+"-------------");
@@ -210,7 +213,7 @@ public class DoorRegister {
 
     private static GardenDoor GdDregister(String key){
         GardenDoor gardenDoor = new GardenDoor(key);
-        BlockItem item = new BlockItem(gardenDoor,new Item.Properties().group(ModSetup.itemGroup));
+        BlockItem item = new BlockItem(gardenDoor,new Item.Properties().tab(ModSetup.itemGroup));
         item.setRegistryName(key);
         System.out.println("-----------------Block "+key+" registered !------------------");
         System.out.println("------------------ Registry Name : "+gardenDoor.getRegistryName()+"-------------");
@@ -221,7 +224,7 @@ public class DoorRegister {
 
     private static DrawBridge DBregister(String key){
         DrawBridge drawBridge = new DrawBridge(key);
-        BlockItem item = new BlockItem(drawBridge,new Item.Properties().group(ModSetup.itemGroup));
+        BlockItem item = new BlockItem(drawBridge,new Item.Properties().tab(ModSetup.itemGroup));
         item.setRegistryName(key);
         System.out.println("-----------------Block "+key+" registered !------------------");
         System.out.println("------------------ Registry Name : "+drawBridge.getRegistryName()+"-------------");
@@ -240,12 +243,11 @@ public class DoorRegister {
             event.getRegistry().register(windowBlock);
             //1.15 function
 
-            /*
-            if (FMLEnvironment.dist == Dist.CLIENT){
-                RenderTypeLookup.setRenderLayer(windowBlock, RenderType.getCutoutMipped()); // pour la transparence des fenetres
+            if (FMLEnvironment.dist== Dist.CLIENT){
+                RenderTypeLookup.setRenderLayer(windowBlock, RenderType.cutoutMipped()); // pour la transparence des fenetres
             }
 
-             */
+
 
         });
         GARAGES.forEach(doorBlock -> {

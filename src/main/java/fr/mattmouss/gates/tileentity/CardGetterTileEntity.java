@@ -10,6 +10,7 @@ import fr.mattmouss.gates.gui.CardGetterContainer;
 import fr.mattmouss.gates.items.ModItem;
 import fr.mattmouss.gates.network.Networking;
 import fr.mattmouss.gates.network.PutIdsToClientPacket;
+import net.minecraft.block.BlockState;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.player.PlayerInventory;
 import net.minecraft.entity.player.ServerPlayerEntity;
@@ -23,7 +24,6 @@ import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.Direction;
 import net.minecraft.util.text.ITextComponent;
 import net.minecraft.util.text.StringTextComponent;
-import net.minecraft.world.dimension.DimensionType;
 import net.minecraftforge.common.capabilities.Capability;
 import net.minecraftforge.common.util.INBTSerializable;
 import net.minecraftforge.common.util.LazyOptional;
@@ -63,7 +63,7 @@ public class CardGetterTileEntity extends TileEntity implements INamedContainerP
         return new ItemStackHandler(2){
             @Override
             protected void onContentsChanged(int slot) {
-                markDirty();
+                setChanged();
             }
 
             @Override
@@ -124,9 +124,9 @@ public class CardGetterTileEntity extends TileEntity implements INamedContainerP
     @Override
     public Container createMenu(int i, PlayerInventory playerInventory, PlayerEntity playerEntity) {
         if (UserGuiOpen){
-            return new CardGetterContainer(i,world,pos,playerInventory,playerEntity);
+            return new CardGetterContainer(i,level,worldPosition,playerInventory,playerEntity);
         }else {
-            return new CardGetterChoiceContainer(i,world,pos,playerEntity);
+            return new CardGetterChoiceContainer(i,level,worldPosition,playerEntity);
         }
 
     }
@@ -160,11 +160,11 @@ public class CardGetterTileEntity extends TileEntity implements INamedContainerP
 
     @Override
     public void tick() {
-        if (!world.isRemote){
-            List<Integer> id_list = world.getServer()
-                    .getWorld(DimensionType.OVERWORLD)
-                    .getSavedData()
-                    .getOrCreate(IdTracker::new,"idgates").getList();
+        if (!level.isClientSide){
+            List<Integer> id_list = level.getServer()
+                    .overworld()
+                    .getDataStorage()
+                    .computeIfAbsent(IdTracker::new,"idgates").getList();
             costStorage.ifPresent(iCostStorage -> {
                 id_list.forEach(id->{
                     if (!iCostStorage.containsId(id)){
@@ -188,11 +188,11 @@ public class CardGetterTileEntity extends TileEntity implements INamedContainerP
             });
             HashMap<Integer,Integer> costMap = costStorage.map(ICostStorage::getCostMap).orElse(new HashMap<>());
             if (isDirty){
-                if (world.getPlayers().isEmpty())return;
-                for (PlayerEntity serverPlayer : world.getPlayers()){
+                if (level.players().isEmpty())return;
+                for (PlayerEntity serverPlayer : level.players()){
                     Networking.INSTANCE.send(PacketDistributor.PLAYER.with(()->{
                         return (ServerPlayerEntity) serverPlayer;
-                    }),new PutIdsToClientPacket(pos,costMap));
+                    }),new PutIdsToClientPacket(worldPosition,costMap));
                 }
             }
             if (UserGuiOpen)manageEmeraldConsumption();
@@ -237,16 +237,16 @@ public class CardGetterTileEntity extends TileEntity implements INamedContainerP
     }
 
     @Override
-    public void read(CompoundNBT compoundNBT) {
+    public void load(BlockState state, CompoundNBT compoundNBT) {
         CompoundNBT invTag = compoundNBT.getCompound("inv");
         CompoundNBT costTag = compoundNBT.getCompound("cost");
         getCapability(CapabilityItemHandler.ITEM_HANDLER_CAPABILITY).ifPresent(h -> ((INBTSerializable<CompoundNBT>) h).deserializeNBT(invTag));
         getCapability(CostStorageCapability.COST_STORAGE).ifPresent(c->((INBTSerializable<CompoundNBT>)c).deserializeNBT(costTag));
-        super.read(compoundNBT);
+        super.load(state,compoundNBT);
     }
 
     @Override
-    public CompoundNBT write(CompoundNBT tag) {
+    public CompoundNBT save(CompoundNBT tag) {
         getCapability(CapabilityItemHandler.ITEM_HANDLER_CAPABILITY).ifPresent(h -> {
             CompoundNBT compoundNBT = ((INBTSerializable<CompoundNBT>) h).serializeNBT();
             tag.put("inv", compoundNBT);
@@ -255,7 +255,7 @@ public class CardGetterTileEntity extends TileEntity implements INamedContainerP
             CompoundNBT compoundNBT = ((INBTSerializable<CompoundNBT>)c).serializeNBT();
             tag.put("cost",compoundNBT);
         });
-        return super.write(tag);
+        return super.save(tag);
     }
 
     @Nonnull

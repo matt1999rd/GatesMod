@@ -27,7 +27,7 @@ public class ModSound {
         SoundEvent event = new SoundEvent(new ResourceLocation(name));
         event.setRegistryName(name);
         System.out.println("-----------------Block "+name+" registered !------------------");
-        System.out.println("------------------ Name : "+event.getName()+"-------------");
+        System.out.println("------------------ Name : "+event.getLocation()+"-------------");
         SOUNDS.add(event);
         return event;
     }

@@ -1,7 +1,9 @@
 package fr.mattmouss.gates.gui;
 
+import com.mojang.blaze3d.matrix.MatrixStack;
 import fr.mattmouss.gates.GatesMod;
 import fr.mattmouss.gates.network.Networking;
+import fr.mattmouss.gates.network.PacketGiveCard;
 import fr.mattmouss.gates.network.PacketLowerPrice;
 import fr.mattmouss.gates.network.PacketRaisePrice;
 import net.minecraft.client.Minecraft;
@@ -22,59 +24,67 @@ public class CardGetterChoiceScreen extends ContainerScreen<CardGetterChoiceCont
     private ResourceLocation GUI = new ResourceLocation(GatesMod.MODID, "textures/gui/cg_tech_gui.png");
 
     public CardGetterChoiceScreen(CardGetterChoiceContainer p_i51105_1_, PlayerInventory p_i51105_2_, ITextComponent p_i51105_3_) {
-        super(p_i51105_1_, p_i51105_2_, p_i51105_3_);
+        super(p_i51105_1_, p_i51105_2_, ITextComponent.nullToEmpty("Choose your fee"));
+        this.titleLabelX = 27;
+        this.titleLabelY = 4;
     }
 
     @Override
     public void init() {
-        this.xSize = 197;
-        this.ySize = 98;
+        this.imageWidth = 197;
+        this.imageHeight = 98;
         super.init();
-        plusButton = new Button(guiLeft+62,guiTop+16,21,20,"+",button -> raisePrice());
-        moinsButton = new Button(guiLeft+62,guiTop+36,21,20,"-",button -> lowerPrice());
-        Button doneButton = new Button(guiLeft+39, guiTop+67, 66, 20, "Done", button -> onClose());
+        plusButton = new Button(leftPos+62,topPos+16,21,20,ITextComponent.nullToEmpty("+"),button -> raisePrice());
+        moinsButton = new Button(leftPos+62,topPos+36,21,20,ITextComponent.nullToEmpty("-"),button -> lowerPrice());
+        Button doneButton = new Button(leftPos+39, topPos+67, 66, 20, ITextComponent.nullToEmpty("Done"), button -> onClose());
+        Button getCardButton = new Button(leftPos+116,topPos+67,66,20,ITextComponent.nullToEmpty("Get Card"),button -> giveCardToPlayer());
         addButton(plusButton);
         addButton(moinsButton);
         addButton(doneButton);
+        addButton(getCardButton);
     }
 
     @Override
-    public void render(int mouseX, int mouseY, float partialTicks) {
-        this.renderBackground();
-        super.render(mouseX, mouseY, partialTicks);
-        this.renderHoveredToolTip(mouseX,mouseY);
+    public void render(MatrixStack stack,int mouseX, int mouseY, float partialTicks) {
+        this.renderBackground(stack);
+        super.render(stack,mouseX, mouseY, partialTicks);
+        this.renderTooltip(stack,mouseX,mouseY);
     }
 
     @Override
-    protected void drawGuiContainerForegroundLayer(int p_146979_1_, int p_146979_2_) {
-        int price = container.getPrice();
+    protected void renderLabels(MatrixStack stack,int p_146979_1_, int p_146979_2_) {
+        int price = menu.getPrice();
         //price are possible between 1 and 64 emerald
         this.plusButton.active = (price<64);
         this.moinsButton.active = (price>1);
         int decalage = (price>10)? 7 : 9;
-        FontRenderer font = Minecraft.getInstance().fontRenderer;
-        this.drawString(font," "+container.getId(),114,46,white);
-        this.drawString(font,"Choose your fee",27,4,white);
-        this.drawString(font," "+price,decalage,56, green );
-        super.drawGuiContainerForegroundLayer(p_146979_1_,p_146979_2_);
+        FontRenderer font = Minecraft.getInstance().font;
+        drawString(stack,font," "+menu.getId(),114,46,white);
+        drawString(stack,font," "+price,decalage,56, green );
+        drawString(stack,font,"Choose your fee",27,4,white);
     }
 
     private void raisePrice(){
-        this.getContainer().raisePrice();
+        this.getMenu().raisePrice();
         System.out.println("raising price..");
-        Networking.INSTANCE.sendToServer(new PacketRaisePrice(container.getTileEntity().getPos()));
+        Networking.INSTANCE.sendToServer(new PacketRaisePrice(menu.getTileEntity().getBlockPos()));
     }
 
     private void lowerPrice(){
-        this.getContainer().lowerPrice();
+        this.getMenu().lowerPrice();
         System.out.println("raising price..");
-        Networking.INSTANCE.sendToServer(new PacketLowerPrice(container.getTileEntity().getPos()));
+        Networking.INSTANCE.sendToServer(new PacketLowerPrice(menu.getTileEntity().getBlockPos()));
+    }
+
+    private void giveCardToPlayer(){
+        int id = this.getMenu().getId();
+        Networking.INSTANCE.sendToServer(new PacketGiveCard(id));
     }
 
 
     @Override
-    protected void drawGuiContainerBackgroundLayer(float partialTicks, int mouseX, int mouseY) {
-        this.minecraft.getTextureManager().bindTexture(GUI);
-        this.blit(guiLeft,guiTop,0,0,this.xSize, this.ySize);
+    protected void renderBg(MatrixStack stack,float partialTicks, int mouseX, int mouseY) {
+        this.minecraft.getTextureManager().bind(GUI);
+        this.blit(stack,leftPos,topPos,0,0,this.imageWidth, this.imageHeight);
     }
 }

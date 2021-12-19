@@ -15,7 +15,7 @@ public enum TurnSPosition implements IStringSerializable {
         name = name_in;
     }
 
-    public String getName() {
+    public String getSerializedName() {
         return name;
     }
 
@@ -26,4 +26,6 @@ public enum TurnSPosition implements IStringSerializable {
     public boolean isSolid() {
         return this == RIGHT_BLOCK || this == LEFT_BLOCK;
     }
+
+    public boolean isDown(){ return this != UP_BLOCK;}
 }

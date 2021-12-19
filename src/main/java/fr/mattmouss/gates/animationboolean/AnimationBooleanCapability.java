@@ -16,7 +16,6 @@ public class AnimationBooleanCapability {
     public static void register()
     {
         CapabilityManager.INSTANCE.register(IAnimationBoolean.class, new Capability.IStorage<IAnimationBoolean>() {
-            @Nullable
             @Override
             public INBT writeNBT(Capability<IAnimationBoolean> capability, IAnimationBoolean instance, Direction side) {
                 CompoundNBT tag = new CompoundNBT();

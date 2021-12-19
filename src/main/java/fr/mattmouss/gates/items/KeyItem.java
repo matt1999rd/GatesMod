@@ -24,6 +24,7 @@ import net.minecraft.util.text.ITextComponent;
 import net.minecraft.util.text.StringTextComponent;
 import net.minecraft.util.text.Style;
 import net.minecraft.util.text.TranslationTextComponent;
+import net.minecraft.world.IWorld;
 import net.minecraft.world.World;
 import net.minecraftforge.fml.network.NetworkHooks;
 
@@ -36,7 +37,7 @@ public abstract class KeyItem extends Item {
 
 
     public KeyItem() {
-        super(new Item.Properties().group(ModSetup.itemGroup).maxStackSize(1));
+        super(new Item.Properties().tab(ModSetup.itemGroup).stacksTo(1));
     }
 
     /*
@@ -83,11 +84,11 @@ public abstract class KeyItem extends Item {
     }
 
     //this function also checks that this block in world still exists (if not return false and remove the pos
-    protected boolean isTGPositionReg(CompoundNBT nbt, World world){
+    protected boolean isTGPositionReg(CompoundNBT nbt, IWorld world){
         System.out.println("first test in isTGPositionReg(nbt,world) : "+isTGPositionReg(nbt));
         if (isTGPositionReg(nbt)){
             System.out.println("pos of tile entity to check : "+getTGPosition(nbt));
-            TileEntity te = world.getTileEntity(getTGPosition(nbt));
+            TileEntity te = world.getBlockEntity(getTGPosition(nbt));
             if (te == null){
                 //System.out.println("***********************removing tag of compound******************");
                 nbt.remove("te");
@@ -103,7 +104,7 @@ public abstract class KeyItem extends Item {
     }
 
     //to set TG position pos in the itemstack
-    public void setTGPosition(ItemStack stack,World world,BlockPos pos){
+    public void setTGPosition(ItemStack stack,IWorld world,BlockPos pos){
         CompoundNBT nbt = stack.getOrCreateTag();
         System.out.println("defining new blockPos");
         if (isTGPositionReg(nbt,world) || isTSPositionReg(nbt,world)){
@@ -161,11 +162,11 @@ public abstract class KeyItem extends Item {
     }
 
     //this function also checks that this block in world still exists (if not return false and remove the pos
-    protected boolean isTSPositionReg(CompoundNBT nbt, World world){
+    protected boolean isTSPositionReg(CompoundNBT nbt, IWorld world){
         System.out.println("first test in isTSPositionReg(nbt,world) : "+isTSPositionReg(nbt));
         if (isTSPositionReg(nbt)){
             System.out.println("pos of tile entity to check : "+getTSPosition(nbt));
-            TileEntity te = world.getTileEntity(getTSPosition(nbt));
+            TileEntity te = world.getBlockEntity(getTSPosition(nbt));
             if (te == null){
                 System.out.println("***********************removing tag of compound******************");
                 nbt.remove("te");
@@ -180,7 +181,7 @@ public abstract class KeyItem extends Item {
         return false;
     }
 
-    public void setTSPosition(ItemStack stack,World world,BlockPos pos){
+    public void setTSPosition(ItemStack stack,IWorld world,BlockPos pos){
         CompoundNBT nbt = stack.getOrCreateTag();
         System.out.println("defining new blockPos");
         if (isTSPositionReg(nbt,world)){
@@ -196,29 +197,29 @@ public abstract class KeyItem extends Item {
 
 
     @Override
-    public ITextComponent getDisplayName(ItemStack stack) {
+    public ITextComponent getName(ItemStack stack) {
         //this first five line is a filter for when stack has no position stored
         BlockPos registeredPos = getTGPosition(stack,null);
 
         if (registeredPos == null){
             registeredPos = getTSPosition(stack,null);
             if (registeredPos == null){
-                return super.getDisplayName(stack);
+                return super.getName(stack);
             }
         }
         int id = Functions.getIdFromBlockPos(registeredPos);
         String formatedString = "# %1$d";
         String st =String.format(formatedString,id);
-        return new TranslationTextComponent(this.getTranslationKey(stack),st);
+        return new TranslationTextComponent(this.getDescriptionId(stack),st);
     }
 
     @Override
-    public void addInformation(ItemStack stack, @Nullable World world, List<ITextComponent> componentList, ITooltipFlag flag) {
+    public void appendHoverText(ItemStack stack, @Nullable World world, List<ITextComponent> componentList, ITooltipFlag flag) {
         if (stack.getTag().contains("id")){
             int id = stack.getTag().getInt("id");
             componentList.add(new StringTextComponent("Id :"+id));
         }
-        super.addInformation(stack, world, componentList, flag);
+        super.appendHoverText(stack, world, componentList, flag);
     }
 
     private BlockPos getTSorTGPosition(ItemStack stack,World world){
@@ -233,30 +234,30 @@ public abstract class KeyItem extends Item {
     }
 
     @Override
-    public ActionResultType onItemUse(ItemUseContext context) {
-        BlockPos pos = context.getPos();
+    public ActionResultType useOn(ItemUseContext context) {
+        BlockPos pos = context.getClickedPos();
         PlayerEntity entity = context.getPlayer();
-        World world = context.getWorld();
+        World world = context.getLevel();
         Hand hand = context.getHand();
-        TileEntity te= world.getTileEntity(pos);
+        TileEntity te= world.getBlockEntity(pos);
         if (te instanceof CardGetterTileEntity) {
             CardGetterTileEntity cgte = (CardGetterTileEntity) te;
-            ItemStack stack = entity.getHeldItem(hand);
+            ItemStack stack = entity.getItemInHand(hand);
             //we get the pos of turn stile or toll gate
             BlockPos registeredPos = getTSorTGPosition(stack, world);
             if (registeredPos == null){
-                return super.onItemUse(context);
+                return super.useOn(context);
             }
-            if (world.getTileEntity(registeredPos) instanceof IControlIdTE) {
-                IControlIdTE associated_te = (IControlIdTE) world.getTileEntity(registeredPos);
+            if (world.getBlockEntity(registeredPos) instanceof IControlIdTE) {
+                IControlIdTE associated_te = (IControlIdTE) world.getBlockEntity(registeredPos);
                 int id = associated_te.getId();
                 //we are technician
                 cgte.setSide(false);
                 //we give to TE our id to modify its price
                 cgte.setTechKeyId(id);
-                if (!world.isRemote) NetworkHooks.openGui((ServerPlayerEntity) entity, cgte, cgte.getPos());
+                if (!world.isClientSide) NetworkHooks.openGui((ServerPlayerEntity) entity, cgte, cgte.getBlockPos());
             }
         }
-        return super.onItemUse(context);
+        return super.useOn(context);
     }
 }

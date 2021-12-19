@@ -30,7 +30,7 @@ public class ChangeClientIdPacket {
     public void handle(Supplier<NetworkEvent.Context> context){
         AtomicInteger val = new AtomicInteger(0);
         context.get().enqueueWork(()->{
-            TileEntity te =  context.get().getSender().getServerWorld().getTileEntity(pos);
+            TileEntity te =  context.get().getSender().getLevel().getBlockEntity(pos);
             System.out.println("packet handled");
             if (te instanceof TollGateTileEntity){
                 val.set(((TollGateTileEntity) te).getId());

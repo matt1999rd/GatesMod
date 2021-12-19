@@ -17,7 +17,7 @@ public class CardGetterChoiceContainer extends Container {
 
     public CardGetterChoiceContainer(int windowId, World world, BlockPos pos,PlayerEntity player) {
         super(ModBlock.CARD_GETTER_CHOICE_CONTAINER, windowId);
-        tileEntity = (CardGetterTileEntity) world.getTileEntity(pos);
+        tileEntity = (CardGetterTileEntity) world.getBlockEntity(pos);
         playerEntity = player;
     }
 
@@ -42,9 +42,9 @@ public class CardGetterChoiceContainer extends Container {
     }
 
     @Override
-    public boolean canInteractWith(PlayerEntity playerIn) {
-        return isWithinUsableDistance(
-                IWorldPosCallable.of(tileEntity.getWorld(),tileEntity.getPos()),
+    public boolean stillValid(PlayerEntity playerIn) {
+        return stillValid(
+                IWorldPosCallable.create(tileEntity.getLevel(),tileEntity.getBlockPos()),
                 playerEntity,
                 ModBlock.CARD_GETTER
         );

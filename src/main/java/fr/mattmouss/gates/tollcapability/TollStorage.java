@@ -1,15 +1,10 @@
 package fr.mattmouss.gates.tollcapability;
 
 import fr.mattmouss.gates.energystorage.IdTracker;
-import fr.mattmouss.gates.network.Networking;
-import fr.mattmouss.gates.network.SetIdPacket;
-import net.minecraft.entity.player.ServerPlayerEntity;
 import net.minecraft.nbt.CompoundNBT;
 import net.minecraft.world.World;
-import net.minecraft.world.dimension.DimensionType;
 import net.minecraft.world.storage.DimensionSavedDataManager;
 import net.minecraftforge.common.util.INBTSerializable;
-import net.minecraftforge.fml.network.PacketDistributor;
 
 import java.util.Random;
 
@@ -62,13 +57,13 @@ public class TollStorage implements ITollStorage, INBTSerializable<CompoundNBT> 
     @Override
     public void setId(int newId,World world) {
         DimensionSavedDataManager savedDataManager =
-        world.getServer().getWorld(DimensionType.OVERWORLD).getSavedData();
+        world.getServer().overworld().getDataStorage();
 
         if (id != -1) {
-            savedDataManager.getOrCreate(IdTracker::new, "idgates").removeId(id);
+            savedDataManager.computeIfAbsent(IdTracker::new, "idgates").removeId(id);
         }
         id = newId;
-        savedDataManager.getOrCreate(IdTracker::new,"idgates").addNewId(newId);
+        savedDataManager.computeIfAbsent(IdTracker::new,"idgates").addNewId(newId);
     }
 
     public void setId(int newId){
