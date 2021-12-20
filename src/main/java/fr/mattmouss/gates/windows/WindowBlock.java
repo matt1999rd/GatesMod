@@ -63,6 +63,7 @@ public class WindowBlock extends Block {
                 .lightLevel(value -> 0)
                 .strength(3.0f)
                 .sound(SoundType.GLASS)
+                .noOcclusion()
                 //1.15 function
                 //.notSolid()
         );
@@ -144,8 +145,7 @@ public class WindowBlock extends Block {
             boolean isOpen = state.getValue(BlockStateProperties.OPEN);
             Direction facing = state.getValue(BlockStateProperties.HORIZONTAL_FACING);
             WindowPlace place = state.getValue(WINDOW_PLACE);
-            VoxelShape usedVoxels = place.getVoxels(isOpen,facing);
-            return usedVoxels;
+            return place.getVoxels(isOpen,facing);
         }
     }
 
@@ -203,13 +203,14 @@ public class WindowBlock extends Block {
     private void notifyNeighborBlock(WindowPlace placement,ExtendDirection facing,World world,BlockPos pos,boolean openingStateOnly){
         List<WindowDirection> directions = placement.getDirectionOfChangingWindow(facing,world,pos);
         for (WindowDirection dir : directions){
-            //the blockpos to offset
+            //the block position to offset
             BlockPos ch_block_pos = pos;
             //get nb_offset int[]
             int[] offsets = dir.getDirections();
             //when dir value is 0 this means that all offset has been taken in account
             for(int i=0;i<10;i++){
                 if (offsets[i] != 0){
+                    assert ExtendDirection.byIndex(i) != null;
                     ch_block_pos = ExtendDirection.byIndex(i).offset(ch_block_pos,offsets[i]);
                 }
             }
@@ -233,16 +234,13 @@ public class WindowBlock extends Block {
     //1.15 function
     @Override
     public ActionResultType use(BlockState state, World world, BlockPos pos, PlayerEntity player, Hand hand, BlockRayTraceResult result) {
-        if (player != null){
-            openOrCloseWindow(state,pos,world);
-            WindowPlace placement = state.getValue(WINDOW_PLACE);
-            Direction facing = state.getValue(BlockStateProperties.HORIZONTAL_FACING);
-            boolean isRotated = state.getValue(ROTATED);
-            ExtendDirection extDir = ExtendDirection.getExtendedDirection(facing,isRotated);
-            notifyNeighborBlock(placement,extDir,world,pos,true);
-            return ActionResultType.SUCCESS;
-        }
-        return ActionResultType.PASS;
+        openOrCloseWindow(state,pos,world);
+        WindowPlace placement = state.getValue(WINDOW_PLACE);
+        Direction facing = state.getValue(BlockStateProperties.HORIZONTAL_FACING);
+        boolean isRotated = state.getValue(ROTATED);
+        ExtendDirection extDir = ExtendDirection.getExtendedDirection(facing,isRotated);
+        notifyNeighborBlock(placement,extDir,world,pos,true);
+        return ActionResultType.SUCCESS;
     }
 
 

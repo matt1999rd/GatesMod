@@ -25,7 +25,7 @@ public class LargeDoor extends MultDoor {
     public static EnumProperty<DoorPlacing> PLACING = EnumProperty.create("position",DoorPlacing.class,DoorPlacing::isSide);
 
     public LargeDoor(String key,Material material) {
-        super(Properties.of(material, MaterialColor.COLOR_BLACK));
+        super(Properties.of(material, MaterialColor.COLOR_BLACK).noOcclusion());
         this.setRegistryName(key);
     }
 

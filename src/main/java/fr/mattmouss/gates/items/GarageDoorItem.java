@@ -27,19 +27,20 @@ public class GarageDoorItem extends BlockItem {
 
     @Override
     public ActionResultType useOn(ItemUseContext context) {
-        if (allBlockReplacedisAir(new BlockItemUseContext(context)) && hasSupportToStay(new BlockItemUseContext(context))){
+        if (allBlockReplacedAreAir(new BlockItemUseContext(context)) && hasSupportToStay(new BlockItemUseContext(context))){
             return super.useOn(context);
         }
-        System.out.println("block non fabriqué");
+        System.out.println("block not created");
         return ActionResultType.FAIL;
     }
 
     // the function is not working  because we need to know where the first block will be created it depends on where the player clicked
     // need to check the onItemUse function of blockItem to know where it put the first value
-    private boolean allBlockReplacedisAir(BlockItemUseContext context){
+    private boolean allBlockReplacedAreAir(BlockItemUseContext context){
         World world = context.getLevel();
         PlayerEntity entity=context.getPlayer();
         BlockPos pos_base =context.getClickedPos();
+        assert entity != null;
         Direction facing = Functions.getDirectionFromEntity(entity,pos_base);
         Direction dir_left_section=facing.getClockWise();
         List<BlockPos> posList = new ArrayList<>();
@@ -55,10 +56,10 @@ public class GarageDoorItem extends BlockItem {
         posList.add(pos_base.relative(dir_left_section).above());
 
         for (BlockPos pos_in : posList){
-            //si le block n'est pas de l'air on retourne false
+            //if the block is not air we return false
             if (!(world.getBlockState(pos_in).getBlock() instanceof AirBlock)){
-                System.out.println("la blockPos qui fait foirer :"+pos_in);
-                System.out.println("Block qui bloque :"+world.getBlockState(pos_in).getBlock());
+                System.out.println("the block pos that mess it up :"+pos_in);
+                System.out.println("Not working block :"+world.getBlockState(pos_in).getBlock());
                 return false;
             }
         }
@@ -69,6 +70,7 @@ public class GarageDoorItem extends BlockItem {
         World world = context.getLevel();
         PlayerEntity entity=context.getPlayer();
         BlockPos pos_base =context.getClickedPos();
+        assert entity != null;
         Direction facing = Functions.getDirectionFromEntity(entity,pos_base);
         Direction dir_left_section=facing.getClockWise();
         List<BlockPos> posList = new ArrayList<>();
@@ -91,8 +93,8 @@ public class GarageDoorItem extends BlockItem {
         posList.add(pos_base.above(2).relative(dir_left_section,2).relative(facing.getOpposite()));
         for (BlockPos pos : posList){
             if (!(world.getBlockState(pos).getMaterial().blocksMotion())){
-                System.out.println("la blockPos qui fait foirer :"+pos);
-                System.out.println("Block qui bloque :"+world.getBlockState(pos).getBlock());
+                System.out.println("the block pos that mess it up :"+pos);
+                System.out.println("Not working block :"+world.getBlockState(pos).getBlock());
                 return false;
             }
         }

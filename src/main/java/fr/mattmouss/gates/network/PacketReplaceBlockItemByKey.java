@@ -49,7 +49,7 @@ public class PacketReplaceBlockItemByKey {
             KeyItem key = (isTurnStile)?
                     (TurnStileKeyItem) ModItem.TURN_STILE_KEY.asItem() :
                     (TollKeyItem)      ModItem.TOLL_GATE_KEY.asItem();
-            System.out.println("item defini : "+key);
+            System.out.println("defined item : "+key);
             ItemStack newStack = new ItemStack(key);
             if (isTurnStile){
                 key.setTSPosition(newStack,world,pos);
@@ -57,7 +57,7 @@ public class PacketReplaceBlockItemByKey {
                 key.setTGPosition(newStack, world, pos);
             }
             PlayerEntity entity = world.getPlayerByUUID(playerUUID);
-            System.out.println("itemstack of new key item : "+newStack);
+            System.out.println("item stack of new key item : "+newStack);
             assert entity != null;
             Functions.moveMainOldStackToFreeSlot(entity);
             entity.setItemSlot(EquipmentSlotType.MAINHAND,ItemStack.EMPTY);

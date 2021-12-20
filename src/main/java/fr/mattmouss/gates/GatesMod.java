@@ -32,17 +32,17 @@ import net.minecraftforge.fml.loading.FMLEnvironment;
 
 import java.util.logging.Logger;
 
-@Mod(GatesMod.MODID)
+@Mod(GatesMod.MOD_ID)
 public class GatesMod {
 
-    public static IProxy proxy = DistExecutor.runForDist(()->()->new ClientProxy(),()->()->new ServerProxy());
+    public static IProxy proxy = DistExecutor.runForDist(()-> ClientProxy::new,()-> ServerProxy::new);
 
     public static ModSetup setup = new ModSetup();
 
 
-    public static final String MODID = "gates";
+    public static final String MOD_ID = "gates";
 
-    public static final Logger logger = Logger.getLogger(MODID);
+    public static final Logger logger = Logger.getLogger(MOD_ID);
 
     public GatesMod() {
         FMLJavaModLoadingContext.get().getModEventBus().addListener(this::setup);
@@ -97,8 +97,8 @@ public class GatesMod {
             blockRegistryEvent.getRegistry().register(new TurnStileKeyItem());
             blockRegistryEvent.getRegistry().register(new BlockItem(ModBlock.CARD_GETTER,properties).setRegistryName("card_getter"));
             blockRegistryEvent.getRegistry().register(new BlockItem(ModBlock.WINDOW_DOOR,properties).setRegistryName("window_door"));
-            blockRegistryEvent.getRegistry().register(new BlockItem(ModBlock.RTOLL_GATE, properties).setRegistryName("redstone_toll_gate"));
-            blockRegistryEvent.getRegistry().register(new BlockItem(ModBlock.RTURN_STILE, properties).setRegistryName("redstone_turn_stile"));
+            blockRegistryEvent.getRegistry().register(new BlockItem(ModBlock.REDSTONE_TOLL_GATE, properties).setRegistryName("redstone_toll_gate"));
+            blockRegistryEvent.getRegistry().register(new BlockItem(ModBlock.REDSTONE_TURN_STILE, properties).setRegistryName("redstone_turn_stile"));
         }
 
         @SubscribeEvent
@@ -110,7 +110,7 @@ public class GatesMod {
                             DoorRegister.GRANITE_GARAGE,
                             DoorRegister.IRON_GARAGE,
                             DoorRegister.STONE_GARAGE,
-                            DoorRegister.STONEBRICKS_GARAGE,
+                            DoorRegister.STONE_BRICKS_GARAGE,
                             DoorRegister.BLACK_GARAGE,
                             DoorRegister.BLUE_GARAGE,
                             DoorRegister.BROWN_GARAGE,
@@ -135,7 +135,7 @@ public class GatesMod {
                     .build(null)
                     .setRegistryName("toll_gate"));
             event.getRegistry().register(TileEntityType.Builder.of(RedstoneTollGateTileEntity::new,
-                    ModBlock.RTOLL_GATE)
+                    ModBlock.REDSTONE_TOLL_GATE)
                     .build(null)
                     .setRegistryName("redstone_toll_gate"));
             event.getRegistry().register(TileEntityType.Builder.of(TurnStileTileEntity::new,
@@ -143,7 +143,7 @@ public class GatesMod {
                     .build(null)
                     .setRegistryName("turn_stile"));
             event.getRegistry().register(TileEntityType.Builder.of(RedstoneTurnStileTileEntity::new,
-                    ModBlock.RTURN_STILE)
+                    ModBlock.REDSTONE_TURN_STILE)
                     .build(null)
                     .setRegistryName("redstone_turn_stile"));
             event.getRegistry().register(TileEntityType.Builder.of(CardGetterTileEntity::new,

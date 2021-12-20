@@ -10,7 +10,7 @@ import net.minecraftforge.fml.network.NetworkEvent;
 import java.util.function.Supplier;
 
 public class PacketGiveCard {
-    private int id;
+    private final int id;
     public PacketGiveCard(int id){
         this.id = id;
     }
@@ -26,6 +26,7 @@ public class PacketGiveCard {
     public void handle(Supplier<NetworkEvent.Context> context){
         context.get().enqueueWork(()->{
             ServerPlayerEntity entity = context.get().getSender();
+            assert entity != null;
             int freeSlot = entity.inventory.getFreeSlot();
             ItemStack cardKeyStack = new ItemStack(ModItem.CARD_KEY);
             cardKeyStack.setCount(1);

@@ -32,6 +32,7 @@ public class TollKeyItem extends KeyItem {
         PlayerEntity entity = context.getPlayer();
         World world = context.getLevel();
         Hand hand = context.getHand();
+        assert entity != null;
         ItemStack stack = entity.getItemInHand(hand);
         TileEntity te = world.getBlockEntity(pos);
         if (!(te instanceof TollGateTileEntity)){
@@ -48,8 +49,8 @@ public class TollKeyItem extends KeyItem {
         }
 
         BlockPos registeredPos = getTGPosition(stack, world);
-        //if someone takes the key from the creative tab it will not have any BlockPos and we set the blockPos to the present toll gate
-        //if this key has a blockPos that don't correspond to a toll gate anymore (because of destroyed block) we set the blockPos also
+        //if someone takes the key from the creative tab it will not have any BlockPos, and we set the blockPos to the present tollgate
+        //if this key has a blockPos that don't correspond to a tollgate anymore (because of destroyed block) we set the blockPos also
         if (registeredPos == null) {
             setTGPosition(stack, world, pos);
             registeredPos = getTGPosition(stack, world);
@@ -82,7 +83,7 @@ public class TollKeyItem extends KeyItem {
         Direction facing = state.getValue(BlockStateProperties.HORIZONTAL_FACING);
         Direction entity_looking_direction = Functions.getDirectionFromEntity(entity,pos);
         DoorHingeSide dhs = state.getValue(BlockStateProperties.DOOR_HINGE);
-        /*for that we need to click on the control-unit part(1) and on the side corresponding to the rotate direction
+        /*for that we need to click on the control-unit part(1) and on the side corresponding to the rotated direction
                      ClockWise if the rotation axe is right(2)
          and CounterClockWise  if the rotation axe is left(3)
 

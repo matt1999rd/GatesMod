@@ -15,8 +15,8 @@ public enum DoorPlacing implements IStringSerializable {
     CENTER_UP(6,"center_up"),
     CENTER_DOWN(7,"center_down");
 
-    int meta;
-    String name;
+    final int meta;
+    final String name;
     DoorPlacing(int meta, String name){
         this.meta = meta;
         this.name = name;

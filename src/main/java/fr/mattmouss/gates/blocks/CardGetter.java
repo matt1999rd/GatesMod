@@ -2,6 +2,7 @@ package fr.mattmouss.gates.blocks;
 
 import fr.mattmouss.gates.tileentity.CardGetterTileEntity;
 import fr.mattmouss.gates.util.Functions;
+import mcp.MethodsReturnNonnullByDefault;
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.SoundType;
@@ -35,6 +36,7 @@ public class CardGetter extends Block {
         .sound(SoundType.METAL)
         //1.15 function
         //.notSolid()
+        .noOcclusion()
         .lightLevel(value -> 5));
         this.setRegistryName("card_getter");
     }
@@ -84,15 +86,14 @@ public class CardGetter extends Block {
 
     @Override
     public ActionResultType use(BlockState state, World world, BlockPos pos, PlayerEntity player, Hand hand, BlockRayTraceResult result) {
-        if (player != null){
-            Direction looking_direction = Functions.getDirectionFromEntity(player,pos);
-            Direction facing = state.getValue(BlockStateProperties.HORIZONTAL_FACING);
-            CardGetterTileEntity cgte = (CardGetterTileEntity) world.getBlockEntity(pos);
-            if (facing == looking_direction){
-                cgte.setSide(true); // player is a user
-                if (!world.isClientSide) NetworkHooks.openGui((ServerPlayerEntity) player,cgte,cgte.getBlockPos());
-                return ActionResultType.SUCCESS;
-            }
+        Direction looking_direction = Functions.getDirectionFromEntity(player,pos);
+        Direction facing = state.getValue(BlockStateProperties.HORIZONTAL_FACING);
+        CardGetterTileEntity cgte = (CardGetterTileEntity) world.getBlockEntity(pos);
+        if (facing == looking_direction){
+            assert cgte != null;
+            cgte.setSide(true); // player is a user
+            if (!world.isClientSide) NetworkHooks.openGui((ServerPlayerEntity) player,cgte,cgte.getBlockPos());
+            return ActionResultType.SUCCESS;
         }
         return ActionResultType.FAIL;
     }

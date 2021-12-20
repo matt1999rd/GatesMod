@@ -1,6 +1,5 @@
 package fr.mattmouss.gates.items;
 
-import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import fr.mattmouss.gates.setup.ModSetup;
 import fr.mattmouss.gates.tileentity.CardGetterTileEntity;
 import fr.mattmouss.gates.tileentity.IControlIdTE;
@@ -15,14 +14,12 @@ import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.ItemUseContext;
 import net.minecraft.nbt.CompoundNBT;
-import net.minecraft.nbt.JsonToNBT;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.ActionResultType;
 import net.minecraft.util.Hand;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.text.ITextComponent;
 import net.minecraft.util.text.StringTextComponent;
-import net.minecraft.util.text.Style;
 import net.minecraft.util.text.TranslationTextComponent;
 import net.minecraft.world.IWorld;
 import net.minecraft.world.World;
@@ -30,7 +27,7 @@ import net.minecraftforge.fml.network.NetworkHooks;
 
 import javax.annotation.Nullable;
 import java.util.List;
-import java.util.stream.Stream;
+import java.util.Objects;
 
 public abstract class KeyItem extends Item {
 
@@ -44,10 +41,10 @@ public abstract class KeyItem extends Item {
     TollGate Position registered function
      */
 
-    //used in various function for obtaining the position registered (with world return null if position is an old and unvalued registering)
+    //used in various function for obtaining the position registered (with world return null if position is an old and unused registering)
     public BlockPos getTGPosition(ItemStack stack,@Nullable World world){
         CompoundNBT nbt=stack.getOrCreateTag();
-        //choose between testing only the nbt value corresponding to "toll_gate" or the reality of blockpos with world
+        //choose between testing only the nbt value corresponding to "toll_gate" or the reality of block position with world
         boolean isTGPosReg = (world == null)? isTGPositionReg(nbt) : isTGPositionReg(nbt, world);
         //System.out.println(isTGPosReg);
         if (isTGPosReg){
@@ -61,7 +58,7 @@ public abstract class KeyItem extends Item {
         return null;
     }
 
-    //used only in this class for the function that checks directly the pos revelancy
+    //used only in this class for the function that checks directly the pos relevancy
     private BlockPos getTGPosition(CompoundNBT nbt){
         if (isTGPositionReg(nbt)){
             int x = nbt.getInt("pos_x");
@@ -72,7 +69,7 @@ public abstract class KeyItem extends Item {
         return null;
     }
 
-    //to know whether this item tag contains the blockpos of a TollGateTileEntity(present or absent)
+    //to know whether this item tag contains the block position of a TollGateTileEntity(present or absent)
     protected boolean isTGPositionReg(CompoundNBT nbt){
         if (nbt.contains("te")){
             //System.out.println("checking the nbt string");
@@ -88,7 +85,7 @@ public abstract class KeyItem extends Item {
         System.out.println("first test in isTGPositionReg(nbt,world) : "+isTGPositionReg(nbt));
         if (isTGPositionReg(nbt)){
             System.out.println("pos of tile entity to check : "+getTGPosition(nbt));
-            TileEntity te = world.getBlockEntity(getTGPosition(nbt));
+            TileEntity te = world.getBlockEntity(Objects.requireNonNull(getTGPosition(nbt)));
             if (te == null){
                 //System.out.println("***********************removing tag of compound******************");
                 nbt.remove("te");
@@ -97,13 +94,13 @@ public abstract class KeyItem extends Item {
                 nbt.remove("pos_z");
                 return false;
             }
-            //System.out.println("class of tileentity found :"+te.getClass());
+            //System.out.println("class of tile entity found :"+te.getClass());
             return (te instanceof TollGateTileEntity);
         }
         return false;
     }
 
-    //to set TG position pos in the itemstack
+    //to set TG position pos in the item stack
     public void setTGPosition(ItemStack stack,IWorld world,BlockPos pos){
         CompoundNBT nbt = stack.getOrCreateTag();
         System.out.println("defining new blockPos");
@@ -122,10 +119,10 @@ public abstract class KeyItem extends Item {
     Turn Stile registered function
      */
 
-    //used in various function for obtaining the position registered (with world return null if position is an old and unvalued registering)
+    //used in various function for obtaining the position registered (with world return null if position is an old and unused registering)
     public BlockPos getTSPosition(ItemStack stack,@Nullable World world){
         CompoundNBT nbt=stack.getOrCreateTag();
-        //choose between testing only the nbt value corresponding to "turn_stile" or the reality of blockpos with world
+        //choose between testing only the nbt value corresponding to "turn_stile" or the reality of block position with world
         boolean isTSPosReg = (world == null)? isTSPositionReg(nbt) : isTSPositionReg(nbt, world);
         //System.out.println(isTGPosReg);
         if (isTSPosReg){
@@ -139,7 +136,7 @@ public abstract class KeyItem extends Item {
         return null;
     }
 
-    //used only in this class for the function that checks directly the pos revelancy
+    //used only in this class for the function that checks directly the pos relevancy
     private BlockPos getTSPosition(CompoundNBT nbt){
         if (isTSPositionReg(nbt)){
             int x = nbt.getInt("pos_x");
@@ -150,7 +147,7 @@ public abstract class KeyItem extends Item {
         return null;
     }
 
-    //to know whether this item tag contains the blockpos of a TollGateTileEntity(present or absent)
+    //to know whether this item tag contains the block position of a TollGateTileEntity(present or absent)
     protected boolean isTSPositionReg(CompoundNBT nbt){
         if (nbt.contains("te")){
             //System.out.println("checking the nbt string");
@@ -166,7 +163,7 @@ public abstract class KeyItem extends Item {
         System.out.println("first test in isTSPositionReg(nbt,world) : "+isTSPositionReg(nbt));
         if (isTSPositionReg(nbt)){
             System.out.println("pos of tile entity to check : "+getTSPosition(nbt));
-            TileEntity te = world.getBlockEntity(getTSPosition(nbt));
+            TileEntity te = world.getBlockEntity(Objects.requireNonNull(getTSPosition(nbt)));
             if (te == null){
                 System.out.println("***********************removing tag of compound******************");
                 nbt.remove("te");
@@ -175,7 +172,7 @@ public abstract class KeyItem extends Item {
                 nbt.remove("pos_z");
                 return false;
             }
-            //System.out.println("class of tileentity found :"+te.getClass());
+            //System.out.println("class of tile entity found :"+te.getClass());
             return (te instanceof TurnStileTileEntity);
         }
         return false;
@@ -208,13 +205,14 @@ public abstract class KeyItem extends Item {
             }
         }
         int id = Functions.getIdFromBlockPos(registeredPos);
-        String formatedString = "# %1$d";
-        String st =String.format(formatedString,id);
+        String formattedString = "# %1$d";
+        String st =String.format(formattedString,id);
         return new TranslationTextComponent(this.getDescriptionId(stack),st);
     }
 
     @Override
     public void appendHoverText(ItemStack stack, @Nullable World world, List<ITextComponent> componentList, ITooltipFlag flag) {
+        assert stack.getTag() != null;
         if (stack.getTag().contains("id")){
             int id = stack.getTag().getInt("id");
             componentList.add(new StringTextComponent("Id :"+id));
@@ -242,14 +240,16 @@ public abstract class KeyItem extends Item {
         TileEntity te= world.getBlockEntity(pos);
         if (te instanceof CardGetterTileEntity) {
             CardGetterTileEntity cgte = (CardGetterTileEntity) te;
+            assert entity != null;
             ItemStack stack = entity.getItemInHand(hand);
-            //we get the pos of turn stile or toll gate
+            //we get the pos of turn stile or tollgate
             BlockPos registeredPos = getTSorTGPosition(stack, world);
             if (registeredPos == null){
                 return super.useOn(context);
             }
             if (world.getBlockEntity(registeredPos) instanceof IControlIdTE) {
                 IControlIdTE associated_te = (IControlIdTE) world.getBlockEntity(registeredPos);
+                assert associated_te != null;
                 int id = associated_te.getId();
                 //we are technician
                 cgte.setSide(false);

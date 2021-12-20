@@ -18,7 +18,6 @@ public class TollStorageCapability {
     public static void register()
     {
         CapabilityManager.INSTANCE.register(ITollStorage.class, new Capability.IStorage<ITollStorage>() {
-            @Nullable
             @Override
             public INBT writeNBT(Capability<ITollStorage> capability, ITollStorage instance, Direction side) {
                 CompoundNBT tag = new CompoundNBT();

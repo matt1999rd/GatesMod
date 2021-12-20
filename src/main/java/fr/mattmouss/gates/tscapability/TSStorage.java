@@ -6,6 +6,7 @@ import net.minecraft.world.World;
 import net.minecraft.world.storage.DimensionSavedDataManager;
 import net.minecraftforge.common.util.INBTSerializable;
 
+import java.util.Objects;
 import java.util.Random;
 
 public class TSStorage implements ITSStorage, INBTSerializable<CompoundNBT> {
@@ -26,7 +27,7 @@ public class TSStorage implements ITSStorage, INBTSerializable<CompoundNBT> {
 
     @Override
     public void changeId(World world) {
-        //trackInt is limited to 16 bit number and there is negative value
+        //trackInt is limited to 16-bit number and there is negative value
         int newId= random.nextInt((int)Math.pow(2,15))+(int)Math.pow(2,15);
         System.out.println("changing id... \n newId = "+newId);
         setId(newId,world);
@@ -39,7 +40,7 @@ public class TSStorage implements ITSStorage, INBTSerializable<CompoundNBT> {
 
     @Override
     public void setId(int newId, World world) {
-        DimensionSavedDataManager manager = world.getServer().overworld().getDataStorage();
+        DimensionSavedDataManager manager = Objects.requireNonNull(world.getServer()).overworld().getDataStorage();
         if (id != -1){
             manager.computeIfAbsent(IdTracker::new,"idgates").removeId(id);
         }

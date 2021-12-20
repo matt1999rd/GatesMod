@@ -35,7 +35,7 @@ public class GarageTileEntity extends TileEntity implements ITickableTileEntity 
         super(ModBlock.GARAGE_TILE_TYPE);
     }
 
-    private LazyOptional<AnimationBoolean> startAnimation = LazyOptional.of(this::getAnimation).cast();
+    private final LazyOptional<AnimationBoolean> startAnimation = LazyOptional.of(this::getAnimation).cast();
 
     private AnimationBoolean getAnimation(){
         return new AnimationBoolean();
@@ -43,6 +43,7 @@ public class GarageTileEntity extends TileEntity implements ITickableTileEntity 
 
     @Override
     public void tick() {
+        assert level != null;
         if (!level.isClientSide) {
             BlockState state = this.getBlockState();
             if (animationOpeningInProcess()) {
@@ -76,22 +77,10 @@ public class GarageTileEntity extends TileEntity implements ITickableTileEntity 
         BlockState state = this.getBlockState();
         int animationStep = state.getValue(GarageDoor.ANIMATION);
         if (animationStep == 0) {
-            setBoolOpen(true); //mettre en route l'animation d'ouverture
+            setBoolOpen(true); //start opening animation
             //System.out.println("starting animation open");
         }else if (animationStep == 5){
-            setBoolClose(true); //mettre en route l'animation de fermeture
-            //System.out.println("starting animation close");
-        }
-    }
-
-    public void startAnimation(boolean opening){
-        BlockState state = this.getBlockState();
-        int animationStep = state.getValue(GarageDoor.ANIMATION);
-        if (animationStep == 0 && opening) {
-            setBoolOpen(true); //mettre en route l'animation d'ouverture
-            //System.out.println("starting animation open");
-        }else if (animationStep == 5 && !opening){
-            setBoolClose(true); //mettre en route l'animation de fermeture
+            setBoolClose(true); //start closing animation
             //System.out.println("starting animation close");
         }
     }
@@ -105,15 +94,11 @@ public class GarageTileEntity extends TileEntity implements ITickableTileEntity 
     }
 
     private void setBoolOpen(Boolean bool){
-        getCapability(AnimationBooleanCapability.ANIMATION_BOOLEAN_CAPABILITY).ifPresent(animationBoolean ->{
-            animationBoolean.setBoolOpen(bool);
-        });
+        getCapability(AnimationBooleanCapability.ANIMATION_BOOLEAN_CAPABILITY).ifPresent(animationBoolean -> animationBoolean.setBoolOpen(bool));
     }
 
     private void setBoolClose(Boolean bool){
-        getCapability(AnimationBooleanCapability.ANIMATION_BOOLEAN_CAPABILITY).ifPresent(animationBoolean -> {
-            animationBoolean.setBoolClose(bool);
-        });
+        getCapability(AnimationBooleanCapability.ANIMATION_BOOLEAN_CAPABILITY).ifPresent(animationBoolean -> animationBoolean.setBoolClose(bool));
     }
 
     @Override
@@ -141,59 +126,59 @@ public class GarageTileEntity extends TileEntity implements ITickableTileEntity 
         Placing placing = state.getValue(GarageDoor.GARAGE_PLACING);
         Direction dir_left_section = dir_facing.getClockWise();
         switch (placing){
-            case DOWN_LEFT://block en bas à gauche
-                //position au dessus
+            case DOWN_LEFT://block below in left
+                //above position
                 posList.add(worldPosition.above());
-                //blocks de l'arrière
+                //back blocks
                 posList.add(worldPosition.above().relative(dir_facing.getOpposite()));
                 posList.add(worldPosition.above()
                         .relative(dir_facing.getOpposite())
                         .relative(dir_left_section.getOpposite()));
-                //block à droite
+                //right blocks
                 posList.add(worldPosition.relative(dir_left_section.getOpposite()));
                 posList.add(worldPosition.relative(dir_left_section.getOpposite()).above());
                 break;
-            case DOWN_RIGHT://block en bas à droite
-                //position au dessus
+            case DOWN_RIGHT://block below in right
+                //above block
                 posList.add(worldPosition.above());
-                //blocks de l'arrière
+                //back blocks
                 posList.add(worldPosition.above().relative(dir_facing.getOpposite()));
                 posList.add(worldPosition.above()
                         .relative(dir_facing.getOpposite())
                         .relative(dir_left_section));
-                //block à gauche
+                //left blocks
                 posList.add(worldPosition.relative(dir_left_section));
                 posList.add(worldPosition.relative(dir_left_section).above());
                 break;
-            case UP_LEFT://block en haut à gauche
-                //position au dessous
+            case UP_LEFT://block above in left
+                //below block
                 posList.add(worldPosition.below());
-                //blocks de l'arrière
+                //back blocks
                 posList.add(worldPosition.relative(dir_facing.getOpposite()));
                 posList.add(worldPosition
                         .relative(dir_facing.getOpposite())
                         .relative(dir_left_section.getOpposite()));
-                //block à droite
+                //right blocks
                 posList.add(worldPosition.relative(dir_left_section.getOpposite()));
                 posList.add(worldPosition.relative(dir_left_section.getOpposite()).below());
                 break;
-            case UP_RIGHT://block en haut à droite
-                //position au dessous
+            case UP_RIGHT://block above in right
+                //below block
                 posList.add(worldPosition.below());
-                //blocks de l'arrière
+                //back blocks
                 posList.add(worldPosition.relative(dir_facing.getOpposite()));
                 posList.add(worldPosition.relative(dir_facing.getOpposite()).relative(dir_left_section));
-                //block à gauche
+                //left blocks
                 posList.add(worldPosition.relative(dir_left_section));
                 posList.add(worldPosition.relative(dir_left_section).below());
                 break;
-            case BACK_LEFT://block derrière à gauche
-                //position à droite
+            case BACK_LEFT://block on the back left
+                //right block
                 posList.add(worldPosition.relative(dir_left_section.getOpposite()));
-                //position devant en haut et en bas
+                //position in front left
                 posList.add(worldPosition.relative(dir_facing));
                 posList.add(worldPosition.relative(dir_facing).below());
-                //position devant à droite
+                //position in front right
                 posList.add(worldPosition
                         .relative(dir_facing)
                         .relative(dir_left_section.getOpposite()));
@@ -202,13 +187,13 @@ public class GarageTileEntity extends TileEntity implements ITickableTileEntity 
                         .relative(dir_left_section.getOpposite())
                         .below());
                 break;
-            case BACK_RIGHT://block derrière à droite
-                //position à gauche
+            case BACK_RIGHT://block on the back right
+                //left block
                 posList.add(worldPosition.relative(dir_left_section));
-                //position devant en haut et en bas
+                //position in front right
                 posList.add(worldPosition.relative(dir_facing));
                 posList.add(worldPosition.relative(dir_facing).below());
-                //position devant à gauche
+                //position in front left
                 posList.add(worldPosition
                         .relative(dir_facing)
                         .relative(dir_left_section));
@@ -222,42 +207,6 @@ public class GarageTileEntity extends TileEntity implements ITickableTileEntity 
         }
         return posList;
 
-    }
-
-    public void checkRedstoneNearby(){
-        List<BlockPos> commonGarageBlock = getPositionOfBlockConnected();
-        Boolean isPowered = false;
-        for(int i = 0; i<6;i++){
-            if (!commonGarageBlock.contains(worldPosition.relative(Direction.from3DDataValue(i))) && isBlockPowered(worldPosition.relative(Direction.from3DDataValue(i)))){
-                isPowered = true;
-            }
-            if (!commonGarageBlock.contains(worldPosition.relative(Direction.from3DDataValue(i)))){
-                System.out.println("le block à la position "+
-                        worldPosition.relative(Direction.from3DDataValue(i))
-                        +"est il powered ? R :"
-                        + isBlockPowered(worldPosition.relative(Direction.from3DDataValue(i))));
-            }
-        }
-        System.out.println("is Powered :"+isPowered);
-
-        //on démarre l'animation ouverture si alimenté et à 0 ou fermeture si non alimnté et à 5
-        this.startAnimation(isPowered);
-        for (BlockPos pos : commonGarageBlock){
-            ((GarageTileEntity)level.getBlockEntity(pos)).startAnimation(isPowered);
-        }
-    }
-
-    private boolean isBlockPowered(BlockPos offset) {
-        BlockState state =level.getBlockState(offset);
-        Boolean res = false;
-        if (state.hasProperty(BlockStateProperties.POWERED)){
-            res = state.getValue(BlockStateProperties.POWERED);
-        }
-        if (state.hasProperty(BlockStateProperties.POWER)){
-            res = state.getValue(BlockStateProperties.POWER)>10;
-        }
-
-        return res;
     }
 
     @Nonnull

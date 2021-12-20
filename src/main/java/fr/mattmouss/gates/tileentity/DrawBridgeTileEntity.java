@@ -2,7 +2,6 @@ package fr.mattmouss.gates.tileentity;
 
 import fr.mattmouss.gates.blocks.ModBlock;
 import fr.mattmouss.gates.doors.DrawBridge;
-import fr.mattmouss.gates.enum_door.DrawBridgePosition;
 import net.minecraft.block.AirBlock;
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockState;
@@ -34,6 +33,7 @@ public class DrawBridgeTileEntity extends TileEntity implements ITickableTileEnt
         Block block=state.getBlock();
         if (!(block instanceof DrawBridge))return;
         if (state.getValue(POSITION) == DOOR_LEFT_DOWN) {
+            assert level != null;
             if (!level.isClientSide){
                 if (!initialise){
                     initialise = true;
@@ -81,6 +81,7 @@ public class DrawBridgeTileEntity extends TileEntity implements ITickableTileEnt
         DrawBridge bridge = (DrawBridge)block;
         List<BlockPos> posList= bridge.getNeighborPositions(state.getValue(BlockStateProperties.HORIZONTAL_FACING),worldPosition,DOOR_LEFT_DOWN);
         for (BlockPos neiPos : posList){
+            assert level != null;
             BlockState neiState=level.getBlockState(neiPos);
             if (!(neiState.getBlock() instanceof AirBlock))level.setBlockAndUpdate(neiPos,neiState.setValue(BlockStateProperties.POWERED,isOpening).setValue(ANIMATION,futureAnimState));
         }

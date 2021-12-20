@@ -38,8 +38,6 @@ public class SetIdPacket {
                 ((TollGateTileEntity)te).setId(server_id);
             }else if (te instanceof TurnStileTileEntity){
                 ((TurnStileTileEntity)te).setId(server_id);
-            }else {
-                return;
             }
         });
         context.get().setPacketHandled(true);

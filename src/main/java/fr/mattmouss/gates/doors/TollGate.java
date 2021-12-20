@@ -7,7 +7,6 @@ import fr.mattmouss.gates.network.Networking;
 import fr.mattmouss.gates.network.PacketRemoveId;
 import fr.mattmouss.gates.network.SetIdPacket;
 import fr.mattmouss.gates.tileentity.TollGateTileEntity;
-import fr.mattmouss.gates.tileentity.TurnStileTileEntity;
 import fr.mattmouss.gates.util.Functions;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.Blocks;
@@ -33,6 +32,7 @@ import net.minecraftforge.fml.network.PacketDistributor;
 
 import javax.annotation.Nullable;
 import java.util.List;
+import java.util.Objects;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import static fr.mattmouss.gates.enum_door.TollGPosition.*;
@@ -53,12 +53,11 @@ public class TollGate extends AbstractTollGate {
 
     @Override
     public void setPlacedBy(World world, BlockPos pos, BlockState state, @Nullable LivingEntity entity, ItemStack stack) {
-        //on pose le block central au niveau du block selectionné
-        //le coté de la barrière sera défini selon la position du joueur vis à vis du block
         if (entity != null){
-            //on initialise l'id
+            //we initialise the id
             if (!world.isClientSide ) {
                 TollGateTileEntity tgte = (TollGateTileEntity) world.getBlockEntity(pos);
+                assert tgte != null;
                 tgte.changeId();
                 Networking.INSTANCE.send(PacketDistributor.PLAYER.with(()-> (ServerPlayerEntity)entity),new SetIdPacket(pos,tgte.getId()));
             }
@@ -146,12 +145,12 @@ public class TollGate extends AbstractTollGate {
 
     @Override
     public ActionResultType use(BlockState state, World world, BlockPos pos, PlayerEntity entity, Hand hand, BlockRayTraceResult blockRayTraceResult) {
-        //old functionnality of block
+        //old functionality of block
 
         TollGateTileEntity tgte = (TollGateTileEntity) world.getBlockEntity(pos);
         assert tgte != null;
-        //we reupload the player using the gui
-        tgte.changePlayerId(entity);
+        //we reload the player using the gui
+        TollGateTileEntity.changePlayerId(entity);
 
         if (state.getValue(TG_POSITION) != TollGPosition.CONTROL_UNIT){
             return ActionResultType.FAIL;
@@ -164,8 +163,8 @@ public class TollGate extends AbstractTollGate {
         if ((entity_looking_direction==facing.getCounterClockWise() && (dhs == DoorHingeSide.RIGHT))||
                 (entity_looking_direction==facing.getClockWise() && (dhs == DoorHingeSide.LEFT))){
             System.out.println("the player is a user ");
-            System.out.println("openning user gui !!");
-            ((TollGateTileEntity) world.getBlockEntity(pos)).setSide(true);
+            System.out.println("opening user gui !!");
+            ((TollGateTileEntity) Objects.requireNonNull(world.getBlockEntity(pos))).setSide(true);
             if (!world.isClientSide) {
                 NetworkHooks.openGui((ServerPlayerEntity) entity, tgte, tgte.getBlockPos());
             }
@@ -181,11 +180,11 @@ public class TollGate extends AbstractTollGate {
 
     @Override
     public boolean func_220051_a(BlockState state, World world, BlockPos pos, PlayerEntity player, Hand p_220051_5_, BlockRayTraceResult p_220051_6_) {
-        //old functionnality of block
+        //old functionality of block
 
         TollGateTileEntity tgte = (TollGateTileEntity) world.getBlockEntity(pos);
         assert tgte != null;
-        //we reupload the player using the gui
+        //we reload the player using the gui
         tgte.changePlayerId(player);
 
         if (state.getValue(TG_POSITION) != TollGPosition.CONTROL_UNIT){
@@ -199,7 +198,7 @@ public class TollGate extends AbstractTollGate {
         if ((entity_looking_direction==facing.getCounterClockWise() && (dhs == DoorHingeSide.RIGHT))||
                 (entity_looking_direction==facing.getClockWise() && (dhs == DoorHingeSide.LEFT))){
             System.out.println("the player is a user ");
-            System.out.println("openning user gui !!");
+            System.out.println("opening user gui !!");
             ((TollGateTileEntity) world.getBlockEntity(pos)).setSide(true);
             if (!world.isClientSide) {
                 NetworkHooks.openGui((ServerPlayerEntity) player, tgte, tgte.getBlockPos());
@@ -209,7 +208,7 @@ public class TollGate extends AbstractTollGate {
         return false;
     }
 
-
+}
  */
 
 

@@ -25,6 +25,7 @@ public class TurnStileKeyItem extends KeyItem {
         PlayerEntity entity = context.getPlayer();
         World world = context.getLevel();
         Hand hand = context.getHand();
+        assert entity != null;
         ItemStack stack = entity.getItemInHand(hand);
         TileEntity te= world.getBlockEntity(pos);
         if (!(te instanceof TurnStileTileEntity)){
@@ -42,7 +43,7 @@ public class TurnStileKeyItem extends KeyItem {
             return super.useOn(context);
         }
 
-        //if someone takes the key from the creative tab it will not have any BlockPos and we set the blockPos to the present turn stile
+        //if someone takes the key from the creative tab it will not have any BlockPos, and we set the blockPos to the present turn stile
         //if this key has a blockPos that don't correspond to a turn stile anymore (because of destroyed block) we set the blockPos also
         BlockPos registeredPos = getTSPosition(stack,world);
         if (registeredPos == null){
@@ -60,6 +61,7 @@ public class TurnStileKeyItem extends KeyItem {
         }
         TurnStileTileEntity tste = (TurnStileTileEntity) world.getBlockEntity(pos);
         if (!world.isClientSide) {
+            assert tste != null;
             NetworkHooks.openGui((ServerPlayerEntity) entity, tste, tste.getBlockPos());
         }
         return super.useOn(context);

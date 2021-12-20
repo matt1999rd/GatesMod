@@ -45,6 +45,7 @@ public class DrawBridge extends Block {
         super(Properties.of(Material.METAL)
                 .strength(2.0f)
                 .sound(SoundType.METAL)
+                .noOcclusion()
                 //1.15 function
                 //.notSolid()
         );

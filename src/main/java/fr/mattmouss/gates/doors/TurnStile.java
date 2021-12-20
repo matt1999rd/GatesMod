@@ -1,16 +1,13 @@
 package fr.mattmouss.gates.doors;
 
 
-import fr.mattmouss.gates.energystorage.IdTracker;
 import fr.mattmouss.gates.enum_door.TurnSPosition;
 import fr.mattmouss.gates.items.ModItem;
 import fr.mattmouss.gates.items.TurnStileKeyItem;
 import fr.mattmouss.gates.network.Networking;
 import fr.mattmouss.gates.network.PacketRemoveId;
 import fr.mattmouss.gates.network.SetIdPacket;
-import fr.mattmouss.gates.tileentity.TollGateTileEntity;
 import fr.mattmouss.gates.tileentity.TurnStileTileEntity;
-import fr.mattmouss.gates.util.Functions;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.Blocks;
 import net.minecraft.entity.LivingEntity;
@@ -19,7 +16,6 @@ import net.minecraft.entity.player.PlayerInventory;
 import net.minecraft.entity.player.ServerPlayerEntity;
 import net.minecraft.item.ItemStack;
 import net.minecraft.state.properties.BlockStateProperties;
-import net.minecraft.state.properties.DoorHingeSide;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.Direction;
 import net.minecraft.util.math.BlockPos;
@@ -52,11 +48,10 @@ public class TurnStile extends AbstractTurnStile {
     @Override
     public void setPlacedBy(World world, BlockPos pos, BlockState state, @Nullable LivingEntity player, ItemStack stack) {
         if (player != null){
-            Direction direction = Functions.getDirectionFromEntity(player,pos);
-            DoorHingeSide dhs = Functions.getHingeSideFromEntity(player,pos,direction);
             if (!world.isClientSide) {
                 //we change the id for the block Control Unit where the tech gui will open
                 TurnStileTileEntity tste = (TurnStileTileEntity) world.getBlockEntity(pos);
+                assert tste != null;
                 tste.changeId();
                 Networking.INSTANCE.send(PacketDistributor.PLAYER.with(()-> (ServerPlayerEntity)player),new SetIdPacket(pos,tste.getId()));
             }

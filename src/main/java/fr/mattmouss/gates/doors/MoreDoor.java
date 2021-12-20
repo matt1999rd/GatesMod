@@ -10,10 +10,11 @@ import net.minecraft.block.material.MaterialColor;
 public class MoreDoor extends DoorBlock {
     public MoreDoor(String key) {
         super(Properties.of(Material.STONE, MaterialColor.COLOR_ORANGE)
-        .strength(2.0f)
-        .sound(SoundType.METAL)
-                //1.15 function
-                //.notSolid()
+                        .strength(2.0f)
+                        .sound(SoundType.METAL)
+                        .noOcclusion()
+                        //1.15 function
+                        //.notSolid()
         );
         this.setRegistryName(key);
     }

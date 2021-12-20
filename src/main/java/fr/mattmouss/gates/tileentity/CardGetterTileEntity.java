@@ -37,6 +37,7 @@ import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Objects;
 import java.util.concurrent.atomic.AtomicInteger;
 
 public class CardGetterTileEntity extends TileEntity implements INamedContainerProvider, ITickableTileEntity,IPriceControllingTE {
@@ -47,7 +48,7 @@ public class CardGetterTileEntity extends TileEntity implements INamedContainerP
     //boolean that is set to true when value server side has changed
     private static boolean isDirty = true;
 
-    private static boolean idselectedchange = false;
+    private static boolean idSelectedChange = false;
 
     //id that is defined by the key we are clicking with
     private static int tech_key_id = -1;
@@ -55,9 +56,9 @@ public class CardGetterTileEntity extends TileEntity implements INamedContainerP
     //id that is set to the id that is selected into the gui
     private static int selected_id = -1;
 
-    private LazyOptional<IItemHandler> handler = LazyOptional.of(this::createHandler).cast();
+    private final LazyOptional<IItemHandler> handler = LazyOptional.of(this::createHandler).cast();
 
-    private LazyOptional<ICostStorage> costStorage = LazyOptional.of(this::getStorage).cast();
+    private final LazyOptional<ICostStorage> costStorage = LazyOptional.of(this::getStorage).cast();
 
     public ItemStackHandler createHandler() {
         return new ItemStackHandler(2){
@@ -100,10 +101,8 @@ public class CardGetterTileEntity extends TileEntity implements INamedContainerP
     }
 
     public void changeSelectedId(int order){
-        costStorage.ifPresent(iCostStorage -> {
-            selected_id = (int)iCostStorage.getCostMap().keySet().toArray()[order];
-        });
-        idselectedchange = true;
+        costStorage.ifPresent(iCostStorage -> selected_id = (int)iCostStorage.getCostMap().keySet().toArray()[order]);
+        idSelectedChange = true;
     }
 
     public CostStorage getStorage() {
@@ -123,6 +122,7 @@ public class CardGetterTileEntity extends TileEntity implements INamedContainerP
     @Nullable
     @Override
     public Container createMenu(int i, PlayerInventory playerInventory, PlayerEntity playerEntity) {
+        assert level != null;
         if (UserGuiOpen){
             return new CardGetterContainer(i,level,worldPosition,playerInventory,playerEntity);
         }else {
@@ -132,12 +132,8 @@ public class CardGetterTileEntity extends TileEntity implements INamedContainerP
     }
 
     public HashMap<Integer,Integer> getIdPriceMap() {
-        HashMap<Integer,Integer> cost = new HashMap<>();
-        costStorage.ifPresent(c->{
-            HashMap<Integer,Integer> internMap =c.getCostMap();
-            internMap.forEach(cost::put);
-        });
-        return cost;
+        return costStorage.map(ICostStorage::getCostMap)
+                .orElseThrow(()-> new IllegalStateException("Intern Map is not found in the card getter tile entity !"));
     }
 
     public void addIdAndCost(int new_id,int new_cost){
@@ -149,9 +145,7 @@ public class CardGetterTileEntity extends TileEntity implements INamedContainerP
     }
 
     public void changeCost(int id,int new_price){
-        costStorage.ifPresent(c->{
-            c.changeCost(id,new_price);
-        });
+        costStorage.ifPresent(c-> c.changeCost(id,new_price));
     }
 
     public void setSide(boolean b) {
@@ -160,8 +154,9 @@ public class CardGetterTileEntity extends TileEntity implements INamedContainerP
 
     @Override
     public void tick() {
+        assert level != null;
         if (!level.isClientSide){
-            List<Integer> id_list = level.getServer()
+            List<Integer> id_list = Objects.requireNonNull(level.getServer())
                     .overworld()
                     .getDataStorage()
                     .computeIfAbsent(IdTracker::new,"idgates").getList();
@@ -190,9 +185,7 @@ public class CardGetterTileEntity extends TileEntity implements INamedContainerP
             if (isDirty){
                 if (level.players().isEmpty())return;
                 for (PlayerEntity serverPlayer : level.players()){
-                    Networking.INSTANCE.send(PacketDistributor.PLAYER.with(()->{
-                        return (ServerPlayerEntity) serverPlayer;
-                    }),new PutIdsToClientPacket(worldPosition,costMap));
+                    Networking.INSTANCE.send(PacketDistributor.PLAYER.with(()-> (ServerPlayerEntity) serverPlayer),new PutIdsToClientPacket(worldPosition,costMap));
                 }
             }
             if (UserGuiOpen)manageEmeraldConsumption();
@@ -216,11 +209,11 @@ public class CardGetterTileEntity extends TileEntity implements INamedContainerP
             ItemStack CardStack = h.getStackInSlot(1);
             //if the card is filled with a card we only check the price
             if (!CardStack.isEmpty()){
-                //if id change or emerald are removed and we finally cannot pay the card we remove the card
-                boolean flag = idselectedchange || (number_of_emerald<price_to_pay);
+                //if id change or emerald are removed, and we finally cannot pay the card we remove the card
+                boolean flag = idSelectedChange || (number_of_emerald<price_to_pay);
                 if (flag) {
                     h.extractItem(1,1,false);
-                    idselectedchange =false;
+                    idSelectedChange =false;
                 }
             }
             if (EmStack.getItem() == Items.EMERALD){
@@ -271,24 +264,18 @@ public class CardGetterTileEntity extends TileEntity implements INamedContainerP
 
     @Override
     public void lowerPrice() {
-        costStorage.ifPresent(iCostStorage -> {
-            iCostStorage.lowerPrice(tech_key_id);
-        });
+        costStorage.ifPresent(iCostStorage -> iCostStorage.lowerPrice(tech_key_id));
     }
 
     @Override
     public void raisePrice() {
-        costStorage.ifPresent(iCostStorage -> {
-            iCostStorage.raisePrice(tech_key_id);
-        });
+        costStorage.ifPresent(iCostStorage -> iCostStorage.raisePrice(tech_key_id));
     }
 
     @Override
     public int getPrice() {
         AtomicInteger key_id_price= new AtomicInteger(0);
-        costStorage.ifPresent(iCostStorage -> {
-            key_id_price.set(iCostStorage.getCostMap().get(tech_key_id));
-        });
+        costStorage.ifPresent(iCostStorage -> key_id_price.set(iCostStorage.getCostMap().get(tech_key_id)));
         return key_id_price.get();
     }
 

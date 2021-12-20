@@ -9,6 +9,7 @@ import net.minecraft.util.math.BlockPos;
 import net.minecraftforge.fml.network.NetworkEvent;
 
 import java.util.List;
+import java.util.Objects;
 import java.util.function.Supplier;
 
 public class blockTSPacket {
@@ -34,21 +35,25 @@ public class blockTSPacket {
     public void handle(Supplier<NetworkEvent.Context> context){
         context.get().enqueueWork(()->{
             System.out.println("packet blockTS handled !");
-            TileEntity te=context.get().getSender().getLevel().getBlockEntity(pos);
+            TileEntity te= Objects.requireNonNull(context.get().getSender()).getLevel().getBlockEntity(pos);
             List<BlockPos> posList;
             if (!isRedStoneSpecified) {
                 TurnStileTileEntity tste = (TurnStileTileEntity) te;
+                assert tste != null;
                 posList=tste.getPositionOfBlockConnected();
             }else {
                 RedstoneTurnStileTileEntity rtste = (RedstoneTurnStileTileEntity) te;
+                assert rtste != null;
                 posList=rtste.getPositionOfBlockConnected();
             }
             for (BlockPos pos1 : posList){
                 if (!isRedStoneSpecified){
-                    TurnStileTileEntity tste1 = (TurnStileTileEntity) context.get().getSender().getLevel().getBlockEntity(pos1);
+                    TurnStileTileEntity tste1 = (TurnStileTileEntity) Objects.requireNonNull(context.get().getSender()).getLevel().getBlockEntity(pos1);
+                    assert tste1 != null;
                     tste1.blockTS();
                 }else {
-                    RedstoneTurnStileTileEntity rtste1 = (RedstoneTurnStileTileEntity) context.get().getSender().getLevel().getBlockEntity(pos1);
+                    RedstoneTurnStileTileEntity rtste1 = (RedstoneTurnStileTileEntity) Objects.requireNonNull(context.get().getSender()).getLevel().getBlockEntity(pos1);
+                    assert rtste1 != null;
                     rtste1.blockTS();
                 }
             }

@@ -12,6 +12,7 @@ import net.minecraft.util.math.vector.Vector2f;
 import net.minecraft.world.server.ServerWorld;
 import net.minecraftforge.fml.network.NetworkEvent;
 
+import java.util.Objects;
 import java.util.function.Supplier;
 
 public class movePlayerPacket {
@@ -43,17 +44,19 @@ public class movePlayerPacket {
 
     public void handle(Supplier<NetworkEvent.Context> context){
         context.get().enqueueWork(()->{
-            ServerWorld serverWorld = context.get().getSender().getLevel();
+            ServerWorld serverWorld = Objects.requireNonNull(context.get().getSender()).getLevel();
             TileEntity te = serverWorld.getBlockEntity(te_pos);
             Entity entity =  serverWorld.getEntity(player_id);
             if (entity == null){
                 System.out.println("no entity found with given id !!");
             }
             if (!(entity instanceof ServerPlayerEntity)){
+                assert entity != null;
                 System.out.println("error of id !!! the given entity is "+entity.getClass());
                 return;
             }
             ServerPlayerEntity player = (ServerPlayerEntity)entity;
+            assert te != null;
             Direction facing = te.getBlockState().getValue(BlockStateProperties.HORIZONTAL_FACING);
             Vector2f rot =player.getRotationVector();
             Direction offsetDirection=(fromExit)? facing : facing.getOpposite();

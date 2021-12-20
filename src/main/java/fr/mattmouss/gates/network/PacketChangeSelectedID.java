@@ -1,11 +1,11 @@
 package fr.mattmouss.gates.network;
 
 import fr.mattmouss.gates.tileentity.CardGetterTileEntity;
-import fr.mattmouss.gates.tileentity.TollGateTileEntity;
 import net.minecraft.network.PacketBuffer;
 import net.minecraft.util.math.BlockPos;
 import net.minecraftforge.fml.network.NetworkEvent;
 
+import java.util.Objects;
 import java.util.function.Supplier;
 
 public class PacketChangeSelectedID {
@@ -29,7 +29,8 @@ public class PacketChangeSelectedID {
 
     public void handle(Supplier<NetworkEvent.Context> context){
         context.get().enqueueWork(()->{
-            CardGetterTileEntity cgte = (CardGetterTileEntity) context.get().getSender().getLevel().getBlockEntity(pos);
+            CardGetterTileEntity cgte = (CardGetterTileEntity) Objects.requireNonNull(context.get().getSender()).getLevel().getBlockEntity(pos);
+            assert cgte != null;
             cgte.changeSelectedId(id);
         });
         context.get().setPacketHandled(true);

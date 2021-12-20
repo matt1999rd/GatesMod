@@ -34,24 +34,9 @@ import java.util.List;
 
 public class GarageDoor extends Block {
 
-    /**Plusieurs Bugs repèré :
-     *
-     * le blockItem ne vérifie la possibilité de poser le block de garage et supprime simplement les blocks présents à cet endroit
-     *  (corrigé)
-     *
-     * lorsque deux blocks de garage sont présent il s'ouvre en même temps au lieu d'être dissocié (Animation variable trop globale)
-     * (corrigé : capability + pas de variable static dans la classe encapsulé)
-     *
-     * bug d'animation
-     * (due au problème 2)
-     *
-     * **/
-
     /**
-    * quelques trucs à faire encore :
-    ** ajouter une gestion de la stabilité du block :
-     * le block doit se défaire si l'un des deux blocks en dessous devient de l'air (fait !!)
-     **afficher sur le chat comment poser le garage
+    * one thing to do :
+     **display in chat how to use the garage door
      * */
 
     public GarageDoor(String key) {
@@ -59,6 +44,7 @@ public class GarageDoor extends Block {
         .strength(2.0f)
         .lightLevel(value -> 0)
         .sound(SoundType.METAL)
+        .noOcclusion()
         //.notSolid()
         );
         this.setRegistryName(key);
@@ -209,7 +195,7 @@ public class GarageDoor extends Block {
         if (entity != null){
             Direction dir_entity = Functions.getDirectionFromEntity(entity,pos);
             System.out.println("dir_entity :"+dir_entity.getSerializedName());
-            //placement des 2 block de droite de la porte de garage
+            //placement of the 2 block on the right of the garage door
             world.setBlockAndUpdate(pos,state
                     .setValue(BlockStateProperties.HORIZONTAL_FACING,dir_entity)
                     .setValue(GARAGE_PLACING,Placing.DOWN_RIGHT)
@@ -218,7 +204,7 @@ public class GarageDoor extends Block {
                     .setValue(BlockStateProperties.HORIZONTAL_FACING,dir_entity)
                     .setValue(GARAGE_PLACING,Placing.UP_RIGHT)
                     .setValue(ANIMATION,0));
-            //placement des 2 block à gauche de la porte de garage
+            //placement of the 2 block on the left of the garage door
             Direction dir_left_section=dir_entity.getClockWise();
             world.setBlockAndUpdate(pos.relative(dir_left_section),state
                     .setValue(BlockStateProperties.HORIZONTAL_FACING,dir_entity)
@@ -228,7 +214,7 @@ public class GarageDoor extends Block {
                     .setValue(BlockStateProperties.HORIZONTAL_FACING,dir_entity)
                     .setValue(GARAGE_PLACING,Placing.UP_LEFT)
                     .setValue(ANIMATION,0));
-            //placement des 2 block qui constitue le garage ouvert
+            //placement of the 2 block that makes the opened garage door
             world.setBlockAndUpdate(pos.relative(dir_entity.getOpposite()).above(),state
                     .setValue(BlockStateProperties.HORIZONTAL_FACING,dir_entity)
                     .setValue(GARAGE_PLACING,Placing.BACK_RIGHT)
@@ -261,12 +247,12 @@ public class GarageDoor extends Block {
         Direction blockFacing = stateIn.getValue(BlockStateProperties.HORIZONTAL_FACING).getOpposite();
 
         if (isInnerUpdate(placing,facing,blockFacing) && !(facingState.getBlock() instanceof GarageDoor)){
-            System.out.println("no other garage part found for placing :"+placing.toString()+" Block will be destroyed");
+            System.out.println("no other garage part found for placing :"+ placing +" Block will be destroyed");
             return Blocks.AIR.defaultBlockState();
         }
 
         if (isSupportUpdate(placing,facing,blockFacing) && !facingState.getMaterial().blocksMotion()){
-            System.out.println("no support found for placing :"+placing.toString()+" Block will be destroyed");
+            System.out.println("no support found for placing :"+ placing +" Block will be destroyed");
             return Blocks.AIR.defaultBlockState();
         }
         return super.updateShape(stateIn,facing,facingState,worldIn,currentPos,facingPos);
@@ -295,12 +281,12 @@ public class GarageDoor extends Block {
     @Override
     public ActionResultType use(BlockState state, World world, BlockPos pos, PlayerEntity entity, Hand hand, BlockRayTraceResult blockRayTraceResult) {
         GarageTileEntity gte = (GarageTileEntity) world.getBlockEntity(pos);
-        System.out.println("position du block de base :"+pos);
+        System.out.println("position of base block:"+pos);
         assert gte != null;
         List<BlockPos> posList = gte.getPositionOfBlockConnected();
         for (BlockPos pos1 : posList){
             if (!(world.getBlockEntity(pos1) instanceof GarageTileEntity)) throw new IllegalArgumentException("No tile entity on this blockPos :"+pos1);
-            System.out.println("position du block animé :"+pos1);
+            System.out.println("position of animated block :"+pos1);
             GarageTileEntity gte2 = (GarageTileEntity) world.getBlockEntity(pos1);
             assert gte2 != null;
             gte2.startAnimation();
@@ -325,7 +311,7 @@ public class GarageDoor extends Block {
         List<BlockPos> posList = gte.getPositionOfBlockConnected();
         for (BlockPos pos1 : posList){
             if (!(world.getBlockEntity(pos1) instanceof GarageTileEntity)) throw new IllegalArgumentException("No tile entity on this blockPos :"+pos1);
-            System.out.println("position du block animé :"+pos1);
+            System.out.println("position du block animated :"+pos1);
             GarageTileEntity gte2 = (GarageTileEntity) world.getBlockEntity(pos1);
             assert gte2 != null;
             gte2.startAnimation();

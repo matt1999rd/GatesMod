@@ -29,9 +29,7 @@ import javax.annotation.Nullable;
 
 public class WindowDoor extends Block {
 
-    public static EnumProperty<DoorPlacing> PLACING = EnumProperty.create("position", DoorPlacing.class,placing -> {
-        return !placing.isCenterY();
-    });
+    public static EnumProperty<DoorPlacing> PLACING = EnumProperty.create("position", DoorPlacing.class,placing -> !placing.isCenterY());
     public static IntegerProperty ANIMATION = IntegerProperty.create("animation",0,4);
 
     protected static final VoxelShape NORTH_AABB = Block.box(0.0D, 0.0D, 0.0D, 16.0D, 16.0D, 1.0D);
@@ -41,7 +39,7 @@ public class WindowDoor extends Block {
 
 
     public WindowDoor() {
-        super(Properties.of(Material.STONE, MaterialColor.COLOR_BLACK)
+        super(Properties.of(Material.STONE, MaterialColor.COLOR_BLACK).noOcclusion()
                 //.notSolid()
         );
         this.setRegistryName("window_door");

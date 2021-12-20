@@ -40,13 +40,15 @@ public abstract class AbstractTollGate extends Block {
         super(Properties.of(Material.METAL)
                 //1.15
                 //.notSolid()
+                .noOcclusion()
                 .sound(SoundType.METAL)
                 .strength(3.0f));
+
     }
 
     public static EnumProperty<TollGPosition> TG_POSITION ;
     public static IntegerProperty ANIMATION;
-    private static final VoxelShape CTRLUNITAABB;
+    private static final VoxelShape CTRL_UNIT_AABB;
     private static final VoxelShape EMPTY_AABB;
 
     private static final VoxelDoubles CLOSE_BAR = new VoxelDoubles(0,9,5,16,10,6,false);
@@ -83,7 +85,7 @@ public abstract class AbstractTollGate extends Block {
         DoorHingeSide dhs= state.getValue(BlockStateProperties.DOOR_HINGE);
         Direction facing = state.getValue(BlockStateProperties.HORIZONTAL_FACING);
         if (tgp.getMeta()==4){
-            return CTRLUNITAABB;
+            return CTRL_UNIT_AABB;
         }
         if (tgp.isEmpty(animation)){
             return EMPTY_AABB;
@@ -97,29 +99,29 @@ public abstract class AbstractTollGate extends Block {
             VoxelShape hinge_shape = getEmptyBaseShape(dhs,facing,HINGE);
             VoxelDoubles beg_bar_VoxInt = (animation == 0) ? BEG_BAR : BEG_BAR_OPEN;
             VoxelShape beg_bar_shape = getEmptyBaseShape(dhs,facing,beg_bar_VoxInt) ;
-            //association of the three voxelshapes
+            //association of the three voxel-shapes
             return VoxelShapes.or(base_shape,hinge_shape,beg_bar_shape);
         }
         return PLANE.rotate(Direction.NORTH,facing).getAssociatedShape();
     }
 
     private VoxelShape getEmptyBaseShape(DoorHingeSide dhs, Direction facing, VoxelDoubles voxelDoubles) {
-        boolean isSymetryNeeded = (dhs == DoorHingeSide.RIGHT);
+        boolean isSymmetryNeeded = (dhs == DoorHingeSide.RIGHT);
         Direction.Axis facing_axis = facing.getAxis();
-        if (isSymetryNeeded){
-            return voxelDoubles.rotate(Direction.NORTH,facing).makeSymetry(Direction.Axis.Y,facing_axis).getAssociatedShape();
+        if (isSymmetryNeeded){
+            return voxelDoubles.rotate(Direction.NORTH,facing).makeSymmetry(Direction.Axis.Y,facing_axis).getAssociatedShape();
         }else {
             return voxelDoubles.rotate(Direction.NORTH,facing).getAssociatedShape();
         }
     }
 
     private VoxelShape getSimpleBarrierShape(Direction facing, DoorHingeSide dhs,TollGPosition tgp) {
-        Direction.Axis axis_symetry = facing.getAxis();
-        boolean isSymetryNeeded = (dhs == DoorHingeSide.RIGHT);
+        Direction.Axis axis_symmetry = facing.getAxis();
+        boolean isSymmetryNeeded = (dhs == DoorHingeSide.RIGHT);
         //if the part selected is openBarrier
         VoxelDoubles voxelDoubles = (tgp.getMeta() == 3) ? OPEN_BAR : CLOSE_BAR;
-        if (isSymetryNeeded){
-            return voxelDoubles.rotate(Direction.NORTH,facing).makeSymetry(Direction.Axis.Y,axis_symetry).getAssociatedShape();
+        if (isSymmetryNeeded){
+            return voxelDoubles.rotate(Direction.NORTH,facing).makeSymmetry(Direction.Axis.Y,axis_symmetry).getAssociatedShape();
         }else {
             return voxelDoubles.rotate(Direction.NORTH,facing).getAssociatedShape();
         }
@@ -127,13 +129,13 @@ public abstract class AbstractTollGate extends Block {
 
     @Override
     public void setPlacedBy(World world, BlockPos pos, BlockState state, @Nullable LivingEntity entity, ItemStack stack) {
-        //on pose le block central au niveau du block selectionné
-        //le coté de la barrière sera défini selon la position du joueur vis à vis du block
+        //we place the main block where the clicked position is defined
+        //the barrier hinge parameter is defined according to the position of the player when he placed the block
         if (entity != null){
             Direction direction = Functions.getDirectionFromEntity(entity,pos);
             DoorHingeSide dhs = Functions.getHingeSideFromEntity(entity,pos,direction);
             Direction extDirection = Functions.getDirectionOfExtBlock(direction,dhs);
-            //le block de control unit
+            //block control unit
             world.setBlockAndUpdate(pos,
                     state.setValue(BlockStateProperties.HORIZONTAL_FACING,direction)
                             .setValue(TG_POSITION,TollGPosition.CONTROL_UNIT)
@@ -147,21 +149,21 @@ public abstract class AbstractTollGate extends Block {
                             .setValue(BlockStateProperties.DOOR_HINGE,dhs)
                             .setValue(ANIMATION,0)
             );
-            //block barrière fermé
+            //block closed part
             world.setBlockAndUpdate(pos.relative(direction.getOpposite()).relative(extDirection),
                     state.setValue(BlockStateProperties.HORIZONTAL_FACING,direction)
                             .setValue(TG_POSITION,TollGPosition.MAIN)
                             .setValue(BlockStateProperties.DOOR_HINGE,dhs)
                             .setValue(ANIMATION,0)
             );
-            //block eloigné fermé
+            //block closed foreign part
             world.setBlockAndUpdate(pos.relative(direction.getOpposite()).relative(extDirection,2),
                     state.setValue(BlockStateProperties.HORIZONTAL_FACING,direction)
                             .setValue(TG_POSITION,TollGPosition.EMPTY_EXT)
                             .setValue(BlockStateProperties.DOOR_HINGE,dhs)
                             .setValue(ANIMATION,0)
             );
-            //block au dessus
+            //block above for open gates
             world.setBlockAndUpdate(pos.relative(direction.getOpposite()).above(),
                     state.setValue(BlockStateProperties.HORIZONTAL_FACING,direction)
                             .setValue(TG_POSITION,TollGPosition.UP_BLOCK)
@@ -202,15 +204,15 @@ public abstract class AbstractTollGate extends Block {
     }
 
     public List<BlockPos> getPositionOfBlockConnected(Direction direction,TollGPosition tgp,DoorHingeSide dhs,BlockPos pos) {
-        //ajout de tout les blocks
+        //takes in account all block including this one
         List<BlockPos> posList = new ArrayList<>();
         Direction extDirection = Functions.getDirectionOfExtBlock(direction,dhs);
         BlockPos emptyBasePos = getEmptyBasePos(tgp,extDirection,direction,pos);
-        //block emptybase
+        //block empty base
         posList.add(emptyBasePos);
         //block de control unit
         posList.add(emptyBasePos.relative(direction));
-        //block main et emptyext
+        //block main et empty ext
         posList.add(emptyBasePos.relative(extDirection));
         posList.add(emptyBasePos.relative(extDirection,2));
         //block up
@@ -231,7 +233,7 @@ public abstract class AbstractTollGate extends Block {
             case CONTROL_UNIT:
                 return pos.relative(facing.getOpposite());
             default:
-                throw new NullPointerException("TollGatePosition of block at position :" + pos + "has null attribut for tollgateposition");
+                throw new NullPointerException("TollGatePosition of block at position :" + pos + "has null attribute for tollgate position");
         }
     }
 
@@ -252,34 +254,35 @@ public abstract class AbstractTollGate extends Block {
         BlockPos pos =context.getClickedPos();
         PlayerEntity entity = context.getPlayer();
         World world = context.getLevel();
+        assert entity != null;
         Direction facing = Functions.getDirectionFromEntity(entity,pos);
         DoorHingeSide dhs = Functions.getHingeSideFromEntity(entity,pos,facing);
         Direction extDirection = Functions.getDirectionOfExtBlock(facing,dhs);
         List<BlockPos> posList = new ArrayList<>();
-        //block de control unit
+        //block control unit
         posList.add(pos);
         //block main
         posList.add(pos.relative(facing.getOpposite()));
-        //blocks de barrière fermé
+        //blocks for closed gates
         posList.add(pos.relative(facing.getOpposite()).relative(extDirection));
         posList.add(pos.relative(facing.getOpposite()).relative(extDirection,2));
-        //block de barrière ouverte
+        //block for opened gates
         BlockPos ignoredPos = pos.relative(facing.getOpposite()).above();
         posList.add(pos.relative(facing.getOpposite()).above());
 
         for (BlockPos pos_in : posList){
             //return false if the position of this future block is occupied by another solid block
             if (!(world.getBlockState(pos_in).getBlock() instanceof AirBlock)){
-                System.out.println("la blockPos qui fait foirer :"+pos_in);
-                System.out.println("Block qui bloque :"+world.getBlockState(pos_in).getBlock());
+                System.out.println("the blockPos that mess it up :"+pos_in);
+                System.out.println("Block not working :"+world.getBlockState(pos_in).getBlock());
                 return false;
             }
-            //return false if the position of this future block is above a air or bush block
+            //return false if the position of this future block is above an air or bush block
             Block underBlock = world.getBlockState(pos_in.below()).getBlock();
             if (underBlock instanceof AirBlock || underBlock instanceof BushBlock || underBlock instanceof LeavesBlock){
                 if (!pos_in.equals(ignoredPos)){
-                    System.out.println("la blockPos qui fait foirer :"+pos_in.below());
-                    System.out.println("Block qui ne stabilise pas :"+underBlock);
+                    System.out.println("the blockPos that mess it up :"+pos_in.below());
+                    System.out.println("No stabilising block :"+underBlock);
                     return false;
                 }
             }
@@ -314,10 +317,10 @@ public abstract class AbstractTollGate extends Block {
 
 
     static {
-        //shape vide
+        //empty shape
         EMPTY_AABB = Block.box(0.0D,0.0D,0.0D,0.0D,0.0D,0.0D);
-        //shape complète
-        CTRLUNITAABB = Block.box(0.0D,0.0D,0.0D,16.0D,15.0D,16.0D);
+        //whole shape
+        CTRL_UNIT_AABB = Block.box(0.0D,0.0D,0.0D,16.0D,15.0D,16.0D);
     }
 
 

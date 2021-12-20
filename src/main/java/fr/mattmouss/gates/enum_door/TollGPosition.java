@@ -24,21 +24,18 @@ public enum TollGPosition implements IStringSerializable {
         return name;
     }
 
-    public boolean isEmpty(int anim_stade){
-        //si on est a l'emplacement central ou extrême lorsque la barre est levée on a un block empty
-        //si on est à l'emplacement au dessus lorsque la barrière est fermé on a un block empty
-        return (((meta==0 || meta==2)&& anim_stade>2 )|| (meta ==3 && anim_stade<3));
+    public boolean isEmpty(int anim_state){
+        //if it is opened, then empty block are main and empty ext (main is the middle part of the red/white part)
+        //if it is closed, then empty block is up block
+        return (((meta==0 || meta==2)&& anim_state>2 )|| (meta ==3 && anim_state<3));
     }
 
-    public boolean isSimpleBarrier(int anim_stade){
-        //si on est à l'emplacement central ou extrême losrque la barre est baissée on a un block de barrière classique
-        //si on est à l'emplacement au dessus lorsque la barrière est levée on a un block de bariière classique
-        return (anim_stade == 0 && (meta == 2 || meta == 0)) || (anim_stade == 4 && meta==3);
+    public boolean isSimpleBarrier(int anim_state){
+        //if it is opened, then simple barrier block is up block
+        //if it is closed, then simple barrier block are main and empty ext (main is the middle part of the red/white part)
+        return (anim_state == 0 && (meta == 2 || meta == 0)) || (anim_state == 4 && meta==3);
     }
 
-    public boolean isDownBlock(){
-        return  meta !=3;
-    }
 
 
 

@@ -23,13 +23,11 @@ import java.util.List;
 
 public class GardenDoor extends MultDoor {
 
-    public static EnumProperty<DoorPlacing> PLACING = EnumProperty.create("position",DoorPlacing.class,placing -> {
-        return placing.isSide() && !placing.isCenterY();
-    });
+    public static EnumProperty<DoorPlacing> PLACING = EnumProperty.create("position",DoorPlacing.class,placing -> placing.isSide() && !placing.isCenterY());
 
 
     public GardenDoor(String name) {
-        super(Properties.of(Material.METAL));
+        super(Properties.of(Material.METAL).noOcclusion());
         this.setRegistryName(name);
     }
 

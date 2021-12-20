@@ -25,27 +25,31 @@ public class WindowDoorTileEntity extends TileEntity implements ITickableTileEnt
 
     @Override
     public void tick() {
-        if (this.getBlockState().getValue(WindowDoor.PLACING) == DoorPlacing.CENTER_DOWN && !level.isClientSide ){
-            int animation = getBlockState().getValue(WindowDoor.ANIMATION);
-            if (animation == 0 || animation == 4) {
-                ServerWorld world = (ServerWorld) getLevel();
-                boolean existPlayerNearby = false;
-                List<ServerPlayerEntity> playerEntities = world.players();
-                for (ServerPlayerEntity player : playerEntities) {
-                    if (!existPlayerNearby) {
-                        Vector3d playerPos = player.position();
-                        if (playerPos.distanceTo(new Vector3d(worldPosition.getX() + 0.5, worldPosition.getY(), worldPosition.getZ() + 0.5)) < 3.0F) {
-                            existPlayerNearby = true;
+        if (this.getBlockState().getValue(WindowDoor.PLACING) == DoorPlacing.CENTER_DOWN) {
+            assert level != null;
+            if (!level.isClientSide) {
+                int animation = getBlockState().getValue(WindowDoor.ANIMATION);
+                if (animation == 0 || animation == 4) {
+                    ServerWorld world = (ServerWorld) getLevel();
+                    boolean existPlayerNearby = false;
+                    assert world != null;
+                    List<ServerPlayerEntity> playerEntities = world.players();
+                    for (ServerPlayerEntity player : playerEntities) {
+                        if (!existPlayerNearby) {
+                            Vector3d playerPos = player.position();
+                            if (playerPos.distanceTo(new Vector3d(worldPosition.getX() + 0.5, worldPosition.getY(), worldPosition.getZ() + 0.5)) < 3.0F) {
+                                existPlayerNearby = true;
+                            }
                         }
                     }
+                    isOpening = (animation == 0 && existPlayerNearby);
+                    isClosing = (animation == 4 && !existPlayerNearby);
                 }
-                isOpening = (animation == 0 && existPlayerNearby);
-                isClosing = (animation == 4 && !existPlayerNearby);
-            }
-            if (isOpening){
-                openDoor();
-            }else if (isClosing){
-                closeDoor();
+                if (isOpening) {
+                    openDoor();
+                } else if (isClosing) {
+                    closeDoor();
+                }
             }
         }
     }
@@ -70,6 +74,7 @@ public class WindowDoorTileEntity extends TileEntity implements ITickableTileEnt
 
     private void changeAllState(int animationState,BlockState state){
         Direction facing = state.getValue(BlockStateProperties.HORIZONTAL_FACING);
+        assert level != null;
         level.setBlockAndUpdate(worldPosition,state.setValue(WindowDoor.ANIMATION,animationState));
         BlockState state1 = level.getBlockState(worldPosition.above());
         level.setBlockAndUpdate(worldPosition.above(),state1.setValue(WindowDoor.ANIMATION,animationState));

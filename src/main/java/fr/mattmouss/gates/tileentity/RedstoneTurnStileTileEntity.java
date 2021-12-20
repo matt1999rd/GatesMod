@@ -31,7 +31,7 @@ public class RedstoneTurnStileTileEntity extends TileEntity implements ITickable
     private boolean initialise = false;
 
     public RedstoneTurnStileTileEntity() {
-        super(ModBlock.RTURNSTILE_TILE_TYPE);
+        super(ModBlock.REDSTONE_TURNSTILE_TILE_TYPE);
     }
 
     public List<BlockPos> getPositionOfBlockConnected() {
@@ -69,6 +69,7 @@ public class RedstoneTurnStileTileEntity extends TileEntity implements ITickable
         if (!(block instanceof RedstoneTurnStile))return;
         RedstoneTurnStile turnStile = (RedstoneTurnStile)block;
         if (turnStile.isControlUnit(state)) {
+            assert level != null;
             if (!level.isClientSide){
                 if (!initialise){
                     initialise = true;
@@ -123,15 +124,15 @@ public class RedstoneTurnStileTileEntity extends TileEntity implements ITickable
             double z_player = player_pos.z;
             boolean isPlayerInFrontOfMainBlock;
             Direction.Axis axis = facing.getAxis();
-            double coor_player = axis.choose(x_player, y_player, z_player);
-            double coor_pos = axis.choose(x, y, z);
+            double playerProjection = axis.choose(x_player, y_player, z_player);
+            double turnStileProjection = axis.choose(x, y, z);
             int axisDirOffset = facing.getAxisDirection().getStep();
             //it is a very simplified expression which check in each direction for placement of player
             // if NORTH or SOUTH it will check the coordinate z and verify if
             // for NORTH posZ-0.5<z<posZ for SOUTH posZ+1<z<posZ+1.5
             // if EAST or WEST it will check th coordinate x and verify if
             // for WEST posX-0.5<x<posX for EAST posX+1<x<posX+1.5
-            isPlayerInFrontOfMainBlock = (coor_player > coor_pos + 0.25 + axisDirOffset * 0.75) && (coor_player < coor_pos + 0.75 + 0.75 * axisDirOffset);
+            isPlayerInFrontOfMainBlock = (playerProjection > turnStileProjection + 0.25 + axisDirOffset * 0.75) && (playerProjection < turnStileProjection + 0.75 + 0.75 * axisDirOffset);
             return isRightMove && isPlayerInFrontOfMainBlock;
         }
         return false;
@@ -154,15 +155,15 @@ public class RedstoneTurnStileTileEntity extends TileEntity implements ITickable
             double z_player = player_pos.z;
             boolean isPlayerInFrontOfMainBlock;
             Direction.Axis axis = facing.getAxis();
-            double coor_player = axis.choose(x_player, y_player, z_player);
-            double coor_pos = axis.choose(x, y, z);
+            double playerProjection = axis.choose(x_player, y_player, z_player);
+            double turnStileProjection = axis.choose(x, y, z);
             int axisDirOffset = facing.getAxisDirection().getStep();
             //it is a very simplified expression which check in each direction for placement of player
             // if NORTH or SOUTH it will check the coordinate z and verify if
             // for NORTH posZ-0.5<z<posZ for SOUTH posZ+1<z<posZ+1.5
             // if EAST or WEST it will check the coordinate x and verify if
             // for WEST posX-0.5<x<posX for EAST posX+1<x<posX+1.5
-            isPlayerInFrontOfMainBlock = (coor_player > coor_pos + 0.25 - axisDirOffset * 0.75) && (coor_player < coor_pos + 0.75 - 0.75 * axisDirOffset);
+            isPlayerInFrontOfMainBlock = (playerProjection > turnStileProjection + 0.25 - axisDirOffset * 0.75) && (playerProjection < turnStileProjection + 0.75 - 0.75 * axisDirOffset);
             return isRightMove && isPlayerInFrontOfMainBlock;
         }
         return false;
@@ -193,7 +194,9 @@ public class RedstoneTurnStileTileEntity extends TileEntity implements ITickable
     public void changeAllAnim() {
         List<BlockPos> posList = getPositionOfBlockConnected();
         for (BlockPos pos1 : posList) {
+            assert level != null;
             RedstoneTurnStileTileEntity tste = (RedstoneTurnStileTileEntity) level.getBlockEntity(pos1);
+            assert tste != null;
             tste.changeAnim();
         }
     }
@@ -201,12 +204,14 @@ public class RedstoneTurnStileTileEntity extends TileEntity implements ITickable
     public void changeAnim() {
         BlockState state = this.getBlockState();
         int i = state.getValue(TurnStile.ANIMATION);
+        assert level != null;
         level.setBlockAndUpdate(worldPosition, state.setValue(TurnStile.ANIMATION, 1 - i));
     }
 
     private void openOrBlockAllTS() {
         List<BlockPos> posList=this.getPositionOfBlockConnected();
         for (BlockPos pos:posList){
+            assert level != null;
             TileEntity te=level.getBlockEntity(pos);
             if (te instanceof RedstoneTurnStileTileEntity){
                 RedstoneTurnStileTileEntity rtste=(RedstoneTurnStileTileEntity)te;
@@ -222,11 +227,13 @@ public class RedstoneTurnStileTileEntity extends TileEntity implements ITickable
 
     public void openTS() {
         BlockState state = this.getBlockState();
+        assert level != null;
         level.setBlockAndUpdate(worldPosition, state.setValue(TurnStile.WAY_IS_ON, true));
     }
 
     public void blockTS() {
         BlockState state = this.getBlockState();
+        assert level != null;
         level.setBlockAndUpdate(worldPosition, state.setValue(TurnStile.WAY_IS_ON, false));
     }
 

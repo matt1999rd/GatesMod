@@ -40,6 +40,7 @@ import net.minecraftforge.items.ItemStackHandler;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.List;
+import java.util.Objects;
 import java.util.concurrent.atomic.AtomicInteger;
 
 public class TollGateTileEntity extends TileEntity implements ITickableTileEntity, INamedContainerProvider,IControlIdTE,IPriceControllingTE {
@@ -48,7 +49,7 @@ public class TollGateTileEntity extends TileEntity implements ITickableTileEntit
         super(ModBlock.TOLL_GATE_ENTITY_TYPE);
     }
 
-    private LazyOptional<TollStorage> storage = LazyOptional.of(this::getStorage).cast();
+    private final LazyOptional<TollStorage> storage = LazyOptional.of(this::getStorage).cast();
 
     private TollStorage getStorage() {
         return new TollStorage();
@@ -60,7 +61,7 @@ public class TollGateTileEntity extends TileEntity implements ITickableTileEntit
 
     private static int last_user_player_id = 0;
 
-    private LazyOptional<IItemHandler> handler = LazyOptional.of(this::createHandler).cast();
+    private final LazyOptional<IItemHandler> handler = LazyOptional.of(this::createHandler).cast();
 
     //true for user gui
     //false for technician gui
@@ -104,20 +105,21 @@ public class TollGateTileEntity extends TileEntity implements ITickableTileEntit
     @Override
     public void tick() {
         //updatePrice();
+        assert level != null;
         if (!level.isClientSide) {
             BlockState state = this.getBlockState();
             //block for gestion of animation
             if (animationOpeningInProcess()) {
                 int animationStep = state.getValue(TollGate.ANIMATION);
                 if (animationStep == 0) {
-                    //add the sound of toll gate
+                    //add the sound of tollgate
                     Minecraft.getInstance().getSoundManager().play(SimpleSound.forUI(ModSound.TOLL_GATE_OPENING, 6.0F));
                 }
 
                 if (animationStep == 4) {
                     setBoolOpen(false);
                 } else {
-                    //add this condition to see the toll gate in opening process
+                    //add this condition to see the tollgate in opening process
                     //if (animationStep !=3) {
                     this.level.setBlockAndUpdate(this.worldPosition, state.setValue(TollGate.ANIMATION, animationStep + 1));
                     //}
@@ -142,6 +144,7 @@ public class TollGateTileEntity extends TileEntity implements ITickableTileEntit
     private void checkTimer() {
         if (isRightTE()) {
             if (this.getBlockState().getValue(TollGate.ANIMATION) == 4) {
+                assert level != null;
                 PlayerEntity entity = (PlayerEntity) level.getEntity(last_user_player_id);
                 if (entity == null) {
                     return;
@@ -172,7 +175,7 @@ public class TollGateTileEntity extends TileEntity implements ITickableTileEntit
                 startAllAnimation();
                 timer =0;
             }else{
-                System.out.println("le timer d'ouverture : "+timer);
+                System.out.println("opening timer : "+timer);
                 timer++;
             }
         }
@@ -181,22 +184,21 @@ public class TollGateTileEntity extends TileEntity implements ITickableTileEntit
 
     private void manageEmeraldConsumption() {
         if (isRightTE()) {
-            int price_to_pay = storage.map(s -> {
-                return s.getPrice();
-            }).orElse(1);
+            int price_to_pay = storage.map(TollStorage::getPrice).orElse(1);
 
             handler.ifPresent(h -> {
                 ItemStack stack0 = h.getStackInSlot(0);
                 ItemStack stack1 = h.getStackInSlot(1);
                 int number_of_emerald = stack0.getCount();
                 //System.out.println("remaining payment :"+this.getRemainingPayment());
-                //if the animation is in process or the toll gate is open it will stop the management of payment
+                //if the animation is in process or the tollgate is open it will stop the management of payment
                 if (this.getBlockState().getValue(TollGate.ANIMATION) != 0) {
                     return;
                 }
                 if (last_user_player_id == 0) {
                     return;
                 }
+                assert level != null;
                 PlayerEntity entity = (PlayerEntity) level.getEntity(last_user_player_id);
                 //when payment is not completely done
                 if (stack0.getItem() == Items.EMERALD) {
@@ -213,12 +215,12 @@ public class TollGateTileEntity extends TileEntity implements ITickableTileEntit
                         if (entity != null) {
                             entity.drop(stack2, false);
                         }
-                        //we reset amound paid for next client
+                        //we reset the amount paid for next client
                         amount_paid = 0;
                         setChanged();
                     } else {
                         //System.out.println("payment not done !");
-                        //when the amount paid is not enough we just extract the amount given and we register it
+                        //when the amount paid is not enough we just extract the amount given, and we register it
                         h.extractItem(0, number_of_emerald, false);
                         this.raiseAmountPaid(number_of_emerald);
                     }
@@ -228,6 +230,7 @@ public class TollGateTileEntity extends TileEntity implements ITickableTileEntit
                     if (key_id == tg_id && UserGuiOpen){
                         h.extractItem(1,1,false);
                         //drop the card because it will be used later on
+                        assert entity != null;
                         entity.drop(stack1, false);
                         startAllAnimation();
                         setChanged();
@@ -254,21 +257,22 @@ public class TollGateTileEntity extends TileEntity implements ITickableTileEntit
 
     }
 
-    //check if this TE is the control unit tile entity to avoid multiple definition of tollstorage that will be of no use
+    //check if this TE is the control unit tile entity to avoid multiple definition of toll-storage that will be of no use
     public boolean isRightTE() {
         BlockState state = getBlockState();
         return state.getValue(TollGate.TG_POSITION) == TollGPosition.CONTROL_UNIT;
     }
 
 
-    //start all animation of all the block that make the toll gate
+    //start all animation of all the block that make the tollgate
 
     private void startAllAnimation(){
         startAnimation();
         List<BlockPos> posList = getPositionOfBlockConnected();
         for (BlockPos pos1 : posList){
+            assert level != null;
             if (!(level.getBlockEntity(pos1) instanceof TollGateTileEntity)) throw new IllegalArgumentException("No tile entity on this blockPos :"+pos1);
-            //System.out.println("position du block animé :"+pos1);
+            //System.out.println("position of animated block :"+pos1);
             TollGateTileEntity tgte2 = (TollGateTileEntity) level.getBlockEntity(pos1);
             assert tgte2 != null;
             tgte2.startAnimation();
@@ -279,23 +283,11 @@ public class TollGateTileEntity extends TileEntity implements ITickableTileEntit
         BlockState state = this.getBlockState();
         int animationStep = state.getValue(TollGate.ANIMATION);
         if (animationStep == 0) {
-            setBoolOpen(true); //mettre en route l'animation d'ouverture
+            setBoolOpen(true); //starting opening animation
             System.out.println("starting animation open");
         }else if (animationStep == 4){
-            setBoolClose(true); //mettre en route l'animation de fermeture
+            setBoolClose(true); //starting closing animation
             System.out.println("starting animation close");
-        }
-    }
-
-    public void startAnimation(boolean opening){
-        BlockState state = this.getBlockState();
-        int animationStep = state.getValue(TollGate.ANIMATION);
-        if (animationStep == 0 && opening) {
-            setBoolOpen(true); //mettre en route l'animation d'ouverture
-            //System.out.println("starting animation open");
-        }else if (animationStep == 4 && !opening){
-            setBoolClose(true); //mettre en route l'animation de fermeture
-            //System.out.println("starting animation close");
         }
     }
 
@@ -309,15 +301,11 @@ public class TollGateTileEntity extends TileEntity implements ITickableTileEntit
     }
 
     private void setBoolOpen(Boolean bool){
-        storage.ifPresent(s ->{
-            s.setBoolOpen(bool);
-        });
+        storage.ifPresent(s -> s.setBoolOpen(bool));
     }
 
     private void setBoolClose(Boolean bool){
-        storage.ifPresent(s -> {
-            s.setBoolClose(bool);
-        });
+        storage.ifPresent(s -> s.setBoolClose(bool));
     }
     /*
     public void updatePrice(){
@@ -333,6 +321,7 @@ public class TollGateTileEntity extends TileEntity implements ITickableTileEntit
 
     public void setId(int id_in) {
         storage.ifPresent(s->{
+            assert level != null;
             if (!level.isClientSide)s.setId(id_in,level);
             else s.setId(id_in);
         });
@@ -345,18 +334,14 @@ public class TollGateTileEntity extends TileEntity implements ITickableTileEntit
 
     public int getId(){
         AtomicInteger id_in = new AtomicInteger(1);
-        storage.ifPresent(s -> {
-            id_in.set(s.getId());
-        });
+        storage.ifPresent(s -> id_in.set(s.getId()));
         return id_in.get();
     }
 
 
     public int getPrice(){
         AtomicInteger price_in = new AtomicInteger(1);
-        storage.ifPresent(s -> {
-            price_in.set(s.getPrice());
-        });
+        storage.ifPresent(s -> price_in.set(s.getPrice()));
         return price_in.get();
     }
 
@@ -366,6 +351,7 @@ public class TollGateTileEntity extends TileEntity implements ITickableTileEntit
             List<BlockPos> posList = getPositionOfBlockConnected();
             for (BlockPos pos1 : posList) {
                 if (pos1.getX() != worldPosition.getX() || pos1.getY() != worldPosition.getY() || pos1.getZ() != worldPosition.getZ()) {
+                    assert level != null;
                     TollGateTileEntity tgte = (TollGateTileEntity) level.getBlockEntity(pos1);
                     if (tgte == null){
                         System.out.println("la tile entity est null");
@@ -384,6 +370,7 @@ public class TollGateTileEntity extends TileEntity implements ITickableTileEntit
             List<BlockPos> posList = getPositionOfBlockConnected();
             for (BlockPos pos1 : posList){
                 if (pos1.getX()!=worldPosition.getX() || pos1.getY()!=worldPosition.getY() || pos1.getZ() != worldPosition.getZ()){
+                    assert level != null;
                     TollGateTileEntity tgte = (TollGateTileEntity)level.getBlockEntity(pos1);
                     if (tgte == null){
                         System.out.println("la tile entity est null");
@@ -468,12 +455,13 @@ public class TollGateTileEntity extends TileEntity implements ITickableTileEntit
 
     @Override
     public ITextComponent getDisplayName() {
-        return new StringTextComponent(getType().getRegistryName().getPath());
+        return new StringTextComponent(Objects.requireNonNull(getType().getRegistryName()).getPath());
     }
 
     @Nullable
     @Override
     public Container createMenu(int i, PlayerInventory playerInventory, PlayerEntity playerEntity) {
+        assert level != null;
         if (UserGuiOpen){
             return new TGUserContainer(i,level,worldPosition,playerInventory,playerEntity);
         }else{
@@ -489,9 +477,7 @@ public class TollGateTileEntity extends TileEntity implements ITickableTileEntit
         AtomicInteger id = new AtomicInteger(-1);
         handler.ifPresent(h -> {
             ItemStack stack = h.getStackInSlot(1);
-            if (stack.isEmpty()){
-                return;
-            }else {
+            if (!stack.isEmpty()) {
                 CardKeyItem card = (CardKeyItem)(stack.getItem().asItem());
                 id.set(card.getId(stack));
             }

@@ -40,6 +40,7 @@ public class RedstoneTollGate extends AbstractTollGate{
     @Override
     public BlockState getStateForPlacement(BlockItemUseContext context) {
         BlockState state = super.getStateForPlacement(context);
+        assert state != null;
         return state.setValue(BlockStateProperties.POWERED,false);
     }
 

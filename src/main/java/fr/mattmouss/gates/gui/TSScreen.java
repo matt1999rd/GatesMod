@@ -15,7 +15,7 @@ import net.minecraft.util.text.ITextComponent;
 
 public class TSScreen extends ContainerScreen<TSContainer> {
 
-    private ResourceLocation GUI = new ResourceLocation(GatesMod.MODID,"textures/gui/ts_tech_gui.png");
+    private final ResourceLocation GUI = new ResourceLocation(GatesMod.MOD_ID,"textures/gui/ts_tech_gui.png");
     private static final int white = 0xffffff;
 
     public TSScreen(TSContainer container, PlayerInventory inventory, ITextComponent title) {
@@ -59,6 +59,7 @@ public class TSScreen extends ContainerScreen<TSContainer> {
 
     @Override
     protected void renderBg(MatrixStack stack,float partialTicks, int mouseX, int mouseY) {
+        assert this.minecraft != null;
         this.minecraft.getTextureManager().bind(GUI);
         this.blit(stack,leftPos, topPos, 0, 0, this.imageWidth, this.imageHeight);
     }

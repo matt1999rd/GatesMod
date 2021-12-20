@@ -3,7 +3,6 @@ package fr.mattmouss.gates.network;
 import fr.mattmouss.gates.GatesMod;
 import net.minecraft.util.ResourceLocation;
 import net.minecraftforge.fml.network.NetworkRegistry;
-import net.minecraftforge.fml.network.PacketDistributor;
 import net.minecraftforge.fml.network.simple.SimpleChannel;
 
 public class Networking {
@@ -13,7 +12,7 @@ public class Networking {
     public static int nextID(){ return ID++; }
 
     public static void registerMessages(){
-        INSTANCE = NetworkRegistry.newSimpleChannel(new ResourceLocation(GatesMod.MODID,"gates"),()->"1.0",s -> true,s -> true);
+        INSTANCE = NetworkRegistry.newSimpleChannel(new ResourceLocation(GatesMod.MOD_ID,"gates"),()->"1.0", s -> true, s -> true);
 
         INSTANCE.registerMessage(nextID(),
                 PacketLowerPrice.class,
@@ -37,12 +36,6 @@ public class Networking {
                 SetIdPacket::toBytes,
                 SetIdPacket::new,
                 SetIdPacket::handle);
-
-        INSTANCE.registerMessage(nextID(),
-                ChangeClientIdPacket.class,
-                ChangeClientIdPacket::toBytes,
-                ChangeClientIdPacket::new,
-                ChangeClientIdPacket::handle);
 
         INSTANCE.registerMessage(nextID(),
                 blockTSPacket.class,

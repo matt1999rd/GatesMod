@@ -20,12 +20,13 @@ import net.minecraftforge.items.SlotItemHandler;
 import net.minecraftforge.items.wrapper.InvWrapper;
 
 import javax.annotation.Nonnull;
+import java.util.Objects;
 
 
 public class TGTechContainer extends Container {
-    private TollGateTileEntity tileEntity ;
-    private PlayerEntity playerEntity;
-    private IItemHandler inventory;
+    private final TollGateTileEntity tileEntity ;
+    private final PlayerEntity playerEntity;
+    private final IItemHandler inventory;
     public final int leftCol = 10;
     public final int topRow = 98;
 
@@ -43,6 +44,7 @@ public class TGTechContainer extends Container {
 
             @Override
             public void set(int i) {
+                assert tileEntity != null;
                 tileEntity.getCapability(TollStorageCapability.TOLL_STORAGE).ifPresent(s-> s.setPrice(i));
             }
         });
@@ -57,19 +59,19 @@ public class TGTechContainer extends Container {
 
             @Override
             public void set(int i) {
+                assert tileEntity != null;
                 tileEntity.getCapability(TollStorageCapability.TOLL_STORAGE).ifPresent(s-> s.setId(i));
 
             }
         });
 
-        tileEntity.getCapability(CapabilityItemHandler.ITEM_HANDLER_CAPABILITY).ifPresent(h->{
-            addSlot(new SlotItemHandler(h,1,142,18){
-                @Override
-                public boolean mayPlace(@Nonnull ItemStack stack) {
-                    return (stack.getItem() == ModItem.CARD_KEY.asItem());
-                }
-            });
-        });
+        assert tileEntity != null;
+        tileEntity.getCapability(CapabilityItemHandler.ITEM_HANDLER_CAPABILITY).ifPresent(h-> addSlot(new SlotItemHandler(h,1,142,18){
+            @Override
+            public boolean mayPlace(@Nonnull ItemStack stack) {
+                return (stack.getItem() == ModItem.CARD_KEY.asItem());
+            }
+        }));
         layoutPlayerInventorySlots(leftCol,topRow);
     }
 
@@ -81,7 +83,7 @@ public class TGTechContainer extends Container {
     @Override
     public boolean stillValid(PlayerEntity playerIn) {
         return stillValid(
-                IWorldPosCallable.create(tileEntity.getLevel(),tileEntity.getBlockPos()),
+                IWorldPosCallable.create(Objects.requireNonNull(tileEntity.getLevel()),tileEntity.getBlockPos()),
                 playerEntity,
                 ModBlock.TOLL_GATE);
     }
@@ -147,7 +149,7 @@ public class TGTechContainer extends Container {
 
     private void layoutPlayerInventorySlots(int leftCol, int topRow) {//player inventory
         addSlotBox(inventory,9,leftCol,topRow,9,18,3,18);
-        //hotbar
+        //hot bar
         topRow+=58;
         addSlotRange(inventory,0,leftCol,topRow,9,18);
     }

@@ -27,8 +27,8 @@ public class CardGetterScreen extends ContainerScreen<CardGetterContainer> imple
     private static final int white = MathHelper.color(1f,1f,1f);
     private static int rank_first_element = 0;
 
-    private ResourceLocation WIDGET = new ResourceLocation(GatesMod.MODID,"textures/gui/widget.png");
-    private ResourceLocation GUI = new ResourceLocation(GatesMod.MODID, "textures/gui/card_getter_gui.png");
+    private final ResourceLocation WIDGET = new ResourceLocation(GatesMod.MOD_ID,"textures/gui/widget.png");
+    private final ResourceLocation GUI = new ResourceLocation(GatesMod.MOD_ID, "textures/gui/card_getter_gui.png");
     private ImageButton UpArrow,DownArrow;
 
 
@@ -90,6 +90,7 @@ public class CardGetterScreen extends ContainerScreen<CardGetterContainer> imple
 
     @Override
     protected void renderLabels(MatrixStack stack,int p_146979_1_, int p_146979_2_) {
+        assert this.minecraft != null;
         FontRenderer fontRenderer = this.minecraft.font;
         HashMap<Integer,Integer> id_list= this.getMenu().getIdPriceMap();
         AtomicInteger incr = new AtomicInteger(0);
@@ -124,6 +125,7 @@ public class CardGetterScreen extends ContainerScreen<CardGetterContainer> imple
 
     @Override
     protected void renderBg(MatrixStack stack,float partialTicks, int mouseX, int mouseY) {
+        assert this.minecraft != null;
         this.minecraft.getTextureManager().bind(GUI);
         int WIDTH = (this.width - this.imageWidth) / 2;
         int HEIGHT = (this.height - this.imageHeight) / 2;

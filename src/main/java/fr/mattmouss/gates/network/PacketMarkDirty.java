@@ -7,6 +7,7 @@ import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
 import net.minecraftforge.fml.network.NetworkEvent;
 
+import java.util.Objects;
 import java.util.function.Supplier;
 
 public class PacketMarkDirty {
@@ -29,7 +30,7 @@ public class PacketMarkDirty {
 
     public void handle(Supplier<NetworkEvent.Context> context){
         context.get().enqueueWork(()->{
-            World world = context.get().getSender().level;
+            World world = Objects.requireNonNull(context.get().getSender()).level;
             CardGetterTileEntity cgte = (CardGetterTileEntity)world.getBlockEntity(pos);
             if (cgte == null) GatesMod.logger.warning("NO more of this fucking function that are not working !! ");
             else cgte.markIdDirty(isDirty);

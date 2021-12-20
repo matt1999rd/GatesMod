@@ -8,7 +8,7 @@ import net.minecraftforge.common.util.INBTSerializable;
 import java.util.HashMap;
 
 public class CostStorage implements ICostStorage, INBTSerializable<CompoundNBT> {
-    private HashMap<Integer,Integer> cost;
+    private final HashMap<Integer,Integer> cost;
 
     public CostStorage(){
         cost = new HashMap<>();
@@ -96,8 +96,8 @@ public class CostStorage implements ICostStorage, INBTSerializable<CompoundNBT> 
     @Override
     public void deserializeNBT(CompoundNBT nbt) {
         ListNBT nbt_list = nbt.getList("id_list",10);
-        nbt_list.forEach(inbt -> {
-            CompoundNBT nbt1 = (CompoundNBT)inbt;
+        nbt_list.forEach(intern_nbt -> {
+            CompoundNBT nbt1 = (CompoundNBT)intern_nbt;
             int id=nbt1.getInt("id");
             int price = nbt1.getInt("price");
             cost.put(id,price);

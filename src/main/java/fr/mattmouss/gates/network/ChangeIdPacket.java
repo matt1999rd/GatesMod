@@ -10,6 +10,7 @@ import net.minecraft.util.math.BlockPos;
 import net.minecraftforge.fml.network.NetworkEvent;
 import net.minecraftforge.fml.network.PacketDistributor;
 
+import java.util.Objects;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Supplier;
 
@@ -36,8 +37,8 @@ public class ChangeIdPacket {
     public void handle(Supplier<NetworkEvent.Context> context){
         AtomicInteger val = new AtomicInteger(0);
         context.get().enqueueWork(()->{
+            TileEntity te = Objects.requireNonNull(context.get().getSender()).getLevel().getBlockEntity(pos);
             if (key_id == -1) {
-                TileEntity te = context.get().getSender().getLevel().getBlockEntity(pos);
                 System.out.println("packet handled : no key found");
                 if (te instanceof TollGateTileEntity) {
                     ((TollGateTileEntity) te).changeId();
@@ -45,11 +46,8 @@ public class ChangeIdPacket {
                 } else if (te instanceof TurnStileTileEntity) {
                     ((TurnStileTileEntity) te).changeId();
                     val.set(((TurnStileTileEntity) te).getId());
-                } else {
-                    return;
                 }
             }else {
-                TileEntity te = context.get().getSender().getLevel().getBlockEntity(pos);
                 System.out.println("packet handled : a key found with id :"+key_id);
                 if (te instanceof TollGateTileEntity) {
                     ((TollGateTileEntity) te).setId(key_id);
@@ -57,14 +55,10 @@ public class ChangeIdPacket {
                 } else if (te instanceof TurnStileTileEntity) {
                     ((TurnStileTileEntity) te).setId(key_id);
                     val.set(((TurnStileTileEntity) te).getId());
-                } else {
-                    return;
                 }
             }
         });
-        Networking.INSTANCE.send(PacketDistributor.PLAYER.with(()-> {
-            return context.get().getSender();
-        }),new SetIdPacket(pos,val.get()));
+        Networking.INSTANCE.send(PacketDistributor.PLAYER.with(()-> context.get().getSender()),new SetIdPacket(pos,val.get()));
         context.get().setPacketHandled(true);
     }
 }

@@ -52,6 +52,7 @@ import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.concurrent.atomic.AtomicInteger;
 
 public class TurnStileTileEntity extends TileEntity implements IControlIdTE,ITickableTileEntity, INamedContainerProvider {
@@ -60,8 +61,8 @@ public class TurnStileTileEntity extends TileEntity implements IControlIdTE,ITic
         super(ModBlock.TURNSTILE_TILE_TYPE);
     }
 
-    private LazyOptional<ITSStorage> storage = LazyOptional.of(this::getStorage).cast();
-    private LazyOptional<IItemHandler> handler = LazyOptional.of(this::createHandler).cast();
+    private final LazyOptional<ITSStorage> storage = LazyOptional.of(this::getStorage).cast();
+    private final LazyOptional<IItemHandler> handler = LazyOptional.of(this::createHandler).cast();
 
     public ItemStackHandler createHandler() {
         return new ItemStackHandler(1){
@@ -123,6 +124,7 @@ public class TurnStileTileEntity extends TileEntity implements IControlIdTE,ITic
     public void tick() {
         BlockState state = this.getBlockState();
         if (this.isControlUnit()) {
+            assert level != null;
             if (!level.isClientSide && !state.getValue(TurnStile.WAY_IS_ON)) {
                 findPlayerGoingThrough();
             }
@@ -161,15 +163,15 @@ public class TurnStileTileEntity extends TileEntity implements IControlIdTE,ITic
             double z_player = player_pos.z;
             boolean isPlayerInFrontOfMainBlock;
             Direction.Axis axis = facing.getAxis();
-            double coor_player =axis.choose(x_player,y_player,z_player);
-            double coor_pos = axis.choose(x,y,z);
+            double playerProjection =axis.choose(x_player,y_player,z_player);
+            double turnStileProjection = axis.choose(x,y,z);
             int axisDirOffset = facing.getAxisDirection().getStep();
             //it is a very simplified expression which check in each direction for placement of player
             // if NORTH or SOUTH it will check the coordinate z and verify if
             // for NORTH posZ-0.5<z<posZ for SOUTH posZ+1<z<posZ+1.5
             // if EAST or WEST it will check th coordinate x and verify if
             // for WEST posX-0.5<x<posX for EAST posX+1<x<posX+1.5
-            isPlayerInFrontOfMainBlock = (coor_player>coor_pos+0.25+axisDirOffset*0.75) && (coor_player<coor_pos+0.75+0.75*axisDirOffset);
+            isPlayerInFrontOfMainBlock = (playerProjection>turnStileProjection+0.25+axisDirOffset*0.75) && (playerProjection<turnStileProjection+0.75+0.75*axisDirOffset);
             return isRightMove && isPlayerInFrontOfMainBlock;
         }
         return false;
@@ -190,7 +192,9 @@ public class TurnStileTileEntity extends TileEntity implements IControlIdTE,ITic
             this.endAnimation();
             Networking.INSTANCE.sendToServer(new blockTSPacket(pos,false));
             for (BlockPos pos1 : this.getPositionOfBlockConnected()) {
+                assert level != null;
                 TurnStileTileEntity tste = (TurnStileTileEntity) level.getBlockEntity(pos1);
+                assert tste != null;
                 tste.blockTS();
             }
         }else {
@@ -200,12 +204,13 @@ public class TurnStileTileEntity extends TileEntity implements IControlIdTE,ITic
         }
     }
 
-    //this function is opening the door using function notifyTileEntityOfCardId when the player is well placed
+    //this function is opening the door using function notifyTileEntityOfCardId when the player is well-placed
     private void findPlayerGoingThrough() {
         //to get the player in a 2 block distance from the following middle pos of the block
         double x = worldPosition.getX()+0.5D;
         double y = worldPosition.getY()+0.5D;
         double z = worldPosition.getZ()+0.5D;
+        assert level != null;
         PlayerEntity entity = level.getNearestPlayer(x,y,z,2,false);
         if (entity != null){
             //System.out.println("player find : "+entity);
@@ -234,7 +239,9 @@ public class TurnStileTileEntity extends TileEntity implements IControlIdTE,ITic
                 System.out.println("The way is open");
                 //TODO : add here the sound ok
                 for (BlockPos pos1 : this.getPositionOfBlockConnected()){
+                    assert level != null;
                     TurnStileTileEntity tste = (TurnStileTileEntity) level.getBlockEntity(pos1);
+                    assert tste != null;
                     tste.openTS();
                 }
                 return true;
@@ -294,7 +301,9 @@ public class TurnStileTileEntity extends TileEntity implements IControlIdTE,ITic
     public void changeAllAnim() {
         List<BlockPos> posList = getPositionOfBlockConnected();
         for (BlockPos pos1 : posList){
+            assert level != null;
             TurnStileTileEntity tste = (TurnStileTileEntity) level.getBlockEntity(pos1);
+            assert tste != null;
             tste.changeAnim();
         }
     }
@@ -302,15 +311,14 @@ public class TurnStileTileEntity extends TileEntity implements IControlIdTE,ITic
     public void changeAnim(){
         BlockState state = this.getBlockState();
         int i = state.getValue(TurnStile.ANIMATION);
+        assert level != null;
         level.setBlockAndUpdate(worldPosition,state.setValue(TurnStile.ANIMATION,1-i));
     }
 
     @Override
     public int getId() {
         AtomicInteger id_in = new AtomicInteger(-1);
-        storage.ifPresent(s->{
-            id_in.set(s.getId());
-        });
+        storage.ifPresent(s-> id_in.set(s.getId()));
         return id_in.get();
     }
 
@@ -322,6 +330,7 @@ public class TurnStileTileEntity extends TileEntity implements IControlIdTE,ITic
     @Override
     public void setId(int id_in) {
         storage.ifPresent(s-> {
+            assert level != null;
             if (level.isClientSide)s.setId(id_in);
             else s.setId(id_in,level);
         });
@@ -331,11 +340,13 @@ public class TurnStileTileEntity extends TileEntity implements IControlIdTE,ITic
 
     public void openTS(){
         BlockState state =this.getBlockState();
+        assert level != null;
         level.setBlockAndUpdate(worldPosition,state.setValue(TurnStile.WAY_IS_ON,true));
     }
 
     public void blockTS(){
         BlockState state = this.getBlockState();
+        assert level != null;
         level.setBlockAndUpdate(worldPosition,state.setValue(TurnStile.WAY_IS_ON,false));
     }
 
@@ -344,9 +355,7 @@ public class TurnStileTileEntity extends TileEntity implements IControlIdTE,ITic
         AtomicInteger id = new AtomicInteger(-1);
         handler.ifPresent(h -> {
             ItemStack stack = h.getStackInSlot(0);
-            if (stack.isEmpty()){
-                return;
-            }else {
+            if (!stack.isEmpty()) {
                 CardKeyItem card = (CardKeyItem)(stack.getItem().asItem());
                 id.set(card.getId(stack));
             }
@@ -407,7 +416,7 @@ public class TurnStileTileEntity extends TileEntity implements IControlIdTE,ITic
         super.load(state,tag);
     }
 
-    //check if this TE is the control unit tile entity to avoid multiple definition of idstorage that will be of no use
+    //check if this TE is the control unit tile entity to avoid multiple definition of id storage that will be of no use
     public boolean isControlUnit() {
         Block block=this.getBlockState().getBlock();
         if (!(block instanceof TurnStile)){
@@ -432,12 +441,13 @@ public class TurnStileTileEntity extends TileEntity implements IControlIdTE,ITic
 
     @Override
     public ITextComponent getDisplayName() {
-        return new StringTextComponent(getType().getRegistryName().getPath());
+        return new StringTextComponent(Objects.requireNonNull(getType().getRegistryName()).getPath());
     }
 
     @Nullable
     @Override
     public Container createMenu(int i, PlayerInventory playerInventory, PlayerEntity playerEntity) {
+        assert level != null;
         return new TSContainer(i,level,worldPosition,playerInventory,playerEntity);
     }
 }

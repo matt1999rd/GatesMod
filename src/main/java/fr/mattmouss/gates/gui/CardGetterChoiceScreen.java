@@ -18,10 +18,10 @@ public class CardGetterChoiceScreen extends ContainerScreen<CardGetterChoiceCont
 
     private static final int green = 0x007b18;
     private Button plusButton;
-    private Button moinsButton;
+    private Button minusButton;
     private static final int white = 0xffffff;
 
-    private ResourceLocation GUI = new ResourceLocation(GatesMod.MODID, "textures/gui/cg_tech_gui.png");
+    private final ResourceLocation GUI = new ResourceLocation(GatesMod.MOD_ID, "textures/gui/cg_tech_gui.png");
 
     public CardGetterChoiceScreen(CardGetterChoiceContainer p_i51105_1_, PlayerInventory p_i51105_2_, ITextComponent p_i51105_3_) {
         super(p_i51105_1_, p_i51105_2_, ITextComponent.nullToEmpty("Choose your fee"));
@@ -35,11 +35,11 @@ public class CardGetterChoiceScreen extends ContainerScreen<CardGetterChoiceCont
         this.imageHeight = 98;
         super.init();
         plusButton = new Button(leftPos+62,topPos+16,21,20,ITextComponent.nullToEmpty("+"),button -> raisePrice());
-        moinsButton = new Button(leftPos+62,topPos+36,21,20,ITextComponent.nullToEmpty("-"),button -> lowerPrice());
+        minusButton = new Button(leftPos+62,topPos+36,21,20,ITextComponent.nullToEmpty("-"), button -> lowerPrice());
         Button doneButton = new Button(leftPos+39, topPos+67, 66, 20, ITextComponent.nullToEmpty("Done"), button -> onClose());
         Button getCardButton = new Button(leftPos+116,topPos+67,66,20,ITextComponent.nullToEmpty("Get Card"),button -> giveCardToPlayer());
         addButton(plusButton);
-        addButton(moinsButton);
+        addButton(minusButton);
         addButton(doneButton);
         addButton(getCardButton);
     }
@@ -56,11 +56,11 @@ public class CardGetterChoiceScreen extends ContainerScreen<CardGetterChoiceCont
         int price = menu.getPrice();
         //price are possible between 1 and 64 emerald
         this.plusButton.active = (price<64);
-        this.moinsButton.active = (price>1);
-        int decalage = (price>10)? 7 : 9;
+        this.minusButton.active = (price>1);
+        int shift = (price>10)? 7 : 9;
         FontRenderer font = Minecraft.getInstance().font;
         drawString(stack,font," "+menu.getId(),114,46,white);
-        drawString(stack,font," "+price,decalage,56, green );
+        drawString(stack,font," "+price,shift,56, green );
         drawString(stack,font,"Choose your fee",27,4,white);
     }
 
@@ -84,6 +84,7 @@ public class CardGetterChoiceScreen extends ContainerScreen<CardGetterChoiceCont
 
     @Override
     protected void renderBg(MatrixStack stack,float partialTicks, int mouseX, int mouseY) {
+        assert this.minecraft != null;
         this.minecraft.getTextureManager().bind(GUI);
         this.blit(stack,leftPos,topPos,0,0,this.imageWidth, this.imageHeight);
     }

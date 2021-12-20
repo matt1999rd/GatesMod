@@ -52,6 +52,7 @@ public abstract class AbstractTurnStile extends Block {
         super(Properties.of(Material.METAL)
                         .strength(2.0f)
                         .sound(SoundType.METAL)
+                        .noOcclusion()
                 //1.15 function
                 //.notSolid()
         );
@@ -292,6 +293,7 @@ public abstract class AbstractTurnStile extends Block {
         BlockPos pos =context.getClickedPos();
         World world = context.getLevel();
         PlayerEntity entity = context.getPlayer();
+        assert entity != null;
         Direction facing = Functions.getDirectionFromEntity(entity,pos);
         DoorHingeSide dhs = Functions.getHingeSideFromEntity(entity,pos,facing);
         Direction dir_other_block = (dhs == DoorHingeSide.RIGHT) ? facing.getClockWise() : facing.getCounterClockWise();
@@ -306,15 +308,15 @@ public abstract class AbstractTurnStile extends Block {
         for (BlockPos pos_in : posList){
             //return false if the position of this future block is occupied by another solid block
             if (!(world.getBlockState(pos_in).getBlock() instanceof AirBlock)){
-                System.out.println("la blockPos qui fait foirer :"+pos_in);
-                System.out.println("Block qui bloque :"+world.getBlockState(pos_in).getBlock());
+                System.out.println("the blockPos that mess it up :"+pos_in);
+                System.out.println("Block not working :"+world.getBlockState(pos_in).getBlock());
                 return false;
             }
-            //return false if the position of this future block is above a air or bush or leaves block
+            //return false if the position of this future block is above an air or bush or leaves block
             Block underBlock = world.getBlockState(pos_in.below()).getBlock();
             if (underBlock instanceof AirBlock || underBlock instanceof BushBlock || underBlock instanceof LeavesBlock){
-                System.out.println("la blockPos qui fait foirer :"+pos_in.below());
-                System.out.println("Block qui ne stabilise pas :"+underBlock);
+                System.out.println("the blockPos that mess it up :"+pos_in.below());
+                System.out.println("No stabilising block :"+underBlock);
                 return false;
             }
         }
@@ -326,7 +328,7 @@ public abstract class AbstractTurnStile extends Block {
         BlockPos mainPos = getMainPos(state,pos);
         Direction direction = state.getValue(BlockStateProperties.HORIZONTAL_FACING);
         DoorHingeSide dhs = state.getValue(BlockStateProperties.DOOR_HINGE);
-        //ajout de tout les blocks
+        //include all blocks
         List<BlockPos> posList = new ArrayList<>();
         Direction leftBlockDirection=(dhs==DoorHingeSide.RIGHT)? direction.getClockWise() : direction.getCounterClockWise();
         //block main
@@ -355,7 +357,7 @@ public abstract class AbstractTurnStile extends Block {
             case RIGHT_BLOCK:
                 return pos.relative(leftBlockDirection.getOpposite());
             default:
-                throw new NullPointerException("TollGatePosition of block at position :" + pos + "has null attribut for tollgateposition");
+                throw new NullPointerException("TollGatePosition of block at position :" + pos + "has null attribute for turn stile position");
         }
     }
 
@@ -363,8 +365,7 @@ public abstract class AbstractTurnStile extends Block {
     public BlockState updateShape(BlockState stateIn, Direction facing, BlockState facingState, IWorld worldIn, BlockPos currentPos, BlockPos facingPos) {
         TurnSPosition position = stateIn.getValue(TS_POSITION);
         Direction blockFacing = stateIn.getValue(BlockStateProperties.HORIZONTAL_FACING);
-        DoorHingeSide dhs = stateIn.getValue(BlockStateProperties.DOOR_HINGE);
-        if (isInnerUpdate(position,facing,blockFacing,dhs) &&  !(facingState.getBlock().getClass().equals(this.getClass()))){
+        if (isInnerUpdate(position,facing,blockFacing) &&  !(facingState.getBlock().getClass().equals(this.getClass()))){
             return Blocks.AIR.defaultBlockState();
         }
         if (position.isDown() && facing == Direction.DOWN && !facingState.getMaterial().blocksMotion()){
@@ -374,14 +375,14 @@ public abstract class AbstractTurnStile extends Block {
     }
 
     //block facing is the direction of forth block
-    private boolean isInnerUpdate(TurnSPosition position, Direction facingUpdate, Direction blockFacing, DoorHingeSide side){
+    private boolean isInnerUpdate(TurnSPosition position, Direction facingUpdate, Direction blockFacing){
         return ((position == RIGHT_BLOCK && facingUpdate == blockFacing.getCounterClockWise()) ||
                 (position == LEFT_BLOCK && facingUpdate == blockFacing.getClockWise()) ||
                 (position == MAIN && (facingUpdate.getAxis() == blockFacing.getClockWise().getAxis() || facingUpdate == Direction.UP) ) ||
                 (position == UP_BLOCK && facingUpdate == Direction.DOWN));
     }
 
-    //check if this TE is the control unit tile entity to avoid multiple definition of idstorage that will be of no use
+    //check if this TE is the control unit tile entity to avoid multiple definition of id storage that will be of no use
     public boolean isControlUnit(BlockState state) {
         DoorHingeSide dhs = state.getValue(BlockStateProperties.DOOR_HINGE);
         return (dhs == DoorHingeSide.RIGHT) ?

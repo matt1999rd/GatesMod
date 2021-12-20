@@ -8,7 +8,6 @@ import fr.mattmouss.gates.setup.ModSound;
 import fr.mattmouss.gates.tollcapability.ITollStorage;
 import fr.mattmouss.gates.tollcapability.TollStorage;
 import fr.mattmouss.gates.tollcapability.TollStorageCapability;
-import fr.mattmouss.gates.util.Functions;
 import net.minecraft.block.BlockState;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.audio.SimpleSound;
@@ -29,7 +28,7 @@ import java.util.List;
 
 public class RedstoneTollGateTileEntity extends TileEntity implements ITickableTileEntity {
 
-    private LazyOptional<TollStorage> storage = LazyOptional.of(this::getStorage).cast();
+    private final LazyOptional<TollStorage> storage = LazyOptional.of(this::getStorage).cast();
     private boolean lastPowered = false;
     private boolean initialise = false;
 
@@ -38,11 +37,12 @@ public class RedstoneTollGateTileEntity extends TileEntity implements ITickableT
     }
 
     public RedstoneTollGateTileEntity() {
-        super(ModBlock.RTOLL_GATE_ENTITY_TYPE);
+        super(ModBlock.REDSTONE_TOLL_GATE_ENTITY_TYPE);
     }
 
     @Override
     public void tick() {
+        assert level != null;
         if (!level.isClientSide) {
             BlockState state = this.getBlockState();
             if (!initialise){
@@ -57,14 +57,14 @@ public class RedstoneTollGateTileEntity extends TileEntity implements ITickableT
             if (animationOpeningInProcess()) {
                 int animationStep = state.getValue(TollGate.ANIMATION);
                 if (animationStep == 0) {
-                    //add the sound of toll gate
+                    //add the sound of tollgate
                     Minecraft.getInstance().getSoundManager().play(SimpleSound.forUI(ModSound.TOLL_GATE_OPENING, 6.0F));
                 }
 
                 if (animationStep == 4) {
                     setBoolOpen(false);
                 } else {
-                    //add this condition to see the toll gate in opening process
+                    //add this condition to see the tollgate in opening process
                     //if (animationStep !=3) {
                     this.level.setBlockAndUpdate(this.worldPosition, state.setValue(TollGate.ANIMATION, animationStep + 1));
                     //}
@@ -84,7 +84,7 @@ public class RedstoneTollGateTileEntity extends TileEntity implements ITickableT
         }
     }
 
-    //start all animation of all the block that make the toll gate
+    //start all animation of all the block that make the tollgate
 
     private void startAllAnimation(){
         startAnimation();
@@ -95,10 +95,11 @@ public class RedstoneTollGateTileEntity extends TileEntity implements ITickableT
         DoorHingeSide dhs = this.getBlockState().getValue(BlockStateProperties.DOOR_HINGE);
         List<BlockPos> posList = tollGate.getPositionOfBlockConnected(direction,tgp,dhs,this.worldPosition);
         for (BlockPos pos1 : posList){
+            assert level != null;
             if (!(level.getBlockEntity(pos1) instanceof RedstoneTollGateTileEntity)) {
                 throw new IllegalArgumentException("No tile entity on this blockPos :"+pos1);
             }
-            //System.out.println("position du block animé :"+pos1);
+            //System.out.println("position of animated block :"+pos1);
             RedstoneTollGateTileEntity rtgte2 = (RedstoneTollGateTileEntity) level.getBlockEntity(pos1);
             assert rtgte2 != null;
             rtgte2.startAnimation();
@@ -109,10 +110,10 @@ public class RedstoneTollGateTileEntity extends TileEntity implements ITickableT
         BlockState state = this.getBlockState();
         int animationStep = state.getValue(TollGate.ANIMATION);
         if (animationStep == 0) {
-            setBoolOpen(true); //mettre en route l'animation d'ouverture
+            setBoolOpen(true); //starting opening animation
             System.out.println("starting animation open");
         }else if (animationStep == 4){
-            setBoolClose(true); //mettre en route l'animation de fermeture
+            setBoolClose(true); //starting closing animation
             System.out.println("starting animation close");
         }
     }
@@ -126,18 +127,14 @@ public class RedstoneTollGateTileEntity extends TileEntity implements ITickableT
     }
 
     private void setBoolOpen(Boolean bool){
-        storage.ifPresent(s ->{
-            s.setBoolOpen(bool);
-        });
+        storage.ifPresent(s -> s.setBoolOpen(bool));
     }
 
     private void setBoolClose(Boolean bool){
-        storage.ifPresent(s -> {
-            s.setBoolClose(bool);
-        });
+        storage.ifPresent(s -> s.setBoolClose(bool));
     }
 
-    //check if this TE is the control unit tile entity to avoid multiple definition of tollstorage that will be of no use
+    //check if this TE is the control unit tile entity to avoid multiple definition of toll-storage that will be of no use
     public boolean isRightTE() {
         BlockState state = getBlockState();
         return state.getValue(TollGate.TG_POSITION) == TollGPosition.CONTROL_UNIT;

@@ -9,19 +9,19 @@ import net.minecraft.tileentity.TileEntityType;
 import net.minecraftforge.registries.ObjectHolder;
 
 public class ModBlock {
-    //enregistrement avec ObjectHolder des blocks qui ne sont pas des portes
+    //registry with ObjectHolder of all blocks that are not doors
 
     @ObjectHolder("gates:toll_gate")
     public static TollGate TOLL_GATE = new TollGate();
 
     @ObjectHolder("gates:redstone_toll_gate")
-    public static RedstoneTollGate RTOLL_GATE = new RedstoneTollGate();
+    public static RedstoneTollGate REDSTONE_TOLL_GATE = new RedstoneTollGate();
 
     @ObjectHolder("gates:toll_gate")
     public static TileEntityType<TollGateTileEntity> TOLL_GATE_ENTITY_TYPE;
 
     @ObjectHolder("gates:redstone_toll_gate")
-    public static TileEntityType<TollGateTileEntity> RTOLL_GATE_ENTITY_TYPE;
+    public static TileEntityType<TollGateTileEntity> REDSTONE_TOLL_GATE_ENTITY_TYPE;
 
     @ObjectHolder("gates:toll_gate")
     public static ContainerType<TGUserContainer> TOLLGATE_USER_CONTAINER;
@@ -45,13 +45,13 @@ public class ModBlock {
     public static TurnStile TURN_STILE = new TurnStile();
 
     @ObjectHolder("gates:redstone_turn_stile")
-    public static RedstoneTurnStile RTURN_STILE = new RedstoneTurnStile();
+    public static RedstoneTurnStile REDSTONE_TURN_STILE = new RedstoneTurnStile();
 
     @ObjectHolder("gates:turn_stile")
     public static TileEntityType<TurnStileTileEntity> TURNSTILE_TILE_TYPE;
 
     @ObjectHolder("gates:redstone_turn_stile")
-    public static TileEntityType<RedstoneTurnStileTileEntity> RTURNSTILE_TILE_TYPE;
+    public static TileEntityType<RedstoneTurnStileTileEntity> REDSTONE_TURNSTILE_TILE_TYPE;
 
     @ObjectHolder("gates:card_getter")
     public static CardGetter CARD_GETTER = new CardGetter();

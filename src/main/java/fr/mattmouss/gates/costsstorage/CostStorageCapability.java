@@ -17,7 +17,6 @@ public class CostStorageCapability {
 
     public static void register(){
         CapabilityManager.INSTANCE.register(ICostStorage.class, new Capability.IStorage<ICostStorage>() {
-            @Nullable
             @Override
             public INBT writeNBT(Capability<ICostStorage> capability, ICostStorage instance, Direction side) {
                 ListNBT nbt_list = new ListNBT();
@@ -35,8 +34,8 @@ public class CostStorageCapability {
             public void readNBT(Capability<ICostStorage> capability, ICostStorage instance, Direction side, INBT nbt) {
                 if (nbt instanceof ListNBT){
                     ListNBT nbt_list = (ListNBT)nbt;
-                    nbt_list.forEach(inbt -> {
-                        CompoundNBT tag = (CompoundNBT)inbt;
+                    nbt_list.forEach(intern_nbt -> {
+                        CompoundNBT tag = (CompoundNBT)intern_nbt;
                         int id = tag.getInt("id");
                         int price = tag.getInt("price");
                         instance.addIdWithCost(id,price);

@@ -177,7 +177,7 @@ public enum ExtendDirection {
         double degreeAngle =toDegree(angle);
         //then to index from 2 to 9 corresponding to the part of stage where the player is
         int index = MathHelper.ceil((degreeAngle-22.5D)/45.0D);
-        //we consider the part split by angle origin which correpond to 0
+        //we consider the part split by angle origin which correspond to 0
         // that we move of a complete circle for math simplification
         if (index == 0){
             index =8;
@@ -189,12 +189,11 @@ public enum ExtendDirection {
         // 2->3 3->3 4->2 5->2 6->1 7->1 8->0 9->0
         Direction facing = Direction.from2DDataValue((9-index)/2);
         boolean isRotated = (index%2 == 1);
-        ExtendDirection direction = ExtendDirection.getExtendedDirection(facing,isRotated);
-        return direction;
+        return ExtendDirection.getExtendedDirection(facing,isRotated);
     }
 
-    //convert a blockpos into vec3d and adding an offset on x and z coordinate
-    // (use in the convertion to vec3d of support and grid center blockpos)
+    //convert a block position into vec3d and adding an offset on x and z coordinate
+    // (use in the conversion to vec3d of support and grid center block position)
 
     public static Vector3d getVecFromBlockPos (BlockPos pos,float horOffset){
         return new Vector3d(pos.getX()+horOffset,pos.getY(),pos.getZ()+horOffset);

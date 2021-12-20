@@ -2,10 +2,8 @@ package fr.mattmouss.gates.setup;
 
 import fr.mattmouss.gates.doors.DoorRegister;
 import fr.mattmouss.gates.network.Networking;
-import fr.mattmouss.gates.voxels.VoxelDefinition;
 import net.minecraft.item.ItemGroup;
 import net.minecraft.item.ItemStack;
-import net.minecraft.util.math.shapes.VoxelShapes;
 
 public class ModSetup {
 

@@ -15,7 +15,6 @@ public class PutIdsToClientPacket {
     private final BlockPos pos;
     private final HashMap<Integer,Integer> ServerCostMap;
 
-    //Pourquoi ce fucking packet ne s'envoie pas systèmatiquement et uniquement quand j'utilise le debugger ?
     public PutIdsToClientPacket(PacketBuffer buf){
         pos = buf.readBlockPos();
         ServerCostMap = new HashMap<>();
@@ -54,8 +53,9 @@ public class PutIdsToClientPacket {
             if (cgte==null){
                 needToMarkDirty.set(true);
             }
+            assert cgte != null;
             HashMap<Integer,Integer> ClientCostMap = cgte.getIdPriceMap();
-            //to remove id that were in toll gate or turn stile that has been destroyed
+            //to remove id that were in tollgate or turn stile that has been destroyed
             ClientCostMap.forEach((id,price)->{
                 if (!ServerCostMap.containsKey(id)){
                     cgte.removeId(id);
@@ -64,7 +64,7 @@ public class PutIdsToClientPacket {
                     cgte.changeCost(id,price);
                 }
             });
-            //to add id that are in newly created toll gate or turn stile
+            //to add id that are in newly created tollgate or turn stile
             ServerCostMap.forEach((id,price)->{
                 if (!ClientCostMap.containsKey(id)){
                     cgte.addIdAndCost(id,price);

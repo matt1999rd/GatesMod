@@ -1,5 +1,6 @@
 package fr.mattmouss.gates.setup;
 
+import com.google.common.collect.Lists;
 import fr.mattmouss.gates.GatesMod;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.SoundEvent;
@@ -7,13 +8,12 @@ import net.minecraftforge.event.RegistryEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
 
-import java.util.ArrayList;
 import java.util.List;
 
-@Mod.EventBusSubscriber(modid = GatesMod.MODID,bus = Mod.EventBusSubscriber.Bus.MOD)
+@Mod.EventBusSubscriber(modid = GatesMod.MOD_ID,bus = Mod.EventBusSubscriber.Bus.MOD)
 
 public class ModSound {
-    private static final List<SoundEvent> SOUNDS = new ArrayList();
+    private static final List<SoundEvent> SOUNDS = Lists.newArrayList();
 
     public static final SoundEvent ANIMATION_GARAGE =  register("gates:block.garage_animation");
     public static final SoundEvent TOLL_GATE_OPENING = register("gates:block.toll_gate_opening");
@@ -35,9 +35,7 @@ public class ModSound {
     @SubscribeEvent
     public static void registerSounds(RegistryEvent.Register<SoundEvent> event) {
         System.out.println("registering sound ...");
-        SOUNDS.forEach((soundEvent) -> {
-            event.getRegistry().register(soundEvent);
-        });
+        SOUNDS.forEach((soundEvent) -> event.getRegistry().register(soundEvent));
         SOUNDS.clear();
     }
 

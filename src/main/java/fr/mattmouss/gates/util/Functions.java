@@ -50,33 +50,33 @@ public class Functions {
         WindowBlock window = (WindowBlock)world.getBlockState(pos).getBlock();
         ExtendDirection defaultDir = ExtendDirection.getFacingFromPlayer(placer,pos);
         Vector3d vec3d = placer.position();
-        boolean ns = false;
-        boolean ew = false;
-        boolean nwse = false;
-        boolean nesw = false;
+        boolean northSouth = false;
+        boolean eastWest = false;
+        boolean northWestSouthEast = false;
+        boolean northEastSouthWest = false;
         Direction neiWindowFacing = null;
         for (int i=0;i<6;i++){
             Direction dir = Direction.from3DDataValue(i);
             BlockPos neighPos = pos.relative(dir);
             BlockState neighState = world.getBlockState(neighPos);
             if (window.equals(neighState.getBlock())){
-                //check for problem in neighbor block that are rotated (future non rotated block here)
+                //check for problem in neighbor block that are rotated (future non-rotated block here)
                 if (neighState.getValue(WindowBlock.WINDOW_PLACE) == WindowPlace.FULL || !neighState.getValue(WindowBlock.ROTATED)) {
                     //we need to avoid problems with windows with bad facing
                     if (neighState.getValue(BlockStateProperties.HORIZONTAL_FACING).getAxis() != dir.getAxis()) {
                         neiWindowFacing = neighState.getValue(BlockStateProperties.HORIZONTAL_FACING);
                         if (i == 2 || i == 3) {
-                            ns = true;
+                            northSouth = true;
                         } else if (i == 4 || i == 5) {
-                            ew = true;
+                            eastWest = true;
                         }
                     }
                 }
             }else if (neighState.getMaterial().blocksMotion()) {
                 if (i==2 || i==3){
-                    ns = true;
+                    northSouth = true;
                 }else if (i==4 || i==5){
-                    ew = true;
+                    eastWest = true;
                 }
             }
         }
@@ -90,18 +90,18 @@ public class Functions {
             if (neighState.getMaterial().blocksMotion()){
                 //SW or NE
                 if (i==0 || i==2){
-                    nesw = true;
+                    northEastSouthWest = true;
                 }else{ //NW or SE
-                    nwse = true;
+                    northWestSouthEast = true;
                 }
             }
         }
         //if ns or ew are impossible
-        if (ns == ew){
+        if (northSouth == eastWest){
             //overfilling of windows surrounding (incompatible places)
-            if (ns || nesw == nwse){
+            if (northSouth || northEastSouthWest == northWestSouthEast){
                 return defaultDir;
-            }else if (nesw){
+            }else if (northEastSouthWest){
                 boolean playerIsInNorthEast = vec3d.x+vec3d.z < pos.getX()+pos.getZ()+1.0F;
                 return (playerIsInNorthEast)? ExtendDirection.NORTH_WEST : ExtendDirection.SOUTH_EAST;
             }else {
@@ -111,7 +111,7 @@ public class Functions {
         }else if (neiWindowFacing != null) {
             //if we have a near windows (with ew or ns)
             return ExtendDirection.getExtendedDirection(neiWindowFacing,false);
-        }else if (ns){
+        }else if (northSouth){
             boolean playerIsInWest = vec3d.x > pos.getX()+0.5F;
             return (playerIsInWest)? ExtendDirection.EAST : ExtendDirection.WEST;
         }else{
@@ -145,8 +145,7 @@ public class Functions {
     public static BlockPos getMainPosition(BlockPos pos, LivingEntity entity){
         Direction direction = Functions.getDirectionFromEntity(entity,pos);
         DoorHingeSide dhs = Functions.getHingeSideFromEntity(entity,pos,direction);
-        BlockPos MainPos = (dhs == DoorHingeSide.RIGHT) ? pos.relative(direction.getClockWise()): pos.relative(direction.getCounterClockWise());
-        return MainPos;
+        return (dhs == DoorHingeSide.RIGHT) ? pos.relative(direction.getClockWise()): pos.relative(direction.getCounterClockWise());
     }
 
     public static TurnSPosition getCUPosition(BlockPos pos,LivingEntity player){
@@ -155,22 +154,20 @@ public class Functions {
         //boolean that return true when Control Unit is on the right
         boolean CUisOnRight = (dhs == DoorHingeSide.RIGHT);
         //the control unit block (left if DHS.left and right if DHS.right)
-        TurnSPosition tsp = (CUisOnRight) ? TurnSPosition.RIGHT_BLOCK : TurnSPosition.LEFT_BLOCK;
-        return tsp;
+        return (CUisOnRight) ? TurnSPosition.RIGHT_BLOCK : TurnSPosition.LEFT_BLOCK;
     }
 
     public static int getIdFromBlockPos(BlockPos pos){
         int nz= pos.getX();
         int m = pos.getY();
         int pz= pos.getZ();
-        int n = BijectZN(nz);
-        int p = BijectZN(pz);
+        int n = BijectionZN(nz);
+        int p = BijectionZN(pz);
         //development of function f(f(n,m),p) where f(n,m) is a bijection from NxN to N
-        int id = (((n+m)^2+n+3*m+2*p)^2+2*(n+m)^2+2*n+6*m+12*p)/8;
-        return id;
+        return (((n+m)^2+n+3*m+2*p)^2+2*(n+m)^2+2*n+6*m+12*p)/8;
     }
 
-    private static int BijectZN(int z){
+    private static int BijectionZN(int z){
         if (z<=0){
             return -2*z;
         }else {
@@ -222,14 +219,14 @@ public class Functions {
             voxels.add(new VoxelDoubles(0,0,0,3,16,16,true));
             if (placing == DoorPlacing.RIGHT_DOWN || placing == DoorPlacing.LEFT_DOWN) {
                 //handle on 2 sides
-                //handle on out side
+                //handle on outside part
                 //horizontal part
                 voxels.add(new VoxelDoubles(-1, 15, 12, 1, 1, 2, true));
                 voxels.add(new VoxelDoubles(-1, 12, 12, 1, 1, 2, true));
                 //vertical part
                 voxels.add(new VoxelDoubles(-1, 13, 11, 1, 2, 1, true));
                 voxels.add(new VoxelDoubles(-1, 13, 14, 1, 2, 1, true));
-                //handle on in side
+                //handle on inside part
                 //horizontal part
                 voxels.add(new VoxelDoubles(3, 15, 12, 1, 1, 2, true));
                 voxels.add(new VoxelDoubles(3, 12, 12, 1, 1, 2, true));
@@ -242,14 +239,14 @@ public class Functions {
             voxels.add(new VoxelDoubles(0, 0, 0, 3, 16, 4, true));
             if (placing == DoorPlacing.RIGHT_DOWN || placing == DoorPlacing.LEFT_DOWN) {
                 //handle on 2 sides
-                //handle on out side
+                //handle on outside part
                 //horizontal part
                 voxels.add(new VoxelDoubles(11, 15, 7, 2, 1, 1, true));
                 voxels.add(new VoxelDoubles(11, 12, 7, 2, 1, 1, true));
                 //vertical part
                 voxels.add(new VoxelDoubles(10, 13, 7, 1, 2, 1, true));
                 voxels.add(new VoxelDoubles(13, 13, 7, 1, 2, 1, true));
-                //handle on in side
+                //handle on inside part
                 //horizontal part
                 voxels.add(new VoxelDoubles(11, 15, 3, 2, 1, 1, true));
                 voxels.add(new VoxelDoubles(11, 12, 3, 2, 1, 1, true));
@@ -289,7 +286,7 @@ public class Functions {
             int len = voxels.size();
             for (int i=0;i<len;i++){
                 VoxelDoubles oldVoxel = voxels.get(i);
-                VoxelDoubles symVoxel = oldVoxel.makeSymetry(Direction.Axis.X, Direction.Axis.Y);
+                VoxelDoubles symVoxel = oldVoxel.makeSymmetry(Direction.Axis.X, Direction.Axis.Y);
                 voxels.set(i,symVoxel);
             }
         }
@@ -309,7 +306,7 @@ public class Functions {
         if (placing.isLeft()){
             for (int i=0;i<3;i++){
                 VoxelDoubles oldVoxel = voxels.get(i);
-                VoxelDoubles symVoxel = oldVoxel.makeSymetry(Direction.Axis.X, Direction.Axis.Y);
+                VoxelDoubles symVoxel = oldVoxel.makeSymmetry(Direction.Axis.X, Direction.Axis.Y);
                 voxels.set(i,symVoxel);
             }
         }
@@ -388,12 +385,12 @@ public class Functions {
             }
         }
 
-        //for right we handle symetry
+        //for right, we handle symmetry
         if (!placing.isLeft()){
             int len = voxels.size();
             for (int i=0;i<len;i++){
                 VoxelDoubles oldVoxel = voxels.get(i);
-                VoxelDoubles symVoxel = oldVoxel.makeSymetry(Direction.Axis.X, Direction.Axis.Y);
+                VoxelDoubles symVoxel = oldVoxel.makeSymmetry(Direction.Axis.X, Direction.Axis.Y);
                 voxels.set(i,symVoxel);
             }
         }
@@ -401,9 +398,9 @@ public class Functions {
     }
 
     public static VoxelShape makeDrawBridgeShape(DrawBridgePosition position,int animState,Direction facing){
-        //totaly closed part for existing part
+        //totally closed part for existing part
         if (animState == 0){
-            VoxelDoubles flatSquareVoxel = new VoxelDoubles(0,0,14,16,16,2,true); //voxelshape for anim=0
+            VoxelDoubles flatSquareVoxel = new VoxelDoubles(0,0,14,16,16,2,true); //voxel-shape for anim=0
             return flatSquareVoxel.rotate(Direction.SOUTH,facing).getAssociatedShape();
         }
         List<VoxelDoubles> voxels=Lists.newArrayList();
@@ -431,7 +428,7 @@ public class Functions {
                 }
             }
         }
-        //merge all vi for voxelshape
+        //merge all vi for voxel-shape
         VoxelShape shape = VoxelShapes.empty();
         for (VoxelDoubles vi : voxels){
             shape = VoxelShapes.or(shape, vi.rotate(Direction.SOUTH, facing).getAssociatedShape());

@@ -3,7 +3,7 @@ package fr.mattmouss.gates.windows;
 import fr.mattmouss.gates.util.ExtendDirection;
 
 public class WindowDirection {
-    private int[] dir = new int[10];
+    private final int[] dir = new int[10];
 
     public WindowDirection(int nb_offset, ExtendDirection dir){
         int index = dir.getIndex();

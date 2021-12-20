@@ -11,7 +11,7 @@ import java.util.HashMap;
 import java.util.List;
 
 public class IdTracker extends WorldSavedData {
-    private HashMap<Integer,Integer> all_id = new HashMap<>();
+    private final HashMap<Integer,Integer> all_id = new HashMap<>();
 
     public IdTracker() {
         super("idgates");
@@ -21,6 +21,7 @@ public class IdTracker extends WorldSavedData {
     public void load(CompoundNBT compoundNBT) {
         if (compoundNBT.contains("idlist") && compoundNBT.get("idlist") instanceof ListNBT){
             ListNBT nbt = (ListNBT) compoundNBT.get("idlist");
+            assert nbt != null;
             for (INBT inbt : nbt){
                 CompoundNBT nbt_id = ((CompoundNBT)inbt).getCompound("id");
                 int id= nbt_id.getInt("id");
@@ -41,19 +42,19 @@ public class IdTracker extends WorldSavedData {
     @Override
     public CompoundNBT save(CompoundNBT compound) {
         ListNBT nbt = new ListNBT();
-        all_id.forEach((id,number)->{//for each key we add a compound inbt which contains
+        all_id.forEach((id,number)->{//for each key we add a compound intern nbt which contains
             //a compound "id" for stocking an int "id" -> id of gates
             //a compound "nb" for stocking an int "nb" -> number of gates with this id
-            CompoundNBT inbt = new CompoundNBT();
+            CompoundNBT internNbt = new CompoundNBT();
             CompoundNBT nbt_id = new CompoundNBT();
             nbt_id.putInt("id",id);
             CompoundNBT nbt_number = new CompoundNBT();
             nbt_number.putInt("nb",number);
-            inbt.put("id",nbt_id);
+            internNbt.put("id",nbt_id);
             System.out.println("writing id : "+id);
             System.out.println("writing number : "+number);
-            inbt.put("number",nbt_number);
-            nbt.add(inbt);
+            internNbt.put("number",nbt_number);
+            nbt.add(internNbt);
         });
         compound.put("idlist",nbt);
         return compound;
@@ -69,10 +70,10 @@ public class IdTracker extends WorldSavedData {
         this.setDirty();
     }
 
-    public void removeId(int id){ //it return the number of gates with this id counting 0 if no gates has this id
+    public void removeId(int id){ //it returns the number of gates with this id counting 0 if no gates has this id
         int number =all_id.getOrDefault(id,0);
         if (number == 0){ //if no gates a warning impossible to delete
-            GatesMod.logger.warning("Trying to remove unexisting id !!");
+            GatesMod.logger.warning("Trying to remove non existing id !!");
         }else if (number == 1){ //if only one let's remove id of the HashMap
             all_id.remove(id);
         }else { //if there is more than one we decrement
@@ -84,9 +85,7 @@ public class IdTracker extends WorldSavedData {
 
     public List<Integer> getList(){
         List<Integer> id_list=new ArrayList<>();
-        all_id.forEach((key,id)->{
-            id_list.add(key);
-        });
+        all_id.forEach((key,id)-> id_list.add(key));
         return id_list;
     }
 }

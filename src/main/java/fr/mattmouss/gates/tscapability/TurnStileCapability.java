@@ -16,7 +16,6 @@ public class TurnStileCapability {
     public static void register()
     {
         CapabilityManager.INSTANCE.register(ITSStorage.class, new Capability.IStorage<ITSStorage>() {
-            @Nullable
             @Override
             public INBT writeNBT(Capability<ITSStorage> capability, ITSStorage instance, Direction side) {
                 CompoundNBT tag = new CompoundNBT();
@@ -29,7 +28,7 @@ public class TurnStileCapability {
             public void readNBT(Capability<ITSStorage> capability, ITSStorage instance, Direction side, INBT nbt) {
                 if (!(instance instanceof TSStorage)) throw new IllegalArgumentException("Can not deserialize to an instance that isn't the default implementation");
                 CompoundNBT tag = (CompoundNBT)nbt;
-                Boolean isOpen = tag.getBoolean("isopen");
+                boolean isOpen = tag.getBoolean("isopen");
                 int id = tag.getInt("id");
                 if (isOpen){
                     instance.startAnimation();

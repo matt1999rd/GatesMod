@@ -5,12 +5,12 @@ import net.minecraft.util.Direction;
 import net.minecraft.util.math.shapes.VoxelShape;
 import net.minecraft.util.math.shapes.VoxelShapes;
 
-//un block d'outillage utilisable pour faciliter  la création de VoxelShape
+//util class to simplify VoxelShape creation
 public class VoxelDoubles {
     public static final VoxelDoubles EMPTY = new VoxelDoubles(0,0,0,0,0,0,false);
     public static final VoxelDoubles FULL = new VoxelDoubles(0,0,0,16,16,16,false);
 
-    private double[] plane_val ;
+    private final double[] plane_val ;
     public VoxelDoubles(int x1, int y1, int z1, int x2, int y2, int z2, boolean isSizeUsed){
         if (isSizeUsed){
             //we build our voxel on size x y z for second argument
@@ -74,7 +74,7 @@ public class VoxelDoubles {
         if (present_direction == changing_direction){
             return this;
         }
-        //si il sont sur le même axe on fait une rotation autour de n'importe lequel des deux autres axes de 180°
+        //if the two direction is on same axis, we can make a rotation of 180° over any of the two other axis
         if (present_direction.getAxis() == changing_direction.getAxis()){
             Direction.Axis other_axis = (present_direction.getAxis().isHorizontal() ? Direction.Axis.Y : Direction.Axis.X);
             return this.rotateCW(2,other_axis);
@@ -123,10 +123,10 @@ public class VoxelDoubles {
     }
 
 
-    //make the symetry around the plane formed by the two axis given if distinct
-    public VoxelDoubles makeSymetry(Direction.Axis axis1, Direction.Axis axis2){
+    //make the symmetry around the plane formed by the two axis given if distinct
+    public VoxelDoubles makeSymmetry(Direction.Axis axis1, Direction.Axis axis2){
         if (axis1 == axis2){
-            throw new IllegalArgumentException("The Axis selected are identic no axial symetry can be done");
+            throw new IllegalArgumentException("The Axis selected are identical no axial symmetry can be done");
         }
         double x1 = plane_val[0];
         double y1 = plane_val[1];
@@ -134,19 +134,17 @@ public class VoxelDoubles {
         double x2 = plane_val[3];
         double y2 = plane_val[4];
         double z2 = plane_val[5];
-        //symetrie par rapport au plan XY
+        //symmetry regarding XY plane
         if ((axis1== Direction.Axis.X && axis2== Direction.Axis.Y)
                 ||(axis1== Direction.Axis.Y && axis2== Direction.Axis.X)){
             return new VoxelDoubles(x1,y1,16-z2,x2,y2,16-z1,false);
         }
-
-        //symetrie par rapport au plan YZ
+        //symmetry regarding YZ plane
         if ((axis1== Direction.Axis.Z && axis2== Direction.Axis.Y)
                 ||(axis1== Direction.Axis.Y && axis2== Direction.Axis.Z)){
             return new VoxelDoubles(16-x2,y1,z1,16-x1,y2,z2,false);
         }
-
-        //symetrie par rapport au plan XZ
+        //symmetry regarding XZ plane
         if ((axis1== Direction.Axis.X && axis2== Direction.Axis.Z)
                 ||(axis1== Direction.Axis.Z && axis2== Direction.Axis.X)){
             return new VoxelDoubles(x1,16-y2,z1,x2,16-y1,z2,false);

@@ -27,17 +27,18 @@ public class TollGateItem extends BlockItem {
         PlayerEntity entity=blockItemUseContext.getPlayer();
         ActionResultType actionResultType = super.useOn(context);
         TollKeyItem key = (TollKeyItem) ModItem.TOLL_GATE_KEY.asItem();
-        System.out.println("item defini : "+key);
+        System.out.println("defined item : "+key);
         if (actionResultType == ActionResultType.SUCCESS){
             ItemStack newStack = new ItemStack(key);
             key.setTGPosition(newStack,world,pos);
+            assert entity != null;
             Functions.moveMainOldStackToFreeSlot(entity);
-            System.out.println("itemstack of new key item : "+newStack);
+            System.out.println("item stack of new key item : "+newStack);
             entity.setItemSlot(EquipmentSlotType.MAINHAND,ItemStack.EMPTY);
             entity.setItemSlot(EquipmentSlotType.MAINHAND,newStack);
             Networking.INSTANCE.sendToServer(new PacketReplaceBlockItemByKey(pos,false,entity.getUUID()));
         }
-        if (actionResultType != ActionResultType.SUCCESS)System.out.println("block non fabriqué");
+        if (actionResultType != ActionResultType.SUCCESS)System.out.println("not created block");
         return actionResultType;
     }
 

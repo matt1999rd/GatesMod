@@ -2,9 +2,7 @@ package fr.mattmouss.gates.items;
 
 import fr.mattmouss.gates.setup.ModSetup;
 import fr.mattmouss.gates.tileentity.IControlIdTE;
-import fr.mattmouss.gates.tileentity.TollGateTileEntity;
 import fr.mattmouss.gates.tileentity.TurnStileTileEntity;
-import fr.mattmouss.gates.util.Functions;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
@@ -34,6 +32,7 @@ public class CardKeyItem extends Item {
         BlockPos pos = context.getClickedPos();
         PlayerEntity entity = context.getPlayer();
         Hand hand = context.getHand();
+        assert entity != null;
         ItemStack stack = entity.getItemInHand(hand);
         World world = context.getLevel();
         TileEntity te = world.getBlockEntity(pos);
@@ -43,7 +42,7 @@ public class CardKeyItem extends Item {
             return super.useOn(context);
         }
         int te_id = ((IControlIdTE)te).getId();
-        //if the clicked block is part of the toll gate that is not CU
+        //if the clicked block is part of the tollgate that is not CU
         if (te_id == -1){
             return super.useOn(context);
         }
@@ -74,8 +73,8 @@ public class CardKeyItem extends Item {
         if (id == -1){
             return super.getName(stack);
         }
-        String formatedString = "# %1$d";
-        String st =String.format(formatedString,id);
+        String formattedString = "# %1$d";
+        String st =String.format(formattedString,id);
         return new TranslationTextComponent(this.getOrCreateDescriptionId(),st);
     }
 

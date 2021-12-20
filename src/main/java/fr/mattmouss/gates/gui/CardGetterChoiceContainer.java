@@ -9,10 +9,12 @@ import net.minecraft.util.IWorldPosCallable;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
 
+import java.util.Objects;
+
 
 public class CardGetterChoiceContainer extends Container {
-    private CardGetterTileEntity tileEntity ;
-    private PlayerEntity playerEntity;
+    private final CardGetterTileEntity tileEntity ;
+    private final PlayerEntity playerEntity;
 
 
     public CardGetterChoiceContainer(int windowId, World world, BlockPos pos,PlayerEntity player) {
@@ -44,7 +46,7 @@ public class CardGetterChoiceContainer extends Container {
     @Override
     public boolean stillValid(PlayerEntity playerIn) {
         return stillValid(
-                IWorldPosCallable.create(tileEntity.getLevel(),tileEntity.getBlockPos()),
+                IWorldPosCallable.create(Objects.requireNonNull(tileEntity.getLevel()),tileEntity.getBlockPos()),
                 playerEntity,
                 ModBlock.CARD_GETTER
         );

@@ -14,8 +14,8 @@ import net.minecraft.util.text.ITextComponent;
 
 public class TGUserScreen extends ContainerScreen<TGUserContainer> {
 
-    private ResourceLocation GUI_OPEN = new ResourceLocation(GatesMod.MODID,"textures/gui/tg_user_gui_open.png");
-    private ResourceLocation GUI_CLOSE = new ResourceLocation(GatesMod.MODID,"textures/gui/tg_user_gui_close.png");
+    private final ResourceLocation GUI_OPEN = new ResourceLocation(GatesMod.MOD_ID,"textures/gui/tg_user_gui_open.png");
+    private final ResourceLocation GUI_CLOSE = new ResourceLocation(GatesMod.MOD_ID,"textures/gui/tg_user_gui_close.png");
     private static final int white = 0xffffff;
     public TGUserScreen(TGUserContainer container, PlayerInventory inventory, ITextComponent title) {
         super(container, inventory, ITextComponent.nullToEmpty("Toll Gate number "+container.getId()));
@@ -35,7 +35,6 @@ public class TGUserScreen extends ContainerScreen<TGUserContainer> {
     @Override
     protected void renderLabels(MatrixStack stack,int p_146979_1_, int p_146979_2_) {
         int price = menu.getRemainingPayment();
-        int control_id = menu.getId();
         int pos_id = Functions.getIdFromBlockPos(menu.getPos());
         FontRenderer font = Minecraft.getInstance().font;
         drawString(stack,font,pos_id+" ",151,52,white);
@@ -47,8 +46,10 @@ public class TGUserScreen extends ContainerScreen<TGUserContainer> {
     @Override
     protected void renderBg(MatrixStack stack,float partialTicks, int mouseX, int mouseY) {
         if (menu.isGateOpen()){
+            assert this.minecraft != null;
             this.minecraft.getTextureManager().bind(GUI_OPEN);
         }else {
+            assert this.minecraft != null;
             this.minecraft.getTextureManager().bind(GUI_CLOSE);
         }
         this.blit(stack,leftPos, topPos, 0, 0, this.imageWidth+21, this.imageHeight);

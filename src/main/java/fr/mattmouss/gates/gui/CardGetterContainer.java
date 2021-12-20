@@ -1,7 +1,6 @@
 package fr.mattmouss.gates.gui;
 
 import fr.mattmouss.gates.blocks.ModBlock;
-import fr.mattmouss.gates.items.ModItem;
 import fr.mattmouss.gates.tileentity.CardGetterTileEntity;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.player.PlayerInventory;
@@ -18,17 +17,13 @@ import net.minecraftforge.items.SlotItemHandler;
 import net.minecraftforge.items.wrapper.InvWrapper;
 import javax.annotation.Nonnull;
 import java.util.HashMap;
-import java.util.Vector;
+import java.util.Objects;
 
 public class CardGetterContainer extends Container {
 
-    //raison des bug d'affichage :
-    // 1. ta mere la pute de canInteractWith : mettre le bon block !!!!
-    // 2. erreur null pointer : ajouter un textComponent dans le titre de la gui dans tile entity
-
-    private CardGetterTileEntity tileEntity ;
-    private PlayerEntity playerEntity;
-    private IItemHandler inventory;
+    private final CardGetterTileEntity tileEntity ;
+    private final PlayerEntity playerEntity;
+    private final IItemHandler inventory;
     public final int leftCol = 107;
     public final int topRow = 83;
 
@@ -38,6 +33,7 @@ public class CardGetterContainer extends Container {
         tileEntity = (CardGetterTileEntity) world.getBlockEntity(pos);
         playerEntity= player;
         this.inventory= new InvWrapper(inventory);
+        assert tileEntity != null;
         tileEntity.getCapability(CapabilityItemHandler.ITEM_HANDLER_CAPABILITY).ifPresent(h->{
             addSlot(new SlotItemHandler(h,0,135,36){
                 @Override
@@ -70,7 +66,7 @@ public class CardGetterContainer extends Container {
     @Override
     public boolean stillValid(PlayerEntity playerIn) {
         return stillValid(
-                IWorldPosCallable.create(tileEntity.getLevel(),tileEntity.getBlockPos()),
+                IWorldPosCallable.create(Objects.requireNonNull(tileEntity.getLevel()),tileEntity.getBlockPos()),
                 playerEntity,
                 ModBlock.CARD_GETTER
         );
@@ -86,40 +82,40 @@ public class CardGetterContainer extends Container {
         ItemStack stack = ItemStack.EMPTY;
         Slot slot = this.slots.get(index);
         if (slot != null && slot.hasItem()){
-            ItemStack selecStack = slot.getItem();
-            stack = selecStack.copy();
+            ItemStack selectedStack = slot.getItem();
+            stack = selectedStack.copy();
             if (index == 0 || index ==1){//item that are in the two container slot
-                if (!moveItemStackTo(selecStack,2,38,false)){
+                if (!moveItemStackTo(selectedStack,2,38,false)){
                     return ItemStack.EMPTY;
                 }
-                slot.onQuickCraft(selecStack,stack);
+                slot.onQuickCraft(selectedStack,stack);
             }else {
                 if (stack.getItem() == Items.EMERALD){//item in inventories that are emerald
-                    if (!moveItemStackTo(selecStack,0,1,false)){
+                    if (!moveItemStackTo(selectedStack,0,1,false)){
                         return ItemStack.EMPTY;
                     }
                 }else {
                     if (index >1 && index <29){//item in intern inventory that are not emerald
-                        if (!moveItemStackTo(selecStack,29,38,false)){
+                        if (!moveItemStackTo(selectedStack,29,38,false)){
                             return ItemStack.EMPTY;
                         }
                     }else {//item in inventory bar that are not emerald
-                        if (!moveItemStackTo(selecStack,2,29,false)){
+                        if (!moveItemStackTo(selectedStack,2,29,false)){
                             return ItemStack.EMPTY;
                         }
                     }
                 }
             }
-            if (selecStack.isEmpty()) {
+            if (selectedStack.isEmpty()) {
                 slot.set(ItemStack.EMPTY);
             } else {
                 slot.setChanged();
             }
 
-            if (selecStack.getCount() == stack.getCount()) {
+            if (selectedStack.getCount() == stack.getCount()) {
                 return ItemStack.EMPTY;
             }
-            slot.onTake(player,selecStack);
+            slot.onTake(player,selectedStack);
         }
 
         return stack;
@@ -127,7 +123,7 @@ public class CardGetterContainer extends Container {
 
     private void layoutPlayerInventorySlots(int leftCol, int topRow) {//player inventory
         addSlotBox(inventory,9,leftCol,topRow,9,18,3,18);
-        //hotbar
+        //hot bar
         topRow+=58;
         addSlotRange(inventory,0,leftCol,topRow,9,18);
     }

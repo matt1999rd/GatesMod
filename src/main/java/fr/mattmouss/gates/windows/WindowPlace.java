@@ -50,7 +50,7 @@ public enum WindowPlace implements IStringSerializable {
 
     private final String name;
     private final int meta;
-    //flag = UDLR
+    //flag = U D L R
     //U = isUpPlace
     //D = isDownPlace
     //L = isLeftPlace
@@ -198,10 +198,8 @@ public enum WindowPlace implements IStringSerializable {
                 //standard verification
                 complexPlace = complexPlaces.getWindowPlace();
             }else {
-                System.out.println("Complexe places that is not working : "+complexPlaces);
-                complexPlaces.forEach(windowPlace -> {
-                    System.out.println("value in the list :"+windowPlace);
-                });
+                System.out.println("Complex places that is not working : "+complexPlaces);
+                complexPlaces.forEach(windowPlace -> System.out.println("value in the list :"+windowPlace));
                 System.out.println("Places that is not working : "+places);
             }
             //we check the presence of the block (if WP = BOTH_MIDDLE return true)
@@ -225,9 +223,9 @@ public enum WindowPlace implements IStringSerializable {
                 return complexPlaces.getWindowPlace();
                 //if the first windowPlace is not valid
             }else {
-                WindowPlace unvalidPlace =complexPlaces.getWindowPlace();
-                //it filter left or right place depending on the unvalidPlace flag (if it is right we filter right and same for left)
-                places.filter(windowPlace -> (windowPlace.flag & (unvalidPlace.flag & 0x0011) ) == (unvalidPlace.flag& 0x0011));
+                WindowPlace invalidPlace =complexPlaces.getWindowPlace();
+                //it filters left or right place depending on the invalidPlace flag (if it is right we filter right and same for left)
+                places.filter(windowPlace -> (windowPlace.flag & (invalidPlace.flag & 0x0011) ) == (invalidPlace.flag& 0x0011));
                 return getWindowPlaceFromPlaces(places, world, pos,facing);
             }
         }
@@ -237,28 +235,31 @@ public enum WindowPlace implements IStringSerializable {
         if (places.getSize() == 8){
             //we get the two corner place
             Places cornerPlaces = places.getPlace(windowPlace -> (windowPlace.getMeta()>5 && windowPlace.getMeta()<10));
-            WindowPlace unvalidCorner = getUnvalidCorner(cornerPlaces,world,pos,true,facing);
+            WindowPlace invalidCorner = getInvalidCorner(cornerPlaces,world,pos,true,facing);
             //if the two corner are valid
-            if (unvalidCorner == WindowPlace.FULL){
+            if (invalidCorner == WindowPlace.FULL){
                 //we get the middle left or right place
                 return places.getPlace(windowPlace -> windowPlace.getMeta()>9).getWindowPlace();
                 //if the first one is not valid (and not the second one)
-            }else if (unvalidCorner != null){
-                //it filter up or down place depending on the unValidCorner flag (if it is down we filter down and same for up)
-                places.filter(windowPlace -> (windowPlace.flag & (unvalidCorner.flag & 0x1100) ) == (unvalidCorner.flag & 0x1100));
+            }else if (invalidCorner != null){
+                //it filters up or down place depending on the unValidCorner flag (if it is down we filter down and same for up)
+                places.filter(windowPlace -> (windowPlace.flag & (invalidCorner.flag & 0x1100) ) == (invalidCorner.flag & 0x1100));
                 return getWindowPlaceFromPlaces(places,world,pos,facing);
             }else {
-                //unvalidCorner is null if the two are both invalid which means that we cannot know which one we need to return
+                //invalidCorner is null if the two are both invalid which means that we cannot know which one we need to return
                 return BOTH_MIDDLE;
             }
         }
         //nothing has been filtered
         if (places.getSize() == 12){
             Places cornerPlaces = places.getPlace(windowPlace -> (windowPlace.getMeta()>5 && windowPlace.getMeta()<10));
-            WindowPlace unvalidCorner = getUnvalidCorner(cornerPlaces,world,pos,false,facing);
-            //it filter left or right place depending on the unvalidPlace flag (if it is right we filter right and same for left)
+            WindowPlace invalidCorner = getInvalidCorner(cornerPlaces,world,pos,false,facing);
+            //it filters left or right place depending on the invalidPlace flag (if it is right we filter right and same for left)
             //because we need to remove middle_right or left when impossible
-            places.filter(windowPlace -> (windowPlace.flag & (unvalidCorner.flag & 0x0011) ) == (unvalidCorner.flag& 0x0011));
+            places.filter(windowPlace -> {
+                assert invalidCorner != null;
+                return (windowPlace.flag & (invalidCorner.flag & 0x0011) ) == (invalidCorner.flag& 0x0011);
+            });
             return getWindowPlaceFromPlaces(places, world, pos,facing);
         }
         return WindowPlace.FULL;
@@ -278,7 +279,7 @@ public enum WindowPlace implements IStringSerializable {
         return flag.get();
     }
 
-    //we will use this function to notify nearby block of changement in this window Block
+    //we will use this function to notify nearby block of changes in this window Block
     //the direction offset of block nearby are stocked within a base 6 integer
     // i = (abcd...)6 where every a b c d represent a direction index (which is between 0 and 5)
     public List<WindowDirection> getDirectionOfChangingWindow(ExtendDirection facing, World world, BlockPos pos){
@@ -305,7 +306,7 @@ public enum WindowPlace implements IStringSerializable {
             }
             //we add the opposite corner
             directions.add(new WindowDirection(1,horDir,1,verDir));
-            //the flag specify if we need to add the changement of window block 2 blocks away
+            //the flag specify if we need to add the changes of window block 2 blocks away
             if (flag){
                 //we add the 2 way up/down
                 directions.add(new WindowDirection(2,verDir));
@@ -342,9 +343,9 @@ public enum WindowPlace implements IStringSerializable {
     }
 
 
-    //give the unvalid corner if it exist, full if not
+    //give the invalid corner if it exists, full if not
     //return null if multiple when boolean is true
-    private static WindowPlace getUnvalidCorner(Places cornerPlaces, World world,BlockPos pos,boolean ifMultipleReturnNull,ExtendDirection facing){
+    private static WindowPlace getInvalidCorner(Places cornerPlaces, World world, BlockPos pos, boolean ifMultipleReturnNull, ExtendDirection facing){
         AtomicReference<WindowPlace> unValidCorner = new AtomicReference<>(WindowPlace.FULL);
         AtomicInteger number_of_def = new AtomicInteger(0);
         cornerPlaces.forEach(windowPlace -> {
@@ -370,6 +371,7 @@ public enum WindowPlace implements IStringSerializable {
         if (this.isCorner()){
             WindowPlace oppositeCorner = this.getOpposite();
             ExtendDirection verDir,horDir;
+            assert oppositeCorner != null;
             if (oppositeCorner.isUpPlace()){
                 verDir = ExtendDirection.UP;
             }else {
@@ -402,6 +404,7 @@ public enum WindowPlace implements IStringSerializable {
             boolean isRotated = state.getValue(WindowBlock.ROTATED);
             Direction facing = state.getValue(BlockStateProperties.HORIZONTAL_FACING);
             ExtendDirection dir = ExtendDirection.getExtendedDirection(facing,isRotated);
+            assert dir != null;
             FrontalAxis = dir.getAxis();
         }else {
             FrontalAxis = future_facing.getAxis();
@@ -413,9 +416,12 @@ public enum WindowPlace implements IStringSerializable {
                 Block block = neiState.getBlock();
                 if (!(windowBlock.equals(block))){
                     NeighborDirs.add(direction);
-                }else if ((neiState.getValue(WindowBlock.ROTATED) != future_facing.isRotated()) ||
-                            (neiState.getValue(BlockStateProperties.HORIZONTAL_FACING) !=future_facing.getDirection())) {
-                        NeighborDirs.add(direction);
+                }else {
+                    assert future_facing != null;
+                    if ((neiState.getValue(WindowBlock.ROTATED) != future_facing.isRotated()) ||
+                                (neiState.getValue(BlockStateProperties.HORIZONTAL_FACING) !=future_facing.getDirection())) {
+                            NeighborDirs.add(direction);
+                    }
                 }
             }
         }
@@ -463,7 +469,7 @@ public enum WindowPlace implements IStringSerializable {
             downWindowSquare[i-1] = new VoxelDoubles(i, 0, i, 2, 2, 2, true); // down part
             upWindowSquare[i-1] = new VoxelDoubles(i, 14, i, 2, 2, 2, true); // up part
         }
-        int glass_length = 5,glass_y_beg=0,glass_height=16;
+        int glass_length = 5,glass_y_beg=0,glass_height;
         VoxelShape[] shapes = new VoxelShape[4];
         VoxelDoubles[] usedVoxels;
         isUp =  (flag & 0x1000) == 0x1000;
@@ -501,15 +507,14 @@ public enum WindowPlace implements IStringSerializable {
                     usedVoxels[j] = (isLeft)? new VoxelDoubles(16 + j, glass_y_beg, 13 - j, 1, glass_height, 1, true) // left glass pane
                                              :new VoxelDoubles(2 + j, glass_y_beg, -j - 1, 1, glass_height, 1, true); // right glass pane
                 }
-                shape = Functions.getShapeFromVoxelIntsTab(usedVoxels, facing, shape);
             } else {
                 usedVoxels = new VoxelDoubles[glass_length * 2];
                 for (int j = 0; j < glass_length; j++) {
                     usedVoxels[2 * j] = new VoxelDoubles(16 + j, glass_y_beg, 13 - j, 1, glass_height, 1, true); // left glass pane
                     usedVoxels[2 * j + 1] = new VoxelDoubles(2 + j, glass_y_beg, -j - 1, 1, glass_height, 1, true); // right glass pane
                 }
-                shape = Functions.getShapeFromVoxelIntsTab(usedVoxels, facing, shape);
             }
+            shape = Functions.getShapeFromVoxelIntsTab(usedVoxels, facing, shape);
             shapes[i]= shape;
         }
         return shapes;
@@ -519,7 +524,7 @@ public enum WindowPlace implements IStringSerializable {
 
 
     public static class Places{
-        private List<WindowPlace> places;
+        private final List<WindowPlace> places;
 
         public Places(){
             WindowPlace[] places_array = WindowPlace.values();

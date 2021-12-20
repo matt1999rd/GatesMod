@@ -17,8 +17,8 @@ public enum DrawBridgePosition implements IStringSerializable {
     BRIDGE_EXT_LEFT(8,"bridge_ext_left"),
     BRIDGE_EXT_RIGHT(9,"bridge_ext_right");
 
-    int meta;
-    String id;
+    final int meta;
+    final String id;
     DrawBridgePosition(int meta,String id){
         this.meta=meta;
         this.id=id;
