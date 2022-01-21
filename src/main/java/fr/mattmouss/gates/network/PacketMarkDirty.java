@@ -32,7 +32,7 @@ public class PacketMarkDirty {
         context.get().enqueueWork(()->{
             World world = Objects.requireNonNull(context.get().getSender()).level;
             CardGetterTileEntity cgte = (CardGetterTileEntity)world.getBlockEntity(pos);
-            if (cgte == null) GatesMod.logger.warning("NO more of this fucking function that are not working !! ");
+            if (cgte == null) GatesMod.logger.warning("No more of this fucking function that are not working !! ");
             else cgte.markIdDirty(isDirty);
         });
         context.get().setPacketHandled(true);
