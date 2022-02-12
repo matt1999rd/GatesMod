@@ -21,7 +21,6 @@ import net.minecraft.state.IntegerProperty;
 import net.minecraft.state.StateContainer;
 import net.minecraft.state.properties.BlockStateProperties;
 import net.minecraft.tileentity.TileEntity;
-//import net.minecraft.util.BlockRenderLayer;
 import net.minecraft.util.Direction;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.shapes.ISelectionContext;
@@ -34,8 +33,6 @@ import net.minecraft.world.World;
 import javax.annotation.Nullable;
 import java.util.List;
 
-
-
 public class DrawBridge extends Block {
     public static EnumProperty<DrawBridgePosition> POSITION=EnumProperty.create("position",DrawBridgePosition.class);
 
@@ -46,20 +43,9 @@ public class DrawBridge extends Block {
                 .strength(2.0f)
                 .sound(SoundType.METAL)
                 .noOcclusion()
-                //1.15 function
-                //.notSolid()
         );
         this.setRegistryName(key);
     }
-
-/*
-    //1.14.4 function replaced by notSolid()
-    @Override
-    public BlockRenderLayer func_180664_k() {
-        return BlockRenderLayer.CUTOUT_MIPPED;
-    }
-*/
-
 
     @Override
     public boolean hasTileEntity(BlockState state) {

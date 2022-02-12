@@ -8,9 +8,10 @@ import fr.mattmouss.gates.gui.TSContainer;
 import fr.mattmouss.gates.items.CardKeyItem;
 import fr.mattmouss.gates.items.ModItem;
 
-import fr.mattmouss.gates.tscapability.ITSStorage;
-import fr.mattmouss.gates.tscapability.TSStorage;
-import fr.mattmouss.gates.tscapability.TurnStileCapability;
+import fr.mattmouss.gates.network.Networking;
+import fr.mattmouss.gates.network.blockTSPacket;
+import fr.mattmouss.gates.tscapability.IdTSStorage;
+import fr.mattmouss.gates.tscapability.TurnStileIdCapability;
 import net.minecraft.block.*;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.player.PlayerInventory;
@@ -50,9 +51,10 @@ public class TurnStileTileEntity extends AbstractTurnStileTileEntity implements 
         super(ModBlock.TURNSTILE_TILE_TYPE);
     }
 
-    private final LazyOptional<ITSStorage> storage = LazyOptional.of(this::getStorage).cast();
+    private final LazyOptional<IdTSStorage> idStorage = LazyOptional.of(this::getIdStorage).cast();
     private final LazyOptional<IItemHandler> handler = LazyOptional.of(this::createHandler).cast();
 
+    @Nonnull
     public ItemStackHandler createHandler() {
         return new ItemStackHandler(1){
 
@@ -77,8 +79,9 @@ public class TurnStileTileEntity extends AbstractTurnStileTileEntity implements 
         };
     }
 
-    public ITSStorage getStorage() {
-        return new TSStorage();
+    @Nonnull
+    public IdTSStorage getIdStorage() {
+        return new IdTSStorage();
     }
 
 
@@ -107,9 +110,10 @@ public class TurnStileTileEntity extends AbstractTurnStileTileEntity implements 
             if (playerIsAtRightPos(entity)){
                 DoorHingeSide dhs = this.getBlockState().getValue(BlockStateProperties.DOOR_HINGE);
                 //from which side is the hinge we check the other hand
-                if (notifyTileEntityOfCardId(entity,dhs == DoorHingeSide.RIGHT)){
-                    System.out.println("opening turn stile door and waiting for player");
-                }
+
+                notifyTileEntityOfCardId(entity, dhs == DoorHingeSide.RIGHT);
+                // if return true : System.out.println("opening turn stile door and waiting for player");
+
             }
         }
         //System.out.println("no player nearby");
@@ -119,7 +123,7 @@ public class TurnStileTileEntity extends AbstractTurnStileTileEntity implements 
 
     //this return true if ids match between id of card in player hand and id of the tile entity
     //it is also opening the door when it works
-    private boolean notifyTileEntityOfCardId(PlayerEntity player,boolean checkMainHand){
+    private void notifyTileEntityOfCardId(PlayerEntity player, boolean checkMainHand){
         ItemStack stack =(checkMainHand) ? player.getMainHandItem() : player.getItemInHand(Hand.OFF_HAND);
         if (stack.getItem() == ModItem.CARD_KEY.asItem()){
             CardKeyItem key = (CardKeyItem)stack.getItem();
@@ -134,13 +138,13 @@ public class TurnStileTileEntity extends AbstractTurnStileTileEntity implements 
                     assert tste != null;
                     tste.openTS();
                 }
-                return true;
+                //return true;
             }else {
                 //TODO : add here the sound not ok
                 System.out.println("the way is not allowed");
             }
         }
-        return false;
+        //return false;
     }
 
     //return true when the player is in a box of 1 block with the center of the block
@@ -156,17 +160,12 @@ public class TurnStileTileEntity extends AbstractTurnStileTileEntity implements 
         double z_player = pos.z;
         if (x_detect<x_player && x_player<x_detect+1){
             if (y_player<pos.y()+1){
-                if (z_detect<z_player && z_player<z_detect+1){
-                    return true;
-                }else {
-                    System.out.println("player z position is not matching ! detect :"+z_detect+". posZ du player : "+z_player);
-                }
-            }else {
-                System.out.println("player y position is not matching ! posY du player : "+y_player);
-            }
-        }else {
-            System.out.println("player x position is not matching ! detect :"+x_detect+". posX du player : "+x_player);
-        }
+                // if false : System.out.println("player z position is not matching ! detect :"+z_detect+". posZ du player : "+z_player);
+                return z_detect < z_player && z_player < z_detect + 1;
+            } //else : System.out.println("player y position is not matching ! posY du player : "+y_player);
+
+        } //else : System.out.println("player x position is not matching ! detect :"+x_detect+". posX du player : "+x_player);
+
         return false;
     }
 
@@ -191,18 +190,18 @@ public class TurnStileTileEntity extends AbstractTurnStileTileEntity implements 
     @Override
     public int getId() {
         AtomicInteger id_in = new AtomicInteger(-1);
-        storage.ifPresent(s-> id_in.set(s.getId()));
+        idStorage.ifPresent(s-> id_in.set(s.getId()));
         return id_in.get();
     }
 
     @Override
     public void changeId() {
-        storage.ifPresent(ts->ts.changeId(level));
+        idStorage.ifPresent(ts->ts.changeId(level));
     }
 
     @Override
     public void setId(int id_in) {
-        storage.ifPresent(s-> {
+        idStorage.ifPresent(s-> {
             assert level != null;
             if (level.isClientSide)s.setId(id_in);
             else s.setId(id_in,level);
@@ -223,12 +222,13 @@ public class TurnStileTileEntity extends AbstractTurnStileTileEntity implements 
         return id.get();
     }
 
+    @Nonnull
     @Override
-    public CompoundNBT save(CompoundNBT tag) {
+    public CompoundNBT save(@Nonnull CompoundNBT tag) {
         if (canWrite()){
-            getCapability(TurnStileCapability.TURN_STILE_STORAGE).ifPresent(e->{
-                CompoundNBT nbt =((INBTSerializable<CompoundNBT>)e).serializeNBT();
-                tag.put("storage",nbt);
+            getCapability(TurnStileIdCapability.TURN_STILE_ID_STORAGE).ifPresent(e->{
+                CompoundNBT nbt =e.serializeNBT();
+                tag.put("id_storage",nbt);
             });
             getCapability(CapabilityItemHandler.ITEM_HANDLER_CAPABILITY).ifPresent(h->{
                 CompoundNBT nbt = ((INBTSerializable<CompoundNBT>)h).serializeNBT();
@@ -243,34 +243,21 @@ public class TurnStileTileEntity extends AbstractTurnStileTileEntity implements 
         return super.save(tag);
     }
 
-    private boolean canWrite() {
-        if (level == null){
-            return true;
-        }else {
-            return isControlUnit() ;
-        }
-    }
 
-    protected boolean isAnimationInWork(){
-        return storage.map(ITSStorage::getAnimationInWork).orElse(false);
-    }
-
-    protected void startAnimation(){
-        storage.ifPresent(ITSStorage::startAnimation);
-    }
-
-    protected void endAnimation(){
-        storage.ifPresent(ITSStorage::endAnimation);
-    }
 
 
     @Override
-    public void load(BlockState state,CompoundNBT tag) {
+    public void load(@Nonnull BlockState state, CompoundNBT tag) {
         boolean isRightTSB = tag.getBoolean("isCU");
         if (isRightTSB) {
-            CompoundNBT storage_tag = tag.getCompound("storage");
+            CompoundNBT storage_tag;
+            if (tag.contains("storage")){
+                storage_tag = tag.getCompound("storage");
+            }else {
+                storage_tag = tag.getCompound("id_storage");
+            }
             CompoundNBT inv_tag = tag.getCompound("inv");
-            getCapability(TurnStileCapability.TURN_STILE_STORAGE).ifPresent(s -> ((INBTSerializable<CompoundNBT>) s).deserializeNBT(storage_tag));
+            getCapability(TurnStileIdCapability.TURN_STILE_ID_STORAGE).ifPresent(s -> s.deserializeNBT(storage_tag));
             getCapability(CapabilityItemHandler.ITEM_HANDLER_CAPABILITY).ifPresent(h -> ((INBTSerializable<CompoundNBT>) h).deserializeNBT(inv_tag));
         }
         super.load(state,tag);
@@ -283,12 +270,13 @@ public class TurnStileTileEntity extends AbstractTurnStileTileEntity implements 
         if (cap == CapabilityItemHandler.ITEM_HANDLER_CAPABILITY){
             return handler.cast();
         }
-        if (cap == TurnStileCapability.TURN_STILE_STORAGE){
-            return storage.cast();
+        if (cap == TurnStileIdCapability.TURN_STILE_ID_STORAGE){
+            return idStorage.cast();
         }
         return super.getCapability(cap, side);
     }
 
+    @Nonnull
     @Override
     public ITextComponent getDisplayName() {
         return new StringTextComponent(Objects.requireNonNull(getType().getRegistryName()).getPath());
@@ -296,8 +284,23 @@ public class TurnStileTileEntity extends AbstractTurnStileTileEntity implements 
 
     @Nullable
     @Override
-    public Container createMenu(int i, PlayerInventory playerInventory, PlayerEntity playerEntity) {
+    public Container createMenu(int i, @Nonnull PlayerInventory playerInventory, @Nonnull PlayerEntity playerEntity) {
         assert level != null;
         return new TSContainer(i,level,worldPosition,playerInventory,playerEntity);
+    }
+
+    @Override
+    protected void movePlayerGoingThrough(PlayerEntity player, boolean fromExit) {
+        BlockPos pos = getMainPos();
+        if (this.isAnimationInWork() && !fromExit) {
+            Networking.INSTANCE.sendToServer(new blockTSPacket(pos));
+            for (BlockPos pos1 : this.getPositionOfBlockConnected()) {
+                assert level != null;
+                TurnStileTileEntity tste = (TurnStileTileEntity) level.getBlockEntity(pos1);
+                assert tste != null;
+                tste.blockTS();
+            }
+        }
+        super.movePlayerGoingThrough(player, fromExit);
     }
 }

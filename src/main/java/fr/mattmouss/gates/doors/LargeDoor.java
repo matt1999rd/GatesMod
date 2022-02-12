@@ -21,7 +21,7 @@ import net.minecraft.world.World;
 import javax.annotation.Nullable;
 import java.util.List;
 
-public class LargeDoor extends MultDoor {
+public class LargeDoor extends MultipleBlockDoor {
     public static EnumProperty<DoorPlacing> PLACING = EnumProperty.create("position",DoorPlacing.class,DoorPlacing::isSide);
 
     public LargeDoor(String key,Material material) {
@@ -115,7 +115,7 @@ public class LargeDoor extends MultDoor {
         return PLACING;
     }
 
-    protected boolean isInternUpdate(DoorPlacing placing,Direction facingUpdate,Direction blockFacing){
+    protected boolean isInnerUpdate(DoorPlacing placing, Direction facingUpdate, Direction blockFacing){
         return ( (placing.isUp()|| placing.isCenterY()) && facingUpdate == Direction.DOWN) ||
                 ((!placing.isUp()|| placing.isCenterY()) && facingUpdate == Direction.UP) ||
                 (placing.isLeft() && facingUpdate == blockFacing.getCounterClockWise()) ||

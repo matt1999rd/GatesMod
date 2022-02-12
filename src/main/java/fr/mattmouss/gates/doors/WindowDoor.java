@@ -16,7 +16,6 @@ import net.minecraft.state.IntegerProperty;
 import net.minecraft.state.StateContainer;
 import net.minecraft.state.properties.BlockStateProperties;
 import net.minecraft.tileentity.TileEntity;
-//import net.minecraft.util.BlockRenderLayer;
 import net.minecraft.util.Direction;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.shapes.ISelectionContext;
@@ -39,9 +38,7 @@ public class WindowDoor extends Block {
 
 
     public WindowDoor() {
-        super(Properties.of(Material.STONE, MaterialColor.COLOR_BLACK).noOcclusion()
-                //.notSolid()
-        );
+        super(Properties.of(Material.STONE, MaterialColor.COLOR_BLACK).noOcclusion());
         this.setRegistryName("window_door");
     }
 
@@ -64,15 +61,6 @@ public class WindowDoor extends Block {
         }
         return VoxelShapes.empty();
     }
-
-    /*
-    //not solid for 1.14
-    @Override
-    public BlockRenderLayer func_180664_k() {
-        return BlockRenderLayer.CUTOUT;
-    }
-
-     */
 
     @Override
     public boolean hasTileEntity(BlockState state) {

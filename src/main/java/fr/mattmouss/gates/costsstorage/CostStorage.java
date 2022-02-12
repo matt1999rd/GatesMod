@@ -49,6 +49,11 @@ public class CostStorage implements ICostStorage, INBTSerializable<CompoundNBT> 
     }
 
     @Override
+    public int getPrice(int id) {
+        return cost.get(id);
+    }
+
+    @Override
     public void lowerPrice(int id) {
         if (containsId(id)){
             int price = cost.get(id);

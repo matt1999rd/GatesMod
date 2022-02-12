@@ -171,7 +171,7 @@ public enum ExtendDirection {
         Vector3d future_window_center = getVecFromBlockPos(pos,0.5F);
         Vector3d offsetPlayerPos = player.position().subtract(future_window_center);
         //we compare our player position to the position of the support's center
-        //we get angle using arctan function
+        //we get angle using arc-tan function
         double angle = MathHelper.atan2(offsetPlayerPos.x,offsetPlayerPos.z);
         //we convert to degree and make it positive
         double degreeAngle =toDegree(angle);

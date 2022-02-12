@@ -1,5 +1,6 @@
 package fr.mattmouss.gates.tileentity;
 
+import com.google.common.collect.Lists;
 import fr.mattmouss.gates.blocks.ModBlock;
 import fr.mattmouss.gates.costsstorage.CostStorage;
 import fr.mattmouss.gates.costsstorage.CostStorageCapability;
@@ -100,9 +101,13 @@ public class CardGetterTileEntity extends TileEntity implements INamedContainerP
         return selected_id;
     }
 
-    public void changeSelectedId(int order){
-        costStorage.ifPresent(iCostStorage -> selected_id = (int)iCostStorage.getCostMap().keySet().toArray()[order]);
+    public void changeSelectedId(int id){
+        selected_id = id;
         idSelectedChange = true;
+    }
+
+    public int getPrice(int id){
+        return costStorage.map(iCostStorage -> iCostStorage.getPrice(id)).orElse(-1);
     }
 
     public CostStorage getStorage() {
@@ -134,6 +139,14 @@ public class CardGetterTileEntity extends TileEntity implements INamedContainerP
     public HashMap<Integer,Integer> getIdPriceMap() {
         return costStorage.map(ICostStorage::getCostMap)
                 .orElseThrow(()-> new IllegalStateException("Intern Map is not found in the card getter tile entity !"));
+    }
+
+    public List<Integer> getIdList(){
+        return costStorage.map(iCostStorage -> new ArrayList<>(iCostStorage.getCostMap().keySet())).orElse(Lists.newArrayList());
+    }
+
+    public int getIdNumber(){
+        return costStorage.map(iCostStorage -> iCostStorage.getCostMap().keySet().size()).orElse(0);
     }
 
     public void addIdAndCost(int new_id,int new_cost){
@@ -234,7 +247,7 @@ public class CardGetterTileEntity extends TileEntity implements INamedContainerP
         CompoundNBT invTag = compoundNBT.getCompound("inv");
         CompoundNBT costTag = compoundNBT.getCompound("cost");
         getCapability(CapabilityItemHandler.ITEM_HANDLER_CAPABILITY).ifPresent(h -> ((INBTSerializable<CompoundNBT>) h).deserializeNBT(invTag));
-        getCapability(CostStorageCapability.COST_STORAGE).ifPresent(c->((INBTSerializable<CompoundNBT>)c).deserializeNBT(costTag));
+        getCapability(CostStorageCapability.COST_STORAGE).ifPresent(c->c.deserializeNBT(costTag));
         super.load(state,compoundNBT);
     }
 
@@ -245,7 +258,7 @@ public class CardGetterTileEntity extends TileEntity implements INamedContainerP
             tag.put("inv", compoundNBT);
         });
         getCapability(CostStorageCapability.COST_STORAGE).ifPresent(c->{
-            CompoundNBT compoundNBT = ((INBTSerializable<CompoundNBT>)c).serializeNBT();
+            CompoundNBT compoundNBT = c.serializeNBT();
             tag.put("cost",compoundNBT);
         });
         return super.save(tag);

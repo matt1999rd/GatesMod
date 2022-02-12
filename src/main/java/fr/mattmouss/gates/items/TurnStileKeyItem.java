@@ -44,7 +44,7 @@ public class TurnStileKeyItem extends KeyItem {
         }
 
         //if someone takes the key from the creative tab it will not have any BlockPos, and we set the blockPos to the present turn stile
-        //if this key has a blockPos that don't correspond to a turn stile anymore (because of destroyed block) we set the blockPos also
+        //if this key has a blockPos that isn't a turn stile anymore, (because of destroyed block) we set the blockPos also
         BlockPos registeredPos = getTSPosition(stack,world);
         if (registeredPos == null){
             setTSPosition(stack,world,pos);

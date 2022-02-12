@@ -32,7 +32,7 @@ public class AbstractTollGateTileEntity extends TileEntity {
     }
 
     public boolean manageAnimation() {
-        //block for gestion of animation
+        //block for management of animation
         BlockState state = this.getBlockState();
         assert this.level != null;
         if (animationOpeningInProcess()) {

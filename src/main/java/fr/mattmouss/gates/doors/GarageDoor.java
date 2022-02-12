@@ -65,16 +65,6 @@ public class GarageDoor extends Block {
         ANIMATION = IntegerProperty.create("animation",0,5);
     }
 
-/*
-    //1.14.4 function replaced by notSolid()
-    @Override
-    public BlockRenderLayer func_180664_k() {
-        return BlockRenderLayer.CUTOUT_MIPPED;
-    }
-
-
- */
-
 
 
 
@@ -294,36 +284,6 @@ public class GarageDoor extends Block {
         gte.startAnimation();
         return ActionResultType.SUCCESS;
     }
-
-
-
-
-
-
-/*
-    //1.14.4 function for onBlockActivated
-
-    @Override
-    public boolean func_220051_a(BlockState state, World world, BlockPos pos, PlayerEntity entity, Hand p_220051_5_, BlockRayTraceResult p_220051_6_) {
-        GarageTileEntity gte = (GarageTileEntity) world.getBlockEntity(pos);
-        System.out.println("position du block de base :"+pos);
-        assert gte != null;
-        List<BlockPos> posList = gte.getPositionOfBlockConnected();
-        for (BlockPos pos1 : posList){
-            if (!(world.getBlockEntity(pos1) instanceof GarageTileEntity)) throw new IllegalArgumentException("No tile entity on this blockPos :"+pos1);
-            System.out.println("position du block animated :"+pos1);
-            GarageTileEntity gte2 = (GarageTileEntity) world.getBlockEntity(pos1);
-            assert gte2 != null;
-            gte2.startAnimation();
-        }
-        gte.startAnimation();
-        return true;
-    }
-
-
- */
-
-
 
     public boolean isPathfindable(BlockState state, IBlockReader reader, BlockPos pos, PathType pathType) {
         switch(pathType) {

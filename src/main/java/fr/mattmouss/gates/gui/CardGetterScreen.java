@@ -15,8 +15,8 @@ import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.math.MathHelper;
 import net.minecraft.util.text.ITextComponent;
 
-import java.util.HashMap;
-import java.util.concurrent.atomic.AtomicInteger;
+import javax.annotation.Nonnull;
+import java.util.List;
 
 public class CardGetterScreen extends ContainerScreen<CardGetterContainer> implements IGuiEventListener {
     public CardGetterScreen(CardGetterContainer container, PlayerInventory inventory, ITextComponent component) {
@@ -26,6 +26,7 @@ public class CardGetterScreen extends ContainerScreen<CardGetterContainer> imple
     }
     private static final int white = MathHelper.color(1f,1f,1f);
     private static int rank_first_element = 0;
+    private static final int numberOfIdDisplayed = 6;
 
     private final ResourceLocation WIDGET = new ResourceLocation(GatesMod.MOD_ID,"textures/gui/widget.png");
     private final ResourceLocation GUI = new ResourceLocation(GatesMod.MOD_ID, "textures/gui/card_getter_gui.png");
@@ -64,17 +65,16 @@ public class CardGetterScreen extends ContainerScreen<CardGetterContainer> imple
     }
 
     @Override
-    public void render(MatrixStack stack,int mouseX, int mouseY, float partialTicks) {
+    public void render(@Nonnull MatrixStack stack, int mouseX, int mouseY, float partialTicks) {
         this.renderBackground(stack);
         super.render(stack,mouseX, mouseY, partialTicks);
         this.renderTooltip(stack,mouseX,mouseY);
-        HashMap<Integer,Integer> id_list= this.getMenu().getIdPriceMap();
-        int size = id_list.size();
+        int size = getMenu().getIdNumber();
         //we can go up and down on list if we are with a too much important list of id
         //we then cannot go up if the first element is the first element of hashMap
         //we then cannot go down if the last element of list is th last one of hashMap
-        UpArrow.visible =size>6 && rank_first_element != 0;
-        DownArrow.visible=size>6 && rank_first_element != size-6;
+        UpArrow.visible =size>numberOfIdDisplayed && rank_first_element != 0;
+        DownArrow.visible=size>numberOfIdDisplayed && rank_first_element != size-numberOfIdDisplayed;
         GlStateManager._enableBlend();
     }
 
@@ -89,42 +89,41 @@ public class CardGetterScreen extends ContainerScreen<CardGetterContainer> imple
     }
 
     @Override
-    protected void renderLabels(MatrixStack stack,int p_146979_1_, int p_146979_2_) {
+    protected void renderLabels(@Nonnull MatrixStack stack, int p_146979_1_, int p_146979_2_) {
         assert this.minecraft != null;
         FontRenderer fontRenderer = this.minecraft.font;
-        HashMap<Integer,Integer> id_list= this.getMenu().getIdPriceMap();
-        AtomicInteger incr = new AtomicInteger(0);
-        if (id_list.size()>=6) {
-            //is done when rank first element increase the size of possible value
-            // when position of window is at the end of a huge list of id and id are deleted
-            while (rank_first_element > id_list.size() - 6) {
-                rank_first_element--;
-            }
-        }
         CardGetterTileEntity cgte = this.getMenu().getTileEntity();
+        int nbOfId = getMenu().getIdNumber();
+        // is done when rank first element increase the size of possible value
+        // when position of window is at the end of a huge list of id and id are deleted
+        // if the rank is not optimal (no display of id in last slot), we reset it to a value that uses the whole slots (or 0 if not enough id)
+        if (rank_first_element + numberOfIdDisplayed> nbOfId){
+            rank_first_element = Math.max(0,nbOfId - numberOfIdDisplayed);
+        }
 
-        id_list.forEach((id,price)->{
-            if (incr.get()<rank_first_element || incr.get()>rank_first_element+5){
-                incr.getAndIncrement();
-                return;
+        for (int i=rank_first_element;i<rank_first_element+numberOfIdDisplayed;i++){
+            int id = getIdFromOrder(i);
+            if (id != -1){
+                int price = cgte.getPrice(id);
+                this.minecraft.getTextureManager().bind(WIDGET);
+                int offset = (i-rank_first_element)*23;
+                //two first argument are up left coordinate of the button in gui
+                //two second argument are up left coordinate of the button in texture WIDGET
+                //the two last argument are width and height of button
+                int xText = (id == cgte.getSelectedId()) ? 122 : 34; //if it is the right value selected
+                this.blit(stack,4,17+offset,xText,0,88,23);
+                drawString(stack,fontRenderer,id+" ",19,28+offset,white);
+                drawString(stack,fontRenderer,price+" ",77,28+offset,white);
             }
-            this.minecraft.getTextureManager().bind(WIDGET);
-            int offset = (incr.getAndIncrement()-rank_first_element)*23;
-            //two first argument are up left coordinate of the button in gui
-            //two second argument are up left coordinate of the button in texture WIDGET
-            //the two last argument are width and height of button
-            int xText = (id == cgte.getSelectedId()) ? 122 : 34; //if it is the right value selected
-            this.blit(stack,4,17+offset,xText,0,88,23);
-            drawString(stack,fontRenderer,id+" ",19,28+offset,white);
-            drawString(stack,fontRenderer,price+" ",77,28+offset,white);
-        });
+            //with above if loop security, this only occurs when the rank of the first element is 0 and the number of ID is less than the number of slots
+        }
         super.renderLabels(stack,p_146979_1_,p_146979_2_);
     }
 
 
 
     @Override
-    protected void renderBg(MatrixStack stack,float partialTicks, int mouseX, int mouseY) {
+    protected void renderBg(@Nonnull MatrixStack stack, float partialTicks, int mouseX, int mouseY) {
         assert this.minecraft != null;
         this.minecraft.getTextureManager().bind(GUI);
         int WIDTH = (this.width - this.imageWidth) / 2;
@@ -138,19 +137,20 @@ public class CardGetterScreen extends ContainerScreen<CardGetterContainer> imple
         if (mouseX>leftPos+91 || mouseX<leftPos+4 || mouseY<topPos+17 || mouseY>topPos+154) return -1;
         else {
             int image_order = MathHelper.floor((mouseY-topPos-17f)/23f);
-            return image_order+rank_first_element;
+            return getIdFromOrder(image_order+rank_first_element);
         }
     }
 
 
     @Override
     public boolean mouseClicked(double mouseX, double mouseY, int button) {
-
-        //we do something if we clicked a button with left input of mouse
-        int idClicked = getIdClicked(mouseX,mouseY);
-
-        if (idClicked != -1 && button == 0){
-            CardGetterTileEntity cgte = this.getMenu().getTileEntity();
+        //we do something if we clicked a button with left or right input of mouse
+        // the id clicked is the area of the mouse if the mouse button is left (0)
+        // and is the default non clicked id (-1)    if the mouse button is right(1)
+        // nothing is done                         if the mouse button is roll (2)
+        int idClicked = (button == 1) ? -1 : getIdClicked(mouseX,mouseY);
+        CardGetterTileEntity cgte = this.getMenu().getTileEntity();
+        if ((idClicked != -1 && button == 0) || button == 1){
             cgte.changeSelectedId(idClicked);
             Networking.INSTANCE.sendToServer(new PacketChangeSelectedID(cgte.getBlockPos(),idClicked));
         }
@@ -158,6 +158,14 @@ public class CardGetterScreen extends ContainerScreen<CardGetterContainer> imple
         return super.mouseClicked(mouseX,mouseY,button);
     }
 
-
+    private int getIdFromOrder(int order){
+        CardGetterTileEntity cgte = getMenu().getTileEntity();
+        List<Integer> idList = cgte.getIdList();
+        if (order<0 || order >= idList.size()){
+            return -1;
+        }else {
+            return idList.get(order);
+        }
+    }
 
 }

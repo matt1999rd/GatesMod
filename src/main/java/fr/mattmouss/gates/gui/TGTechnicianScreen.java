@@ -26,7 +26,7 @@ public class TGTechnicianScreen extends ContainerScreen<TGTechContainer> {
 
     private final ResourceLocation GUI = new ResourceLocation(GatesMod.MOD_ID, "textures/gui/tg_tech_gui.png");
 
-    public TGTechnicianScreen(TGTechContainer container, PlayerInventory inventory, ITextComponent title) {
+    public TGTechnicianScreen(TGTechContainer container, PlayerInventory inventory,ITextComponent title) {
         super(container,inventory,ITextComponent.nullToEmpty("Choose your fee"));
         this.titleLabelX = 27;
         this.titleLabelY = 4;

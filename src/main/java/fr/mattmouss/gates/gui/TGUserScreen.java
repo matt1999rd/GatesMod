@@ -17,7 +17,7 @@ public class TGUserScreen extends ContainerScreen<TGUserContainer> {
     private final ResourceLocation GUI_OPEN = new ResourceLocation(GatesMod.MOD_ID,"textures/gui/tg_user_gui_open.png");
     private final ResourceLocation GUI_CLOSE = new ResourceLocation(GatesMod.MOD_ID,"textures/gui/tg_user_gui_close.png");
     private static final int white = 0xffffff;
-    public TGUserScreen(TGUserContainer container, PlayerInventory inventory, ITextComponent title) {
+    public TGUserScreen(TGUserContainer container, PlayerInventory inventory,ITextComponent title) {
         super(container, inventory, ITextComponent.nullToEmpty("Toll Gate number "+container.getId()));
         this.titleLabelX = 30;
         this.titleLabelY = 6;

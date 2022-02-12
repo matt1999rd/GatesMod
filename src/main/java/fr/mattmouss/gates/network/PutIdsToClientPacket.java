@@ -2,14 +2,18 @@ package fr.mattmouss.gates.network;
 
 import fr.mattmouss.gates.GatesMod;
 import fr.mattmouss.gates.tileentity.CardGetterTileEntity;
+import fr.mattmouss.gates.util.Functions;
 import net.minecraft.network.PacketBuffer;
 import net.minecraft.util.math.BlockPos;
 import net.minecraftforge.fml.network.NetworkEvent;
 
 import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Supplier;
+import java.util.stream.Collectors;
 
 public class PutIdsToClientPacket {
     private final BlockPos pos;
@@ -56,14 +60,12 @@ public class PutIdsToClientPacket {
             assert cgte != null;
             HashMap<Integer,Integer> ClientCostMap = cgte.getIdPriceMap();
             //to remove id that were in tollgate or turn stile that has been destroyed
-            ClientCostMap.forEach((id,price)->{
-                if (!ServerCostMap.containsKey(id)){
-                    cgte.removeId(id);
-                    //check if value has changed server side
-                }else if (ServerCostMap.get(id) != price){
-                    cgte.changeCost(id,price);
-                }
-            });
+            //remove old id destroyed
+            List<Integer> idToRemove =  ClientCostMap.keySet().stream().filter(id -> !ServerCostMap.containsKey(id)).collect(Collectors.toList());
+            List<Map.Entry<Integer,Integer>> idWithNewCost = ClientCostMap.entrySet().stream().filter(entry -> Functions.isNonNullAndNotEqual(ServerCostMap.get(entry.getKey()),entry.getValue())).collect(Collectors.toList());
+            idToRemove.forEach(cgte::removeId); //check if value has changed server side
+            idWithNewCost.forEach(entry -> cgte.changeCost(entry.getKey(),entry.getValue())); //update price of an existing id
+
             //to add id that are in newly created tollgate or turn stile
             ServerCostMap.forEach((id,price)->{
                 if (!ClientCostMap.containsKey(id)){

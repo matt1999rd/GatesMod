@@ -1,8 +1,6 @@
 package fr.mattmouss.gates.network;
 
 import fr.mattmouss.gates.tileentity.AbstractTurnStileTileEntity;
-import fr.mattmouss.gates.tileentity.RedstoneTurnStileTileEntity;
-import fr.mattmouss.gates.tileentity.TurnStileTileEntity;
 import net.minecraft.network.PacketBuffer;
 
 import net.minecraft.tileentity.TileEntity;

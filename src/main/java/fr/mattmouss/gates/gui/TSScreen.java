@@ -18,7 +18,7 @@ public class TSScreen extends ContainerScreen<TSContainer> {
     private final ResourceLocation GUI = new ResourceLocation(GatesMod.MOD_ID,"textures/gui/ts_tech_gui.png");
     private static final int white = 0xffffff;
 
-    public TSScreen(TSContainer container, PlayerInventory inventory, ITextComponent title) {
+    public TSScreen(TSContainer container, PlayerInventory inventory,ITextComponent title) {
         super(container, inventory, ITextComponent.nullToEmpty("Turn Stile Technician Screen"));
         this.titleLabelX = 11;
         this.titleLabelY = 6;

@@ -26,6 +26,7 @@ import net.minecraft.world.IBlockReader;
 import net.minecraft.world.IWorld;
 import net.minecraft.world.World;
 
+import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
 import java.util.ArrayList;
@@ -78,8 +79,9 @@ public abstract class AbstractTollGate extends Block {
         return true;
     }
 
+    @Nonnull
     @Override
-    public VoxelShape getShape(BlockState state, IBlockReader reader, BlockPos pos, ISelectionContext context) {
+    public VoxelShape getShape(BlockState state, @Nonnull IBlockReader reader, @Nonnull BlockPos pos, @Nonnull ISelectionContext context) {
         TollGPosition tgp = state.getValue(TG_POSITION);
         int animation = state.getValue(ANIMATION);
         DoorHingeSide dhs= state.getValue(BlockStateProperties.DOOR_HINGE);
@@ -128,7 +130,7 @@ public abstract class AbstractTollGate extends Block {
     }
 
     @Override
-    public void setPlacedBy(World world, BlockPos pos, BlockState state, @Nullable LivingEntity entity, ItemStack stack) {
+    public void setPlacedBy(@Nonnull World world, @Nonnull BlockPos pos, @Nonnull BlockState state, @Nullable LivingEntity entity, @Nonnull ItemStack stack) {
         //we place the main block where the clicked position is defined
         //the barrier hinge parameter is defined according to the position of the player when he placed the block
         if (entity != null){
@@ -174,12 +176,12 @@ public abstract class AbstractTollGate extends Block {
     }
 
     @Override
-    public void playerDestroy(World world, PlayerEntity entity, BlockPos pos, BlockState state, @Nullable TileEntity tileEntity, ItemStack stack) {
+    public void playerDestroy(@Nonnull World world, @Nonnull PlayerEntity entity, @Nonnull BlockPos pos, @Nonnull BlockState state, @Nullable TileEntity tileEntity, @Nonnull ItemStack stack) {
         super.playerDestroy(world, entity, pos, Blocks.AIR.defaultBlockState(), tileEntity, stack);
     }
 
     @Override
-    public void playerWillDestroy(World world, BlockPos pos, BlockState state, PlayerEntity entity) {
+    public void playerWillDestroy(World world, @Nonnull BlockPos pos, @Nonnull BlockState state, PlayerEntity entity) {
         System.out.println("destroying all block of toll gate");
         ItemStack stack = entity.getMainHandItem();
         if (!world.isClientSide) {
@@ -193,7 +195,7 @@ public abstract class AbstractTollGate extends Block {
         builder.add(BlockStateProperties.HORIZONTAL_FACING,TG_POSITION,BlockStateProperties.DOOR_HINGE,ANIMATION);
     }
 
-    public boolean isPathfindable(BlockState state, IBlockReader reader, BlockPos pos, PathType pathType) {
+    public boolean isPathfindable(@Nonnull BlockState state, @Nonnull IBlockReader reader, @Nonnull BlockPos pos, PathType pathType) {
         switch(pathType) {
             case LAND:
             case AIR:
@@ -290,8 +292,9 @@ public abstract class AbstractTollGate extends Block {
         return true;
     }
 
+    @Nonnull
     @Override
-    public BlockState updateShape(BlockState stateIn, Direction facing, BlockState facingState, IWorld worldIn, BlockPos currentPos, BlockPos facingPos) {
+    public BlockState updateShape(BlockState stateIn, @Nonnull Direction facing, @Nonnull BlockState facingState, @Nonnull IWorld worldIn, @Nonnull BlockPos currentPos, @Nonnull BlockPos facingPos) {
         TollGPosition position = stateIn.getValue(TG_POSITION);
         Direction blockFacing = stateIn.getValue(BlockStateProperties.HORIZONTAL_FACING);
         DoorHingeSide dhs = stateIn.getValue(BlockStateProperties.DOOR_HINGE);

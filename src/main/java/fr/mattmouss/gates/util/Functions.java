@@ -23,7 +23,9 @@ import net.minecraft.util.math.shapes.VoxelShapes;
 import net.minecraft.util.math.vector.Vector3d;
 import net.minecraft.world.World;
 
+import javax.annotation.Nullable;
 import java.util.List;
+import java.util.Objects;
 
 public class Functions {
 
@@ -434,6 +436,10 @@ public class Functions {
             shape = VoxelShapes.or(shape, vi.rotate(Direction.SOUTH, facing).getAssociatedShape());
         }
         return shape;
+    }
+
+    public static boolean isNonNullAndNotEqual(@Nullable Object serverPrice, Object clientPrice){
+        return Objects.nonNull(serverPrice) && !Objects.equals(serverPrice,clientPrice);
     }
 
 

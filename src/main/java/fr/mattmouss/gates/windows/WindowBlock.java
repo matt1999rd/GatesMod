@@ -64,25 +64,10 @@ public class WindowBlock extends Block {
                 .strength(3.0f)
                 .sound(SoundType.GLASS)
                 .noOcclusion()
-                //1.15 function
-                //.notSolid()
         );
         this.setRegistryName(key);
         this.registerDefaultState(this.getStateDefinition().any().setValue(ROTATED, Boolean.FALSE).setValue(WINDOW_PLACE,WindowPlace.FULL));
     }
-
-
-
-
-
-    //1.14 notSolid() function
-/*
-
-    @Override
-    public BlockRenderLayer func_180664_k() {
-        return BlockRenderLayer.CUTOUT;
-    }
-*/
 
 
     @Override
@@ -242,32 +227,6 @@ public class WindowBlock extends Block {
         notifyNeighborBlock(placement,extDir,world,pos,true);
         return ActionResultType.SUCCESS;
     }
-
-
-
-
-
-
-/*
-    //1.14 function onBlockActivated
-    @Override
-    public boolean func_220051_a(BlockState state, World world, BlockPos pos, PlayerEntity player, Hand hand, BlockRayTraceResult result) {
-        if (player != null){
-            openOrCloseWindow(state,pos,world);
-            WindowPlace placement = state.getValue(WINDOW_PLACE);
-            Direction facing = state.getValue(BlockStateProperties.HORIZONTAL_FACING);
-            boolean isRotated = state.getValue(ROTATED);
-            ExtendDirection extDir = ExtendDirection.getExtendedDirection(facing,isRotated);
-            notifyNeighborBlock(placement,extDir,world,pos,true);
-            return true;
-        }
-        return false;
-    }
-
- */
-
-
-
 
 
     private void updatePlacement(World world, BlockPos pos, BlockState state, ExtendDirection facing) {

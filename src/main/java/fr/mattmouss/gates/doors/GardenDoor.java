@@ -21,7 +21,7 @@ import javax.annotation.Nullable;
 import java.util.List;
 
 
-public class GardenDoor extends MultDoor {
+public class GardenDoor extends MultipleBlockDoor {
 
     public static EnumProperty<DoorPlacing> PLACING = EnumProperty.create("position",DoorPlacing.class,placing -> placing.isSide() && !placing.isCenterY());
 
@@ -80,7 +80,7 @@ public class GardenDoor extends MultDoor {
         return PLACING;
     }
 
-    public boolean isInternUpdate(DoorPlacing placing,Direction facingUpdate,Direction blockFacing){
+    public boolean isInnerUpdate(DoorPlacing placing, Direction facingUpdate, Direction blockFacing){
         return ( placing.isUp() && facingUpdate == Direction.DOWN) ||
                (!placing.isUp() && facingUpdate == Direction.UP)   ||
                 (placing.isLeft() && facingUpdate == blockFacing.getCounterClockWise()) ||

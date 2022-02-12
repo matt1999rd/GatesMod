@@ -30,6 +30,7 @@ import net.minecraft.world.World;
 import net.minecraftforge.fml.network.NetworkHooks;
 import net.minecraftforge.fml.network.PacketDistributor;
 
+import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.List;
 import java.util.Objects;
@@ -52,7 +53,7 @@ public class TollGate extends AbstractTollGate {
     }
 
     @Override
-    public void setPlacedBy(World world, BlockPos pos, BlockState state, @Nullable LivingEntity entity, ItemStack stack) {
+    public void setPlacedBy(@Nonnull World world, @Nonnull BlockPos pos, @Nonnull BlockState state, @Nullable LivingEntity entity, @Nonnull ItemStack stack) {
         if (entity != null){
             //we initialise the id
             if (!world.isClientSide ) {
@@ -65,8 +66,9 @@ public class TollGate extends AbstractTollGate {
         }
     }
 
+    @Nonnull
     @Override
-    public BlockState updateShape(BlockState stateIn, Direction facing, BlockState facingState, IWorld worldIn, BlockPos currentPos, BlockPos facingPos) {
+    public BlockState updateShape(BlockState stateIn, @Nonnull Direction facing, @Nonnull BlockState facingState, @Nonnull IWorld worldIn, @Nonnull BlockPos currentPos, @Nonnull BlockPos facingPos) {
         BlockState futureState = super.updateShape(stateIn, facing, facingState, worldIn, currentPos, facingPos);
         if (futureState.getBlock() == Blocks.AIR){
             onTollGateRemoved(worldIn,currentPos);
@@ -77,7 +79,7 @@ public class TollGate extends AbstractTollGate {
 
 
     @Override
-    public void playerWillDestroy(World world, BlockPos pos, BlockState state, PlayerEntity entity) {
+    public void playerWillDestroy(World world, @Nonnull BlockPos pos, @Nonnull BlockState state, PlayerEntity entity) {
         System.out.println("destroying all block of toll gate");
         onTollGateRemoved(world,pos);
         super.playerWillDestroy(world, pos, state, entity);
@@ -141,8 +143,6 @@ public class TollGate extends AbstractTollGate {
     }
 
 
-    //1.15-1.16 function
-
     @Override
     public ActionResultType use(BlockState state, World world, BlockPos pos, PlayerEntity entity, Hand hand, BlockRayTraceResult blockRayTraceResult) {
         //old functionality of block
@@ -172,44 +172,6 @@ public class TollGate extends AbstractTollGate {
         }
         return ActionResultType.FAIL;
     }
-
-
-
-/*
-    //1.14.4 function onBlockActivated
-
-    @Override
-    public boolean func_220051_a(BlockState state, World world, BlockPos pos, PlayerEntity player, Hand p_220051_5_, BlockRayTraceResult p_220051_6_) {
-        //old functionality of block
-
-        TollGateTileEntity tgte = (TollGateTileEntity) world.getBlockEntity(pos);
-        assert tgte != null;
-        //we reload the player using the gui
-        tgte.changePlayerId(player);
-
-        if (state.getValue(TG_POSITION) != TollGPosition.CONTROL_UNIT){
-            return false;
-        }
-        Direction facing = state.getValue(BlockStateProperties.HORIZONTAL_FACING);
-        Direction entity_looking_direction = Functions.getDirectionFromEntity(player,pos);
-        DoorHingeSide dhs = state.getValue(BlockStateProperties.DOOR_HINGE);
-
-        //the player is a user
-        if ((entity_looking_direction==facing.getCounterClockWise() && (dhs == DoorHingeSide.RIGHT))||
-                (entity_looking_direction==facing.getClockWise() && (dhs == DoorHingeSide.LEFT))){
-            System.out.println("the player is a user ");
-            System.out.println("opening user gui !!");
-            ((TollGateTileEntity) world.getBlockEntity(pos)).setSide(true);
-            if (!world.isClientSide) {
-                NetworkHooks.openGui((ServerPlayerEntity) player, tgte, tgte.getBlockPos());
-            }
-            return true;
-        }
-        return false;
-    }
-
-}
- */
 
 
 }

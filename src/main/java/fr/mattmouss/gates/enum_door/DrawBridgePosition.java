@@ -59,7 +59,7 @@ public enum DrawBridgePosition implements IStringSerializable {
         if (isUp()){
             finalPos=finalPos.above();
         }
-        //add an additionnal up function
+        //add a second up function
         if (isUpUp()){
             finalPos=finalPos.above();
         }
@@ -85,7 +85,7 @@ public enum DrawBridgePosition implements IStringSerializable {
         if (isUp()){
             finalPos=finalPos.below();
         }
-        //add an additional down function
+        //add a second down function
         if (isUpUp()){
             finalPos=finalPos.below();
         }

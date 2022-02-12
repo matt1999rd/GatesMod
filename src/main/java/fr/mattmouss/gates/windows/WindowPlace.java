@@ -265,23 +265,23 @@ public enum WindowPlace implements IStringSerializable {
         return WindowPlace.FULL;
     }
 
-    //flag is a boolean stocker
+    //flag is a boolean that store validity of windows place
     //flag = 0xAnA(n-1)...A0 where Ai = (is the i-th WindowPlace valid)
     private static int getValidityFlag(Places cornerPlaces,World world,BlockPos pos,ExtendDirection facing){
         AtomicInteger flag = new AtomicInteger(0);
-        AtomicInteger incr = new AtomicInteger(0);
+        AtomicInteger increment = new AtomicInteger(0);
         cornerPlaces.forEach(windowPlace -> {
             if (windowPlace.checkValidity(world,pos,facing)){
-                flag.addAndGet((int) Math.pow(2.0,incr.get()));
+                flag.addAndGet((int) Math.pow(2.0,increment.get()));
             }
-            incr.incrementAndGet();
+            increment.incrementAndGet();
         });
         return flag.get();
     }
 
     //we will use this function to notify nearby block of changes in this window Block
     //the direction offset of block nearby are stocked within a base 6 integer
-    // i = (abcd...)6 where every a b c d represent a direction index (which is between 0 and 5)
+    // i = (a b c d...)6 where every a b c d represent a direction index (which is between 0 and 5)
     public List<WindowDirection> getDirectionOfChangingWindow(ExtendDirection facing, World world, BlockPos pos){
         List<WindowDirection> directions = new ArrayList<>();
         if (this.isUpPlace()){

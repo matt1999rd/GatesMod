@@ -67,8 +67,6 @@ public class GarageTileEntity extends TileEntity implements ITickableTileEntity 
                     this.level.setBlockAndUpdate(this.worldPosition, state.setValue(GarageDoor.ANIMATION, animationStep - 1));
                 }
             }
-            //checkStability();
-            //checkRedstoneNearby();
         }
     }
 
@@ -112,7 +110,7 @@ public class GarageTileEntity extends TileEntity implements ITickableTileEntity 
     @Override
     public CompoundNBT save(CompoundNBT tag) {
         getCapability(AnimationBooleanCapability.ANIMATION_BOOLEAN_CAPABILITY).ifPresent(animationBoolean -> {
-            CompoundNBT compoundNBT = ((INBTSerializable<CompoundNBT>)animationBoolean).serializeNBT();
+            CompoundNBT compoundNBT = animationBoolean.serializeNBT();
             tag.put("anim",compoundNBT);
         });
         return super.save(tag);

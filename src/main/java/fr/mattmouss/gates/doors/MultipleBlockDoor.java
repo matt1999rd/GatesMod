@@ -13,7 +13,6 @@ import net.minecraft.state.StateContainer;
 import net.minecraft.state.properties.BlockStateProperties;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.ActionResultType;
-//import net.minecraft.util.BlockRenderLayer;
 import net.minecraft.util.Direction;
 import net.minecraft.util.Hand;
 import net.minecraft.util.math.BlockPos;
@@ -26,10 +25,10 @@ import javax.annotation.Nullable;
 import java.util.List;
 
 
-public abstract class MultDoor extends Block {
+public abstract class MultipleBlockDoor extends Block {
 
 
-    public MultDoor(Properties properties) {
+    public MultipleBlockDoor(Properties properties) {
         super(properties);
     }
 
@@ -52,25 +51,12 @@ public abstract class MultDoor extends Block {
 
     protected abstract EnumProperty<DoorPlacing> getPlacingBSP();
 
-    protected abstract boolean isInternUpdate(DoorPlacing placing,Direction facingUpdate,Direction blockFacing);
+    protected abstract boolean isInnerUpdate(DoorPlacing placing, Direction facingUpdate, Direction blockFacing);
 
     @Override
     protected void createBlockStateDefinition(StateContainer.Builder<Block, BlockState> builder) {
         builder.add(BlockStateProperties.HORIZONTAL_FACING,BlockStateProperties.OPEN,getPlacingBSP(),BlockStateProperties.POWERED);
     }
-
-    //1.14 onBlockActivated
-/*
-    @Override
-    public boolean func_220051_a(BlockState state, World world, BlockPos pos, PlayerEntity player, Hand hand, BlockRayTraceResult result) {
-        state = state.func_177231_a(BlockStateProperties.OPEN);
-        world.setBlock(pos,state,10);
-        return true;
-    }
-*/
-
-
-    //1.15 onBlockActivated
 
     @Override
     public ActionResultType use(BlockState state, World world, BlockPos pos, PlayerEntity player, Hand hand, BlockRayTraceResult result) {
@@ -113,7 +99,7 @@ public abstract class MultDoor extends Block {
     public BlockState updateShape(BlockState stateIn, Direction facing, BlockState facingState, IWorld worldIn, BlockPos currentPos, BlockPos facingPos) {
         DoorPlacing placing= stateIn.getValue(getPlacingBSP());
         Direction blockFacing = stateIn.getValue(BlockStateProperties.HORIZONTAL_FACING);
-        if (isInternUpdate(placing,facing,blockFacing)){
+        if (isInnerUpdate(placing,facing,blockFacing)){
             return (facingState.getBlock() == this && facingState.getValue(getPlacingBSP()) != placing) ?
                     stateIn.setValue(BlockStateProperties.HORIZONTAL_FACING,facingState.getValue(BlockStateProperties.HORIZONTAL_FACING))
                             .setValue(BlockStateProperties.OPEN,facingState.getValue(BlockStateProperties.OPEN))
@@ -125,14 +111,6 @@ public abstract class MultDoor extends Block {
         }
         return stateIn;
     }
-
-    //1.14.4 function replaced by notSolid()
-/*
-    @Override
-    public BlockRenderLayer func_180664_k() {
-        return BlockRenderLayer.CUTOUT_MIPPED;
-    }
-*/
 
     @Override
     public void neighborChanged(BlockState state, World worldIn, BlockPos pos, Block blockIn, BlockPos fromPos, boolean isMoving) {

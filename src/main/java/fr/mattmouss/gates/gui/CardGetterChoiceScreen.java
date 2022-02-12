@@ -23,7 +23,7 @@ public class CardGetterChoiceScreen extends ContainerScreen<CardGetterChoiceCont
 
     private final ResourceLocation GUI = new ResourceLocation(GatesMod.MOD_ID, "textures/gui/cg_tech_gui.png");
 
-    public CardGetterChoiceScreen(CardGetterChoiceContainer p_i51105_1_, PlayerInventory p_i51105_2_, ITextComponent p_i51105_3_) {
+    public CardGetterChoiceScreen(CardGetterChoiceContainer p_i51105_1_, PlayerInventory p_i51105_2_,ITextComponent title) {
         super(p_i51105_1_, p_i51105_2_, ITextComponent.nullToEmpty("Choose your fee"));
         this.titleLabelX = 27;
         this.titleLabelY = 4;

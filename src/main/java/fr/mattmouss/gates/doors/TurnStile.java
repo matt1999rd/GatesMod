@@ -9,7 +9,6 @@ import fr.mattmouss.gates.network.PacketRemoveId;
 import fr.mattmouss.gates.network.SetIdPacket;
 import fr.mattmouss.gates.tileentity.TurnStileTileEntity;
 import net.minecraft.block.BlockState;
-import net.minecraft.block.Blocks;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.player.PlayerInventory;
@@ -24,12 +23,12 @@ import net.minecraft.world.IWorld;
 import net.minecraft.world.World;
 import net.minecraftforge.fml.network.PacketDistributor;
 
+import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
 import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-import static fr.mattmouss.gates.enum_door.TurnSPosition.*;
 
 public class TurnStile extends AbstractTurnStile {
 
@@ -60,26 +59,18 @@ public class TurnStile extends AbstractTurnStile {
     }
 
     @Override
-    public BlockState updateShape(BlockState stateIn, Direction facing, BlockState facingState, IWorld worldIn, BlockPos currentPos, BlockPos facingPos) {
+    public BlockState updateShape(@Nonnull BlockState stateIn, Direction facing, BlockState facingState, IWorld worldIn, BlockPos currentPos, BlockPos facingPos) {
         TurnSPosition position = stateIn.getValue(TS_POSITION);
-        Direction blockFacing = stateIn.getValue(BlockStateProperties.HORIZONTAL_FACING);
-        if (isInnerUpdate(position,facing,blockFacing) &&  !(facingState.getBlock() instanceof TurnStile)){
-            onTurnStileRemoved(worldIn,currentPos);
-            return Blocks.AIR.defaultBlockState();
-        }
         if (position.isSolid() && facing == Direction.DOWN && !facingState.getMaterial().blocksMotion()){
             onTurnStileRemoved(worldIn,currentPos);
-            return Blocks.AIR.defaultBlockState();
         }
-        return stateIn;
+        return super.updateShape(stateIn, facing, facingState, worldIn, currentPos, facingPos);
     }
 
-    //block facing is the direction of forth block
-    private boolean isInnerUpdate(TurnSPosition position, Direction facingUpdate, Direction blockFacing){
-        return ( position == RIGHT_BLOCK && facingUpdate == blockFacing.getClockWise()) ||
-                (position == LEFT_BLOCK  && facingUpdate == blockFacing.getCounterClockWise()) ||
-                (position == MAIN && (facingUpdate.getAxis() == blockFacing.getClockWise().getAxis() || facingUpdate == Direction.UP ) ) ||
-                (position == UP_BLOCK && facingUpdate == Direction.DOWN);
+    @Override
+    protected BlockState getUpdateState(BlockState state, BlockState facingState) {
+        return state.setValue(BlockStateProperties.HORIZONTAL_FACING,facingState.getValue(BlockStateProperties.HORIZONTAL_FACING))
+                .setValue(WAY_IS_ON,facingState.getValue(WAY_IS_ON));
     }
 
     private void removeUselessKey(IWorld world,BlockPos keyPos){

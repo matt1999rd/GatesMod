@@ -16,7 +16,6 @@ import net.minecraftforge.items.IItemHandler;
 import net.minecraftforge.items.SlotItemHandler;
 import net.minecraftforge.items.wrapper.InvWrapper;
 import javax.annotation.Nonnull;
-import java.util.HashMap;
 import java.util.Objects;
 
 public class CardGetterContainer extends Container {
@@ -54,13 +53,8 @@ public class CardGetterContainer extends Container {
                 }
             });
         });
-        layoutPlayerInventorySlots(leftCol,topRow);
+        layoutPlayerInventorySlots(topRow);
     }
-
-    public HashMap<Integer,Integer> getIdPriceMap(){
-        return tileEntity.getIdPriceMap();
-    }
-
 
 
     @Override
@@ -74,6 +68,10 @@ public class CardGetterContainer extends Container {
 
     public CardGetterTileEntity getTileEntity(){
         return tileEntity;
+    }
+
+    public int getIdNumber(){
+        return tileEntity.getIdNumber();
     }
 
 
@@ -95,7 +93,7 @@ public class CardGetterContainer extends Container {
                         return ItemStack.EMPTY;
                     }
                 }else {
-                    if (index >1 && index <29){//item in intern inventory that are not emerald
+                    if (index <29){//item in intern inventory that are not emerald
                         if (!moveItemStackTo(selectedStack,29,38,false)){
                             return ItemStack.EMPTY;
                         }
@@ -121,27 +119,26 @@ public class CardGetterContainer extends Container {
         return stack;
     }
 
-    private void layoutPlayerInventorySlots(int leftCol, int topRow) {//player inventory
-        addSlotBox(inventory,9,leftCol,topRow,9,18,3,18);
+    private void layoutPlayerInventorySlots(int topRow) {//player inventory
+        addSlotBox(inventory,9, topRow);
         //hot bar
         topRow+=58;
-        addSlotRange(inventory,0,leftCol,topRow,9,18);
+        addSlotRange(inventory,0, 107,topRow);
     }
 
-    private int addSlotRange(IItemHandler handler, int index, int x, int y, int amount, int dx) {
-        for (int i = 0;i< amount;i++){
+    private int addSlotRange(IItemHandler handler, int index, int x, int y) {
+        for (int i = 0; i< 9; i++){
             addSlot(new SlotItemHandler(handler, index, x, y));
-            x+=dx;
+            x+= 18;
             index++;
         }
         return index;
     }
 
-    private int addSlotBox(IItemHandler handler, int index, int x, int y, int horAmount, int dx, int verAmount, int dy) {
-        for (int j=0;j<verAmount;j++) {
-            index = addSlotRange(handler,index,x,y,horAmount,dx);
-            y+=dy;
+    private void addSlotBox(IItemHandler handler, int index, int y) {
+        for (int j = 0; j< 3; j++) {
+            index = addSlotRange(handler,index, 107,y);
+            y+= 18;
         }
-        return index;
     }
 }

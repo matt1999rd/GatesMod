@@ -27,9 +27,12 @@ import net.minecraft.util.math.shapes.VoxelShape;
 import net.minecraft.util.math.shapes.VoxelShapes;
 import net.minecraft.world.IBlockReader;
 import net.minecraft.world.IWorld;
+import net.minecraft.world.IWorldReader;
 import net.minecraft.world.World;
 
+import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+import javax.annotation.ParametersAreNonnullByDefault;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -60,7 +63,8 @@ public abstract class AbstractTurnStile extends Block {
 
 
     @Override
-    public VoxelShape getShape(BlockState state, IBlockReader reader, BlockPos pos, ISelectionContext context) {
+    @ParametersAreNonnullByDefault
+    public VoxelShape getShape(BlockState state,  IBlockReader reader, BlockPos pos, ISelectionContext context) {
         if (state.getValue(TS_POSITION)!= TurnSPosition.MAIN && state.getValue(TS_POSITION)!=TurnSPosition.UP_BLOCK){
             //we need to block the jumping of player on the turn stile which mean fraud.
             return Block.box(0,0,0,16,18,16);
@@ -71,15 +75,6 @@ public abstract class AbstractTurnStile extends Block {
 
         return getTurnStileShape(state);
     }
-
-
-    //1.14.4 function replaced by notSolid()
-/*
-    @Override
-    public BlockRenderLayer func_180664_k() {
-        return BlockRenderLayer.CUTOUT_MIPPED;
-    }
-*/
 
 
     private VoxelShape getTurnStileShape(BlockState state){
@@ -212,6 +207,7 @@ public abstract class AbstractTurnStile extends Block {
     }
 
     @Override
+    @ParametersAreNonnullByDefault
     public void setPlacedBy(World world, BlockPos pos, BlockState state, @Nullable LivingEntity player, ItemStack stack) {
         if (player != null){
             Direction direction = Functions.getDirectionFromEntity(player,pos);
@@ -263,13 +259,26 @@ public abstract class AbstractTurnStile extends Block {
         }
     }
 
+    @Override
+    public boolean canSurvive(BlockState state, IWorldReader worldIn, BlockPos pos) {
+        BlockState downBlockState = worldIn.getBlockState(pos.below());
+        if (state.getValue(TS_POSITION) == UP_BLOCK){
+            Block block = downBlockState.getBlock();
+            return (block == this);
+        }else {
+            return downBlockState.isFaceSturdy(worldIn,pos.below(),Direction.UP);
+        }
+    }
+
 
     @Override
+    @ParametersAreNonnullByDefault
     public void playerDestroy(World world, PlayerEntity entity, BlockPos pos, BlockState state, @Nullable TileEntity tileEntity, ItemStack stack) {
         super.playerDestroy(world, entity, pos, Blocks.AIR.defaultBlockState(), tileEntity, stack);
     }
 
     @Override
+    @ParametersAreNonnullByDefault
     public void playerWillDestroy(World world, BlockPos pos, BlockState state, PlayerEntity entity) {
         System.out.println("destroying all block of turn stile");
         ItemStack stack = entity.getMainHandItem();
@@ -279,6 +288,7 @@ public abstract class AbstractTurnStile extends Block {
         super.playerWillDestroy(world, pos, state, entity);
     }
 
+    @ParametersAreNonnullByDefault
     public boolean isPathfindable(BlockState state, IBlockReader reader, BlockPos pos, PathType pathType) {
         switch(pathType) {
             case LAND:
@@ -361,12 +371,16 @@ public abstract class AbstractTurnStile extends Block {
         }
     }
 
+    @Nonnull
     @Override
+    @ParametersAreNonnullByDefault
     public BlockState updateShape(BlockState stateIn, Direction facing, BlockState facingState, IWorld worldIn, BlockPos currentPos, BlockPos facingPos) {
         TurnSPosition position = stateIn.getValue(TS_POSITION);
         Direction blockFacing = stateIn.getValue(BlockStateProperties.HORIZONTAL_FACING);
-        if (isInnerUpdate(position,facing,blockFacing) &&  !(facingState.getBlock().getClass().equals(this.getClass()))){
-            return Blocks.AIR.defaultBlockState();
+        if (isInnerUpdate(position,facing,blockFacing)){
+            return (facingState.getBlock().getClass().equals(this.getClass()) && facingState.getValue(TS_POSITION) != position)?
+                    getUpdateState(stateIn,facingState)
+                    : Blocks.AIR.defaultBlockState();
         }
         if (position.isDown() && facing == Direction.DOWN && !facingState.getMaterial().blocksMotion()){
             return Blocks.AIR.defaultBlockState();
@@ -374,10 +388,12 @@ public abstract class AbstractTurnStile extends Block {
         return stateIn;
     }
 
+    protected abstract BlockState getUpdateState(BlockState state,BlockState facingState);
+
     //block facing is the direction of forth block
     private boolean isInnerUpdate(TurnSPosition position, Direction facingUpdate, Direction blockFacing){
-        return ((position == RIGHT_BLOCK && facingUpdate == blockFacing.getCounterClockWise()) ||
-                (position == LEFT_BLOCK && facingUpdate == blockFacing.getClockWise()) ||
+        return ((position == RIGHT_BLOCK && facingUpdate == blockFacing.getClockWise()) ||
+                (position == LEFT_BLOCK && facingUpdate == blockFacing.getCounterClockWise()) ||
                 (position == MAIN && (facingUpdate.getAxis() == blockFacing.getClockWise().getAxis() || facingUpdate == Direction.UP) ) ||
                 (position == UP_BLOCK && facingUpdate == Direction.DOWN));
     }

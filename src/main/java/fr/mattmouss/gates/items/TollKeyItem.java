@@ -50,7 +50,7 @@ public class TollKeyItem extends KeyItem {
 
         BlockPos registeredPos = getTGPosition(stack, world);
         //if someone takes the key from the creative tab it will not have any BlockPos, and we set the blockPos to the present tollgate
-        //if this key has a blockPos that don't correspond to a tollgate anymore (because of destroyed block) we set the blockPos also
+        //if this key has a blockPos that isn't a tollgate anymore, (because of destroyed block) we set the blockPos also
         if (registeredPos == null) {
             setTGPosition(stack, world, pos);
             registeredPos = getTGPosition(stack, world);
@@ -58,9 +58,9 @@ public class TollKeyItem extends KeyItem {
 
 
         if (!pos.equals(registeredPos)) {
-            //System.out.println("the registered pos is not the pos of this block");
-            //System.out.println("pos of toll gate key attribute :"+registeredPos);
-            //System.out.println("pos of toll gate :"+pos);
+            //the registered pos is not the pos of this block
+            //pos of tollgate key attribute is registeredPos
+            //pos of tollgate is pos
             return super.useOn(context);
         }
         TollGateTileEntity tgte = (TollGateTileEntity) te;
