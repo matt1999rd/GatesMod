@@ -80,9 +80,7 @@ public enum WindowPlace implements IStringSerializable {
         return meta;
     }
 
-    public boolean isUpPlace(){
-        return (flag & 0x1000) == 0x1000;
-    }
+    public boolean isUpPlace() { return (flag & 0x1000) == 0x1000; }
 
     public boolean isDownPlace(){
         return (flag & 0x0100) == 0x0100;
@@ -284,62 +282,32 @@ public enum WindowPlace implements IStringSerializable {
     // i = (a b c d...)6 where every a b c d represent a direction index (which is between 0 and 5)
     public List<WindowDirection> getDirectionOfChangingWindow(ExtendDirection facing, World world, BlockPos pos){
         List<WindowDirection> directions = new ArrayList<>();
-        if (this.isUpPlace()){
-            directions.add(new WindowDirection(1,ExtendDirection.DOWN));
-        }
-        if (this.isDownPlace()){
-            directions.add(new WindowDirection(1,ExtendDirection.UP));
-        }
-        if (this.isRightPlace()){
-            directions.add(new WindowDirection(1,facing.rotateY()));
-        }
-        if (this.isLeftPlace()){
-            directions.add(new WindowDirection(1,facing.rotateYCCW()));
-        }
         ExtendDirection horDir = (isRightPlace()) ? facing.rotateY() : facing.rotateYCCW();
-        ExtendDirection verDir = (isUpPlace()) ? ExtendDirection.DOWN : ExtendDirection.UP;
-        if (this.isCorner()){
-            BlockState state = world.getBlockState(verDir.offset(pos));
-            boolean flag = false;
-            if (state.hasProperty(WindowBlock.WINDOW_PLACE)){
-                flag = (state.getValue(WindowBlock.WINDOW_PLACE).isMiddle());
-            }
-            //we add the opposite corner
-            directions.add(new WindowDirection(1,horDir,1,verDir));
-            //the flag specify if we need to add the changes of window block 2 blocks away
-            if (flag){
-                //we add the 2 way up/down
-                directions.add(new WindowDirection(2,verDir));
-                //we add the 2 way up/down and one way right/left
-                directions.add(new WindowDirection(2,verDir,1,horDir));
-            }
-        }
-        //todo : if possible change the way of getting position and allow us to add offset when multiple middle block
-        if (this.isMiddle()){
-            directions.add(new WindowDirection(1,horDir,1, ExtendDirection.UP));
-            directions.add(new WindowDirection(1,horDir,1, ExtendDirection.DOWN));
-            int i =1;
+        directions.add(new WindowDirection(1,horDir));
+        if (this.isUpPlace()){
+            int i=1;
             //a code that allow people to make extra high windows
-            //if there is middle in up direction
-            while (world.getBlockState(pos.relative(Direction.UP,i)).getValue(WindowBlock.WINDOW_PLACE).isMiddle() && i<32){
-                directions.add(new WindowDirection(1,horDir,i+1,ExtendDirection.UP));
-                directions.add(new WindowDirection(i+1, ExtendDirection.UP));
+            //we search while there is a window block to update 1 block down at a time
+            // Eventually we will reach chunk rendering limit or end of windows block
+            while (world.getBlockState(pos.relative(Direction.DOWN,i)).getBlock() instanceof WindowBlock && i<32){
+                directions.add(new WindowDirection(1,horDir,i,ExtendDirection.DOWN));
+                directions.add(new WindowDirection(i, ExtendDirection.DOWN));
                 i++;
             }
-            i=1;
-            //if there is middle in down direction
-            while (world.getBlockState(pos.relative(Direction.DOWN,i)).getValue(WindowBlock.WINDOW_PLACE).isMiddle() && i<32){
-                directions.add(new WindowDirection(1,horDir,i+1,ExtendDirection.DOWN));
-                directions.add(new WindowDirection(i+1,ExtendDirection.DOWN));
+        }
+        if (this.isDownPlace()){
+            int i=1;
+            //a code that allow people to make extra high windows
+            //we search while there is a window block to update 1 block up at a time
+            // Eventually we will reach chunk rendering limit or end of windows block
+            while (world.getBlockState(pos.relative(Direction.UP,i)).getBlock() instanceof WindowBlock && i<32){
+                directions.add(new WindowDirection(1,horDir,i,ExtendDirection.UP));
+                directions.add(new WindowDirection(i, ExtendDirection.UP));
                 i++;
             }
         }
         return directions;
 
-    }
-
-    private boolean isMiddle() {
-        return (meta > 9);
     }
 
 

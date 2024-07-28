@@ -8,26 +8,28 @@ import net.minecraft.util.math.vector.Vector3d;
 
 
 public enum ExtendDirection {
-    SOUTH(0, Direction.SOUTH,Axis.Z,false),
-    WEST(1, Direction.WEST,Axis.X,false),
-    NORTH(2, Direction.NORTH,Axis.Z,false),
-    EAST(3, Direction.EAST,Axis.X,false),
-    SOUTH_WEST(4, Direction.WEST,Axis.XPZ,true),
-    NORTH_WEST(5, Direction.NORTH,Axis.XMZ,true),
-    NORTH_EAST(6, Direction.EAST,Axis.XPZ,true),
-    SOUTH_EAST(7, Direction.SOUTH,Axis.XMZ,true),
-    UP(8,Direction.UP,Axis.Y,false),
-    DOWN(9,Direction.DOWN,Axis.Y,false);
+    SOUTH(0, Direction.SOUTH,Axis.Z, Direction.AxisDirection.POSITIVE,false),
+    WEST(1, Direction.WEST,Axis.X, Direction.AxisDirection.NEGATIVE,false),
+    NORTH(2, Direction.NORTH,Axis.Z, Direction.AxisDirection.NEGATIVE,false),
+    EAST(3, Direction.EAST,Axis.X, Direction.AxisDirection.POSITIVE,false),
+    SOUTH_WEST(4, Direction.WEST,Axis.XPZ, Direction.AxisDirection.NEGATIVE,true),
+    NORTH_WEST(5, Direction.NORTH,Axis.XMZ, Direction.AxisDirection.NEGATIVE,true),
+    NORTH_EAST(6, Direction.EAST,Axis.XPZ, Direction.AxisDirection.POSITIVE,true),
+    SOUTH_EAST(7, Direction.SOUTH,Axis.XMZ, Direction.AxisDirection.POSITIVE,true),
+    UP(8,Direction.UP,Axis.Y, Direction.AxisDirection.POSITIVE,false),
+    DOWN(9,Direction.DOWN,Axis.Y, Direction.AxisDirection.NEGATIVE,false);
 
     private final int meta;
     private final Direction direction;
     private final Axis axis;
+    private final Direction.AxisDirection axisDirection;
     private final boolean rotated;
 
-    ExtendDirection(int meta, Direction direction,Axis axis, boolean rotated){
+    ExtendDirection(int meta, Direction direction, Axis axis, Direction.AxisDirection axisDirection, boolean rotated){
         this.meta = meta;
         this.direction = direction;
         this.axis = axis;
+        this.axisDirection = axisDirection;
         this.rotated = rotated;
     }
 
@@ -52,47 +54,8 @@ public enum ExtendDirection {
         }
     }
 
-    //return the direction that leads from the support pos to the pos of the block
-    public static ExtendDirection getDirectionFromPos(BlockPos supportPos, BlockPos pos) {
-        int x = pos.getX()-supportPos.getX();
-        int z = pos.getZ()-supportPos.getZ();
-        if (Math.abs(x)>1 || Math.abs(z)>1 || (x==0 && z==0))return null;
-        if (x==-1){
-            return (z == -1)? NORTH_WEST : (z == 0) ? WEST : SOUTH_WEST;
-        }else if (x == 0){
-            return (z == -1)? NORTH : SOUTH;
-        }else {
-            return (z == -1)? NORTH_EAST : (z == 0) ? EAST : SOUTH_EAST;
-        }
-    }
-
     public ExtendDirection getOpposite(){
         return getExtendedDirection(this.direction.getOpposite(),this.rotated);
-    }
-
-    public static ExtendDirection getExtendedDirection(Direction dir1, Direction dir2){
-        switch (dir1){
-            case DOWN:
-            case UP:
-            default:
-                return null;
-            case NORTH:
-                if (dir2 == Direction.EAST)return NORTH_EAST;
-                if (dir2 == Direction.WEST)return NORTH_WEST;
-                return null;
-            case SOUTH:
-                if (dir2 == Direction.EAST)return SOUTH_EAST;
-                if (dir2 == Direction.WEST)return SOUTH_WEST;
-                return null;
-            case WEST:
-                if (dir2 == Direction.NORTH)return NORTH_WEST;
-                if (dir2 == Direction.SOUTH)return SOUTH_WEST;
-                return null;
-            case EAST:
-                if (dir2 == Direction.NORTH)return NORTH_EAST;
-                if (dir2 == Direction.SOUTH)return SOUTH_EAST;
-                return null;
-        }
     }
 
     public BlockPos offset(BlockPos pos){
@@ -119,12 +82,6 @@ public enum ExtendDirection {
         return ExtendDirection.getExtendedDirection(direction.getClockWise(),isRotated());
     }
 
-    public static ExtendDirection byIndex(int meta){
-        ExtendDirection[] directions = ExtendDirection.values();
-        if (meta<0 || meta>9)return null;
-        return directions[meta];
-    }
-
 
     public int getMeta() {
         return meta;
@@ -136,21 +93,6 @@ public enum ExtendDirection {
 
     public boolean isRotated() {
         return rotated;
-    }
-
-    public float getAngleFrom(Direction direction){
-        float dir_angle = direction.toYRot();
-        float base_angle = this.rotated ? this.direction.toYRot()-45 : this.direction.toYRot();
-        float angleDiff = dir_angle - base_angle;
-        return toRadian(angleDiff);
-    }
-
-    public static float toRadian(double degreeAngle){
-        double radianAngle = (Math.PI/180.0)*degreeAngle;
-        if (radianAngle < 0){
-            radianAngle += 2*Math.PI;
-        }
-        return (float)radianAngle;
     }
 
     public static double toDegree(double radianAngle){
@@ -199,6 +141,10 @@ public enum ExtendDirection {
         return new Vector3d(pos.getX()+horOffset,pos.getY(),pos.getZ()+horOffset);
     }
 
+    public Direction.AxisDirection getAxisDirection() {
+        return axisDirection;
+    }
+
     public enum Axis{
         X,
         Y,
@@ -221,6 +167,22 @@ public enum ExtendDirection {
                     return true;
             }
             return false;
+        }
+
+        public double project(Vector3d vector3d){
+            switch (this) {
+                case X:
+                    return vector3d.get(Direction.Axis.X);
+                case Y:
+                    return vector3d.get(Direction.Axis.Y);
+                case Z:
+                    return vector3d.get(Direction.Axis.Z);
+                case XMZ:
+                    return (vector3d.get(Direction.Axis.X) + vector3d.get(Direction.Axis.Z))/Math.sqrt(2);
+                case XPZ:
+                    return (vector3d.get(Direction.Axis.X) - vector3d.get(Direction.Axis.Z))/Math.sqrt(2);
+            }
+            return 0; //unreachable code
         }
     }
 

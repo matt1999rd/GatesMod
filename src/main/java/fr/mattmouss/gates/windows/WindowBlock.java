@@ -24,6 +24,7 @@ import net.minecraft.util.math.BlockRayTraceResult;
 import net.minecraft.util.math.shapes.ISelectionContext;
 import net.minecraft.util.math.shapes.VoxelShape;
 import net.minecraft.util.math.shapes.VoxelShapes;
+import net.minecraft.util.math.vector.Vector3d;
 import net.minecraft.world.IBlockReader;
 import net.minecraft.world.World;
 
@@ -189,22 +190,14 @@ public class WindowBlock extends Block {
         List<WindowDirection> directions = placement.getDirectionOfChangingWindow(facing,world,pos);
         for (WindowDirection dir : directions){
             //the block position to offset
-            BlockPos ch_block_pos = pos;
-            //get nb_offset int[]
-            int[] offsets = dir.getDirections();
-            //when dir value is 0 this means that all offset has been taken in account
-            for(int i=0;i<10;i++){
-                if (offsets[i] != 0){
-                    assert ExtendDirection.byIndex(i) != null;
-                    ch_block_pos = ExtendDirection.byIndex(i).offset(ch_block_pos,offsets[i]);
-                }
-            }
-            Block ch_window = world.getBlockState(ch_block_pos).getBlock();
-            BlockState ch_w_state = world.getBlockState(ch_block_pos);
-            if (this.equals(ch_window)){
-                WindowBlock window = (WindowBlock)ch_window;
-                if (openingStateOnly) window.openOrCloseWindow(ch_w_state,ch_block_pos,world);
-                else window.updatePlacement(world,ch_block_pos,ch_w_state,facing);
+            BlockPos changingWindowsPos = dir.offsetPos(pos);
+            BlockState changingWindowState = world.getBlockState(changingWindowsPos);
+            Block changingWindow = changingWindowState.getBlock();
+
+            if (this.equals(changingWindow)){
+                WindowBlock window = (WindowBlock)changingWindow;
+                if (openingStateOnly) window.openOrCloseWindow(changingWindowState,changingWindowsPos,world);
+                else window.updatePlacement(world,changingWindowsPos,changingWindowState,facing);
             }
         }
     }
@@ -216,16 +209,37 @@ public class WindowBlock extends Block {
     }
 
 
-    //1.15 function
     @Override
     public ActionResultType use(BlockState state, World world, BlockPos pos, PlayerEntity player, Hand hand, BlockRayTraceResult result) {
-        openOrCloseWindow(state,pos,world);
-        WindowPlace placement = state.getValue(WINDOW_PLACE);
         Direction facing = state.getValue(BlockStateProperties.HORIZONTAL_FACING);
         boolean isRotated = state.getValue(ROTATED);
+        ExtendDirection extDirection = ExtendDirection.getExtendedDirection(facing,isRotated);
+        assert extDirection != null;
+        if (isPlayerOutside(player,extDirection,pos)){
+            return ActionResultType.FAIL;
+        }
+
+        openOrCloseWindow(state,pos,world);
+        WindowPlace placement = state.getValue(WINDOW_PLACE);
         ExtendDirection extDir = ExtendDirection.getExtendedDirection(facing,isRotated);
         notifyNeighborBlock(placement,extDir,world,pos,true);
         return ActionResultType.SUCCESS;
+    }
+
+    private boolean isPlayerOutside(PlayerEntity player, ExtendDirection direction, BlockPos pos){
+        Vector3d relPlayerPos = player.position().subtract(new Vector3d(pos.getX()+(direction.getAxis() == ExtendDirection.Axis.XMZ ? 1 : 0) ,pos.getY(),pos.getZ()));
+        double playerPosXZ = direction.getAxis().project(relPlayerPos);
+        // this series of test is blocking the opening of windows from outside
+        if (direction.getAxisDirection() == Direction.AxisDirection.NEGATIVE) {
+            if (playerPosXZ > 0) {
+                return true;
+            }
+        }else {
+            if (playerPosXZ < 0){
+                return true;
+            }
+        }
+        return false;
     }
 
 
