@@ -2,35 +2,39 @@ package fr.mattmouss.gates.windows;
 
 import fr.mattmouss.gates.util.ExtendDirection;
 import fr.mattmouss.gates.util.Functions;
-import net.minecraft.block.*;
-import net.minecraft.block.material.Material;
+import net.minecraft.world.level.material.Material;
 
 
-import net.minecraft.entity.LivingEntity;
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.item.ItemStack;
-import net.minecraft.pathfinding.PathType;
-import net.minecraft.state.BooleanProperty;
-import net.minecraft.state.EnumProperty;
-import net.minecraft.state.StateContainer;
-import net.minecraft.state.properties.BlockStateProperties;
-import net.minecraft.tileentity.TileEntity;
-import net.minecraft.util.ActionResultType;
+import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.pathfinder.PathComputationType;
+import net.minecraft.world.level.block.state.properties.BooleanProperty;
+import net.minecraft.world.level.block.state.properties.EnumProperty;
+import net.minecraft.world.level.block.state.StateDefinition;
+import net.minecraft.world.level.block.state.properties.BlockStateProperties;
+import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.world.InteractionResult;
 //import net.minecraft.util.BlockRenderLayer;
-import net.minecraft.util.Direction;
-import net.minecraft.util.Hand;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.BlockRayTraceResult;
-import net.minecraft.util.math.shapes.ISelectionContext;
-import net.minecraft.util.math.shapes.VoxelShape;
-import net.minecraft.util.math.shapes.VoxelShapes;
-import net.minecraft.world.IBlockReader;
-import net.minecraft.world.World;
+import net.minecraft.core.Direction;
+import net.minecraft.world.InteractionHand;
+import net.minecraft.core.BlockPos;
+import net.minecraft.world.phys.BlockHitResult;
+import net.minecraft.world.phys.shapes.CollisionContext;
+import net.minecraft.world.phys.shapes.VoxelShape;
+import net.minecraft.world.phys.shapes.Shapes;
+import net.minecraft.world.level.BlockGetter;
+import net.minecraft.world.level.Level;
 
 import javax.annotation.Nullable;
 import javax.annotation.ParametersAreNonnullByDefault;
 import java.util.List;
 
+
+import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.Blocks;
+import net.minecraft.world.level.block.SoundType;
+import net.minecraft.world.level.block.state.BlockState;
 
 public class WindowBlock extends Block {
 
@@ -71,7 +75,7 @@ public class WindowBlock extends Block {
 
 
     @Override
-    public VoxelShape getShape(BlockState state, IBlockReader p_220053_2_, BlockPos p_220053_3_, ISelectionContext p_220053_4_) {
+    public VoxelShape getShape(BlockState state, BlockGetter p_220053_2_, BlockPos p_220053_3_, CollisionContext p_220053_4_) {
         boolean isRotated = state.getValue(ROTATED);
         if (!isRotated) {
             Direction facing = state.getValue(BlockStateProperties.HORIZONTAL_FACING);
@@ -91,7 +95,7 @@ public class WindowBlock extends Block {
                     if (isRight) {
                         return SOUTH_AABB;
                     }
-                    return VoxelShapes.or(NORTH_AABB_OSE, SOUTH_AABB_OSE);
+                    return Shapes.or(NORTH_AABB_OSE, SOUTH_AABB_OSE);
                 case SOUTH:
                     if (!isOpen) {
                         return SOUTH_AABB;
@@ -102,7 +106,7 @@ public class WindowBlock extends Block {
                     if (isRight) {
                         return WEST_AABB;
                     }
-                    return VoxelShapes.or(EAST_AABB_OSS, WEST_AABB_OSS);
+                    return Shapes.or(EAST_AABB_OSS, WEST_AABB_OSS);
                 case WEST:
                     if (!isOpen) {
                         return WEST_AABB;
@@ -113,7 +117,7 @@ public class WindowBlock extends Block {
                     if (isRight) {
                         return NORTH_AABB;
                     }
-                    return VoxelShapes.or(NORTH_AABB_OSW, SOUTH_AABB_OSW);
+                    return Shapes.or(NORTH_AABB_OSW, SOUTH_AABB_OSW);
                 case NORTH:
                     if (!isOpen) {
                         return NORTH_AABB;
@@ -124,7 +128,7 @@ public class WindowBlock extends Block {
                     if (isRight) {
                         return EAST_AABB;
                     }
-                    return VoxelShapes.or(EAST_AABB_OSN, WEST_AABB_OSN);
+                    return Shapes.or(EAST_AABB_OSN, WEST_AABB_OSN);
             }
         }else {
             boolean isOpen = state.getValue(BlockStateProperties.OPEN);
@@ -135,7 +139,7 @@ public class WindowBlock extends Block {
     }
 
 
-    public boolean isPathfindable(BlockState state, IBlockReader reader, BlockPos pos, PathType type) {
+    public boolean isPathfindable(BlockState state, BlockGetter reader, BlockPos pos, PathComputationType type) {
         switch (type) {
             case LAND:
             case AIR:
@@ -158,7 +162,7 @@ public class WindowBlock extends Block {
     }
 
     @Override
-    public void setPlacedBy(World world, BlockPos pos, BlockState state, @Nullable LivingEntity entity, ItemStack stack) {
+    public void setPlacedBy(Level world, BlockPos pos, BlockState state, @Nullable LivingEntity entity, ItemStack stack) {
         if (entity != null){
             ExtendDirection facing = Functions.getDirectionFromEntityAndNeighbor(entity,pos,world);
             WindowPlace placement = WindowPlace.getFromNeighboring(world,pos,state,facing);
@@ -174,7 +178,7 @@ public class WindowBlock extends Block {
     }
 
 
-    private boolean getOpenFromNeighbor(World world, BlockPos pos, WindowPlace placement,ExtendDirection facing) {
+    private boolean getOpenFromNeighbor(Level world, BlockPos pos, WindowPlace placement,ExtendDirection facing) {
         BlockPos neighborPos =placement.getRandNeighborPos(pos,facing);
         if (!(neighborPos == null)) {
             BlockState neighState = world.getBlockState(neighborPos);
@@ -185,7 +189,7 @@ public class WindowBlock extends Block {
         return false;
     }
 
-    private void notifyNeighborBlock(WindowPlace placement,ExtendDirection facing,World world,BlockPos pos,boolean openingStateOnly){
+    private void notifyNeighborBlock(WindowPlace placement,ExtendDirection facing,Level world,BlockPos pos,boolean openingStateOnly){
         List<WindowDirection> directions = placement.getDirectionOfChangingWindow(facing,world,pos);
         for (WindowDirection dir : directions){
             //the block position to offset
@@ -209,7 +213,7 @@ public class WindowBlock extends Block {
         }
     }
 
-    public void openOrCloseWindow(BlockState state,BlockPos pos,World world){
+    public void openOrCloseWindow(BlockState state,BlockPos pos,Level world){
         boolean isOpen = state.getValue(BlockStateProperties.OPEN);
         world.setBlockAndUpdate(pos,state.setValue(BlockStateProperties.OPEN,!isOpen));
 
@@ -218,18 +222,18 @@ public class WindowBlock extends Block {
 
     //1.15 function
     @Override
-    public ActionResultType use(BlockState state, World world, BlockPos pos, PlayerEntity player, Hand hand, BlockRayTraceResult result) {
+    public InteractionResult use(BlockState state, Level world, BlockPos pos, Player player, InteractionHand hand, BlockHitResult result) {
         openOrCloseWindow(state,pos,world);
         WindowPlace placement = state.getValue(WINDOW_PLACE);
         Direction facing = state.getValue(BlockStateProperties.HORIZONTAL_FACING);
         boolean isRotated = state.getValue(ROTATED);
         ExtendDirection extDir = ExtendDirection.getExtendedDirection(facing,isRotated);
         notifyNeighborBlock(placement,extDir,world,pos,true);
-        return ActionResultType.SUCCESS;
+        return InteractionResult.SUCCESS;
     }
 
 
-    private void updatePlacement(World world, BlockPos pos, BlockState state, ExtendDirection facing) {
+    private void updatePlacement(Level world, BlockPos pos, BlockState state, ExtendDirection facing) {
         WindowPlace placement = WindowPlace.getFromNeighboring(world,pos,state,facing);
         boolean isOpen = state.getValue(BlockStateProperties.OPEN);
         world.setBlockAndUpdate(pos,state.setValue(WINDOW_PLACE,placement)
@@ -241,18 +245,18 @@ public class WindowBlock extends Block {
     }
 
     @Override
-    protected void createBlockStateDefinition(StateContainer.Builder<Block, BlockState> builder) {
+    protected void createBlockStateDefinition(StateDefinition.Builder<Block, BlockState> builder) {
         builder.add(BlockStateProperties.HORIZONTAL_FACING, BlockStateProperties.OPEN, WINDOW_PLACE, ROTATED);
     }
 
     @Override
     @ParametersAreNonnullByDefault
-    public void playerDestroy(World world, PlayerEntity entity, BlockPos pos, BlockState state, @Nullable TileEntity tileEntity, ItemStack stack) {
+    public void playerDestroy(Level world, Player entity, BlockPos pos, BlockState state, @Nullable BlockEntity tileEntity, ItemStack stack) {
         super.playerDestroy(world, entity, pos, Blocks.AIR.defaultBlockState(), tileEntity, stack);
     }
 
     @Override
-    public void playerWillDestroy(World world, BlockPos pos, BlockState state, PlayerEntity player) {
+    public void playerWillDestroy(Level world, BlockPos pos, BlockState state, Player player) {
         WindowPlace wp = state.getValue(WINDOW_PLACE);
         Direction facing = state.getValue(BlockStateProperties.HORIZONTAL_FACING);
         boolean isRotated = state.getValue(ROTATED);

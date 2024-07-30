@@ -3,9 +3,9 @@ package fr.mattmouss.gates.network;
 import fr.mattmouss.gates.GatesMod;
 import fr.mattmouss.gates.tileentity.CardGetterTileEntity;
 import fr.mattmouss.gates.util.Functions;
-import net.minecraft.network.PacketBuffer;
-import net.minecraft.util.math.BlockPos;
-import net.minecraftforge.fml.network.NetworkEvent;
+import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.core.BlockPos;
+import net.minecraftforge.fmllegacy.network.NetworkEvent;
 
 import java.util.HashMap;
 import java.util.List;
@@ -19,7 +19,7 @@ public class PutIdsToClientPacket {
     private final BlockPos pos;
     private final HashMap<Integer,Integer> ServerCostMap;
 
-    public PutIdsToClientPacket(PacketBuffer buf){
+    public PutIdsToClientPacket(FriendlyByteBuf buf){
         pos = buf.readBlockPos();
         ServerCostMap = new HashMap<>();
         int[] id_and_price_array = buf.readVarIntArray();
@@ -32,7 +32,7 @@ public class PutIdsToClientPacket {
         }
     }
 
-    public void toBytes(PacketBuffer buf){
+    public void toBytes(FriendlyByteBuf buf){
         buf.writeBlockPos(pos);
         int size = ServerCostMap.size();
         int[] id_array = new int[2*size];

@@ -7,16 +7,16 @@ import fr.mattmouss.gates.setup.ModSound;
 import fr.mattmouss.gates.tollcapability.ITollStorage;
 import fr.mattmouss.gates.tollcapability.TollStorage;
 import fr.mattmouss.gates.tollcapability.TollStorageCapability;
-import net.minecraft.block.BlockState;
+import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.audio.SimpleSound;
-import net.minecraft.nbt.CompoundNBT;
-import net.minecraft.state.properties.BlockStateProperties;
-import net.minecraft.state.properties.DoorHingeSide;
-import net.minecraft.tileentity.TileEntity;
-import net.minecraft.tileentity.TileEntityType;
-import net.minecraft.util.Direction;
-import net.minecraft.util.math.BlockPos;
+import net.minecraft.client.resources.sounds.SimpleSoundInstance;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.world.level.block.state.properties.BlockStateProperties;
+import net.minecraft.world.level.block.state.properties.DoorHingeSide;
+import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.world.level.block.entity.BlockEntityType;
+import net.minecraft.core.Direction;
+import net.minecraft.core.BlockPos;
 import net.minecraftforge.common.capabilities.Capability;
 import net.minecraftforge.common.util.INBTSerializable;
 import net.minecraftforge.common.util.LazyOptional;
@@ -26,9 +26,9 @@ import javax.annotation.Nullable;
 import java.util.List;
 import java.util.Objects;
 
-public class AbstractTollGateTileEntity extends TileEntity {
-    public AbstractTollGateTileEntity(TileEntityType<?> p_i48289_1_) {
-        super(p_i48289_1_);
+public class AbstractTollGateTileEntity extends BlockEntity {
+    public AbstractTollGateTileEntity(BlockEntityType<?> type,BlockPos pos,BlockState state) {
+        super(type,pos,state);
     }
 
     public boolean manageAnimation() {
@@ -39,7 +39,7 @@ public class AbstractTollGateTileEntity extends TileEntity {
             int animationStep = state.getValue(TollGate.ANIMATION);
             if (animationStep == 0) {
                 //add the sound of tollgate
-                Minecraft.getInstance().getSoundManager().play(SimpleSound.forUI(ModSound.TOLL_GATE_OPENING, 6.0F));
+                Minecraft.getInstance().getSoundManager().play(SimpleSoundInstance.forUI(ModSound.TOLL_GATE_OPENING, 6.0F));
             }
 
             if (animationStep == 4) {
@@ -54,7 +54,7 @@ public class AbstractTollGateTileEntity extends TileEntity {
         } else if (animationClosingInProcess()) {
             int animationStep = state.getValue(TollGate.ANIMATION);
             if (animationStep == 4) {
-                Minecraft.getInstance().getSoundManager().play(SimpleSound.forUI(ModSound.TOLL_GATE_CLOSING, 6.0F));
+                Minecraft.getInstance().getSoundManager().play(SimpleSoundInstance.forUI(ModSound.TOLL_GATE_CLOSING, 6.0F));
             }
             if (animationStep == 0) {
                 setBoolClose(false);
@@ -129,12 +129,12 @@ public class AbstractTollGateTileEntity extends TileEntity {
     }
 
     @Override
-    public void load(BlockState state, CompoundNBT compound) {
+    public void load( CompoundTag compound) {
         boolean isRightTE = compound.getBoolean("isCU");
         if (isRightTE) {
-            CompoundNBT storage_tag = compound.getCompound("storage");
-            getCapability(TollStorageCapability.TOLL_STORAGE).ifPresent(s -> ((INBTSerializable<CompoundNBT>) s).deserializeNBT(storage_tag)); }
-        super.load(state,compound);
+            CompoundTag storage_tag = compound.getCompound("storage");
+            getCapability(TollStorageCapability.TOLL_STORAGE).ifPresent(s -> ((INBTSerializable<CompoundTag>) s).deserializeNBT(storage_tag)); }
+        super.load(compound);
     }
 
     protected boolean canWrite(){
@@ -146,10 +146,10 @@ public class AbstractTollGateTileEntity extends TileEntity {
     }
 
     @Override
-    public CompoundNBT save(CompoundNBT tag) {
+    public CompoundTag save(CompoundTag tag) {
         if (canWrite()) {
             getCapability(TollStorageCapability.TOLL_STORAGE).ifPresent(storage -> {
-                CompoundNBT compoundNBT = ((INBTSerializable<CompoundNBT>) storage).serializeNBT();
+                CompoundTag compoundNBT = ((INBTSerializable<CompoundTag>) storage).serializeNBT();
                 tag.put("storage", compoundNBT);
             });
         }

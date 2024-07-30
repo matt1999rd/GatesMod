@@ -1,15 +1,15 @@
 package fr.mattmouss.gates.tollcapability;
 
 import fr.mattmouss.gates.energystorage.IdTracker;
-import net.minecraft.nbt.CompoundNBT;
-import net.minecraft.world.World;
-import net.minecraft.world.storage.DimensionSavedDataManager;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.world.level.Level;
+import net.minecraft.world.level.storage.DimensionDataStorage;
 import net.minecraftforge.common.util.INBTSerializable;
 
 import java.util.Objects;
 import java.util.Random;
 
-public class TollStorage implements ITollStorage, INBTSerializable<CompoundNBT> {
+public class TollStorage implements ITollStorage, INBTSerializable<CompoundTag> {
 
     private boolean startOpeningAnimation ;
     private boolean startClosingAnimation ;
@@ -48,7 +48,7 @@ public class TollStorage implements ITollStorage, INBTSerializable<CompoundNBT> 
     }
 
     @Override
-    public void changeId(World world) {
+    public void changeId(Level world) {
         //trackInt is limited to 16-bit number and there is negative value
         int newId= random.nextInt((int)Math.pow(2,15))+(int)Math.pow(2,15);
         System.out.println("changing id... \n newId = "+newId);
@@ -56,15 +56,15 @@ public class TollStorage implements ITollStorage, INBTSerializable<CompoundNBT> 
     }
 
     @Override
-    public void setId(int newId,World world) {
-        DimensionSavedDataManager savedDataManager =
+    public void setId(int newId,Level world) {
+        DimensionDataStorage savedDataManager =
         Objects.requireNonNull(world.getServer()).overworld().getDataStorage();
 
         if (id != -1) {
-            savedDataManager.computeIfAbsent(IdTracker::new, "idgates").removeId(id);
+            savedDataManager.computeIfAbsent(IdTracker::new,IdTracker::new, "idgates").removeId(id);
         }
         id = newId;
-        savedDataManager.computeIfAbsent(IdTracker::new,"idgates").addNewId(newId);
+        savedDataManager.computeIfAbsent(IdTracker::new,IdTracker::new,"idgates").addNewId(newId);
     }
 
     public void setId(int newId){
@@ -93,8 +93,8 @@ public class TollStorage implements ITollStorage, INBTSerializable<CompoundNBT> 
     }
 
     @Override
-    public CompoundNBT serializeNBT() {
-        CompoundNBT tag = new CompoundNBT();
+    public CompoundTag serializeNBT() {
+        CompoundTag tag = new CompoundTag();
         System.out.println("------------price written : "+price);
         System.out.println("------------id written : "+id);
         tag.putBoolean("open",startOpeningAnimation);
@@ -105,7 +105,7 @@ public class TollStorage implements ITollStorage, INBTSerializable<CompoundNBT> 
     }
 
     @Override
-    public void deserializeNBT(CompoundNBT nbt) {
+    public void deserializeNBT(CompoundTag nbt) {
         if (isValidNbt(nbt)) {
             System.out.println("------------price read : "+nbt.getInt("price"));
             System.out.println("------------id read : "+nbt.getInt("id"));
@@ -118,7 +118,7 @@ public class TollStorage implements ITollStorage, INBTSerializable<CompoundNBT> 
         System.out.println("nothing has been found");
     }
 
-    private boolean isValidNbt(CompoundNBT nbt) {
+    private boolean isValidNbt(CompoundTag nbt) {
         System.out.println("nbt.contains(\"open\") = "+nbt.contains("open"));
         System.out.println("nbt.contains(\"close\") = "+nbt.contains("close"));
         System.out.println("nbt.contains(\"price\") = "+nbt.contains("price"));

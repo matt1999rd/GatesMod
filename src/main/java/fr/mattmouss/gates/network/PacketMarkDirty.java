@@ -2,10 +2,10 @@ package fr.mattmouss.gates.network;
 
 import fr.mattmouss.gates.GatesMod;
 import fr.mattmouss.gates.tileentity.CardGetterTileEntity;
-import net.minecraft.network.PacketBuffer;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.world.World;
-import net.minecraftforge.fml.network.NetworkEvent;
+import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.core.BlockPos;
+import net.minecraft.world.level.Level;
+import net.minecraftforge.fmllegacy.network.NetworkEvent;
 
 import java.util.Objects;
 import java.util.function.Supplier;
@@ -18,19 +18,19 @@ public class PacketMarkDirty {
         this.pos = pos;
         this.isDirty = isDirty;
     }
-    public PacketMarkDirty(PacketBuffer buf){
+    public PacketMarkDirty(FriendlyByteBuf buf){
         this.pos = buf.readBlockPos();
         isDirty = buf.readBoolean();
     }
 
-    public void toBytes(PacketBuffer buf) {
+    public void toBytes(FriendlyByteBuf buf) {
         buf.writeBlockPos(pos);
         buf.writeBoolean(isDirty);
     }
 
     public void handle(Supplier<NetworkEvent.Context> context){
         context.get().enqueueWork(()->{
-            World world = Objects.requireNonNull(context.get().getSender()).level;
+            Level world = Objects.requireNonNull(context.get().getSender()).level;
             CardGetterTileEntity cgte = (CardGetterTileEntity)world.getBlockEntity(pos);
             if (cgte == null) GatesMod.logger.warning("No more of this fucking function that are not working !! ");
             else cgte.markIdDirty(isDirty);

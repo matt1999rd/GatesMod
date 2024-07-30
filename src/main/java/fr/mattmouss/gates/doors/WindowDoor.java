@@ -1,32 +1,38 @@
 package fr.mattmouss.gates.doors;
 
+import fr.mattmouss.gates.blocks.ModBlock;
 import fr.mattmouss.gates.enum_door.DoorPlacing;
+import fr.mattmouss.gates.tileentity.CardGetterTileEntity;
 import fr.mattmouss.gates.tileentity.WindowDoorTileEntity;
 import fr.mattmouss.gates.util.Functions;
-import net.minecraft.block.Block;
-import net.minecraft.block.BlockState;
-import net.minecraft.block.Blocks;
-import net.minecraft.block.material.Material;
-import net.minecraft.block.material.MaterialColor;
-import net.minecraft.entity.LivingEntity;
-import net.minecraft.item.BlockItemUseContext;
-import net.minecraft.item.ItemStack;
-import net.minecraft.state.EnumProperty;
-import net.minecraft.state.IntegerProperty;
-import net.minecraft.state.StateContainer;
-import net.minecraft.state.properties.BlockStateProperties;
-import net.minecraft.tileentity.TileEntity;
-import net.minecraft.util.Direction;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.shapes.ISelectionContext;
-import net.minecraft.util.math.shapes.VoxelShape;
-import net.minecraft.util.math.shapes.VoxelShapes;
-import net.minecraft.world.IBlockReader;
-import net.minecraft.world.IWorld;
-import net.minecraft.world.World;
+import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.EntityBlock;
+import net.minecraft.world.level.block.entity.BlockEntityTicker;
+import net.minecraft.world.level.block.entity.BlockEntityType;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.block.Blocks;
+import net.minecraft.world.level.material.Material;
+import net.minecraft.world.level.material.MaterialColor;
+import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.item.context.BlockPlaceContext;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.block.state.properties.EnumProperty;
+import net.minecraft.world.level.block.state.properties.IntegerProperty;
+import net.minecraft.world.level.block.state.StateDefinition;
+import net.minecraft.world.level.block.state.properties.BlockStateProperties;
+import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.core.Direction;
+import net.minecraft.core.BlockPos;
+import net.minecraft.world.phys.shapes.CollisionContext;
+import net.minecraft.world.phys.shapes.VoxelShape;
+import net.minecraft.world.phys.shapes.Shapes;
+import net.minecraft.world.level.BlockGetter;
+import net.minecraft.world.level.LevelAccessor;
+import net.minecraft.world.level.Level;
 import javax.annotation.Nullable;
 
-public class WindowDoor extends Block {
+
+public class WindowDoor extends Block implements EntityBlock {
 
     public static EnumProperty<DoorPlacing> PLACING = EnumProperty.create("position", DoorPlacing.class,placing -> !placing.isCenterY());
     public static IntegerProperty ANIMATION = IntegerProperty.create("animation",0,4);
@@ -43,7 +49,7 @@ public class WindowDoor extends Block {
     }
 
     @Override
-    public VoxelShape getShape(BlockState state, IBlockReader worldIn, BlockPos pos, ISelectionContext context) {
+    public VoxelShape getShape(BlockState state, BlockGetter worldIn, BlockPos pos, CollisionContext context) {
         Direction facing = state.getValue(BlockStateProperties.HORIZONTAL_FACING);
         if (state.getValue(PLACING).isSide() || state.getValue(ANIMATION) != 4){
             switch (facing){
@@ -56,26 +62,21 @@ public class WindowDoor extends Block {
                 case EAST:
                     return EAST_AABB;
                 default:
-                    return VoxelShapes.block();
+                    return Shapes.block();
             }
         }
-        return VoxelShapes.empty();
-    }
-
-    @Override
-    public boolean hasTileEntity(BlockState state) {
-        return true;
+        return Shapes.empty();
     }
 
     @Nullable
     @Override
-    public TileEntity createTileEntity(BlockState state, IBlockReader world) {
-        return new WindowDoorTileEntity();
+    public BlockEntity newBlockEntity(BlockPos blockPos, BlockState blockState) {
+        return new WindowDoorTileEntity(blockPos,blockState);
     }
 
     @Nullable
     @Override
-    public BlockState getStateForPlacement(BlockItemUseContext context) {
+    public BlockState getStateForPlacement(BlockPlaceContext context) {
         BlockPos pos = context.getClickedPos();
         BlockPos upPos = pos.above();
         Direction facing = context.getHorizontalDirection();
@@ -97,7 +98,7 @@ public class WindowDoor extends Block {
     }
 
     @Override
-    public void setPlacedBy(World world, BlockPos pos, BlockState state, @Nullable LivingEntity entity, ItemStack stack) {
+    public void setPlacedBy(Level world, BlockPos pos, BlockState state, @Nullable LivingEntity entity, ItemStack stack) {
         if (entity != null){
             Direction direction = Functions.getDirectionFromEntity(entity,pos);
             //center block down
@@ -140,7 +141,7 @@ public class WindowDoor extends Block {
     }
 
     @Override
-    public BlockState updateShape(BlockState stateIn, Direction facing, BlockState facingState, IWorld worldIn, BlockPos currentPos, BlockPos facingPos) {
+    public BlockState updateShape(BlockState stateIn, Direction facing, BlockState facingState, LevelAccessor worldIn, BlockPos currentPos, BlockPos facingPos) {
         DoorPlacing placing = stateIn.getValue(PLACING);
         Direction blockFacing = stateIn.getValue(BlockStateProperties.HORIZONTAL_FACING);
         if (isInnerUpdate(placing,facing,blockFacing) &&  !(facingState.getBlock() instanceof WindowDoor)){
@@ -160,8 +161,17 @@ public class WindowDoor extends Block {
     }
 
     @Override
-    protected void createBlockStateDefinition(StateContainer.Builder<Block, BlockState> builder) {
+    protected void createBlockStateDefinition(StateDefinition.Builder<Block, BlockState> builder) {
         builder.add(BlockStateProperties.HORIZONTAL_FACING,PLACING,ANIMATION);
     }
 
+    @Nullable
+    @Override
+    public <T extends BlockEntity> BlockEntityTicker<T> getTicker(Level p_153212_, BlockState p_153213_, BlockEntityType<T> type) {
+        return (type == ModBlock.WINDOW_DOOR_TILE_TYPE) ? (((level1, blockPos, blockState, t) -> {
+            if (t instanceof WindowDoorTileEntity) {
+                ((WindowDoorTileEntity) t).tick(level1,blockState);
+            }
+        })) : null;
+    }
 }

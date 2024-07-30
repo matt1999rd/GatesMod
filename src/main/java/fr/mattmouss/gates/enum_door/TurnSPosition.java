@@ -1,8 +1,8 @@
 package fr.mattmouss.gates.enum_door;
 
-import net.minecraft.util.IStringSerializable;
+import net.minecraft.util.StringRepresentable;
 
-public enum TurnSPosition implements IStringSerializable {
+public enum TurnSPosition implements StringRepresentable {
     MAIN(0,"main"),
     RIGHT_BLOCK(1,"right"),
     LEFT_BLOCK(2,"left"),

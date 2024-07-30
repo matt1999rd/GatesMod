@@ -1,24 +1,25 @@
 package fr.mattmouss.gates.gui;
 
-import com.mojang.blaze3d.matrix.MatrixStack;
+import com.mojang.blaze3d.systems.RenderSystem;
+import com.mojang.blaze3d.vertex.PoseStack;
 import fr.mattmouss.gates.GatesMod;
 
 import fr.mattmouss.gates.util.Functions;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.FontRenderer;
-import net.minecraft.client.gui.screen.inventory.ContainerScreen;
-import net.minecraft.entity.player.PlayerInventory;
+import net.minecraft.client.gui.Font;
+import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
+import net.minecraft.world.entity.player.Inventory;
 
-import net.minecraft.util.ResourceLocation;
-import net.minecraft.util.text.ITextComponent;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.network.chat.Component;
 
-public class TGUserScreen extends ContainerScreen<TGUserContainer> {
+public class TGUserScreen extends AbstractContainerScreen<TGUserContainer> {
 
     private final ResourceLocation GUI_OPEN = new ResourceLocation(GatesMod.MOD_ID,"textures/gui/tg_user_gui_open.png");
     private final ResourceLocation GUI_CLOSE = new ResourceLocation(GatesMod.MOD_ID,"textures/gui/tg_user_gui_close.png");
     private static final int white = 0xffffff;
-    public TGUserScreen(TGUserContainer container, PlayerInventory inventory,ITextComponent title) {
-        super(container, inventory, ITextComponent.nullToEmpty("Toll Gate number "+container.getId()));
+    public TGUserScreen(TGUserContainer container, Inventory inventory,Component title) {
+        super(container, inventory, Component.nullToEmpty("Toll Gate number "+container.getId()));
         this.titleLabelX = 30;
         this.titleLabelY = 6;
         this.inventoryLabelX = container.leftCol-1;
@@ -26,17 +27,17 @@ public class TGUserScreen extends ContainerScreen<TGUserContainer> {
     }
 
     @Override
-    public void render(MatrixStack stack, int mouseX, int mouseY, float partialTicks) {
+    public void render(PoseStack stack, int mouseX, int mouseY, float partialTicks) {
         this.renderBackground(stack);
         super.render(stack,mouseX, mouseY, partialTicks);
         this.renderTooltip(stack,mouseX,mouseY);
     }
 
     @Override
-    protected void renderLabels(MatrixStack stack,int p_146979_1_, int p_146979_2_) {
+    protected void renderLabels(PoseStack stack,int p_146979_1_, int p_146979_2_) {
         int price = menu.getRemainingPayment();
         int pos_id = Functions.getIdFromBlockPos(menu.getPos());
-        FontRenderer font = Minecraft.getInstance().font;
+        Font font = Minecraft.getInstance().font;
         drawString(stack,font,pos_id+" ",151,52,white);
         drawString(stack,font,"Value to pay :",29,50,white);
         drawString(stack,font," "+price,118,50,white);
@@ -44,14 +45,9 @@ public class TGUserScreen extends ContainerScreen<TGUserContainer> {
     }
 
     @Override
-    protected void renderBg(MatrixStack stack,float partialTicks, int mouseX, int mouseY) {
-        if (menu.isGateOpen()){
-            assert this.minecraft != null;
-            this.minecraft.getTextureManager().bind(GUI_OPEN);
-        }else {
-            assert this.minecraft != null;
-            this.minecraft.getTextureManager().bind(GUI_CLOSE);
-        }
+    protected void renderBg(PoseStack stack,float partialTicks, int mouseX, int mouseY) {
+        ResourceLocation GUI = (menu.isGateOpen()) ? GUI_OPEN : GUI_CLOSE;
+        RenderSystem.setShaderTexture(0,GUI);
         this.blit(stack,leftPos, topPos, 0, 0, this.imageWidth+21, this.imageHeight);
     }
 

@@ -1,34 +1,38 @@
 package fr.mattmouss.gates.doors;
 
+import fr.mattmouss.gates.blocks.ModBlock;
 import fr.mattmouss.gates.enum_door.TollGPosition;
 import fr.mattmouss.gates.items.ModItem;
 import fr.mattmouss.gates.items.TollKeyItem;
 import fr.mattmouss.gates.network.Networking;
 import fr.mattmouss.gates.network.PacketRemoveId;
 import fr.mattmouss.gates.network.SetIdPacket;
+import fr.mattmouss.gates.tileentity.CardGetterTileEntity;
 import fr.mattmouss.gates.tileentity.TollGateTileEntity;
 import fr.mattmouss.gates.util.Functions;
-import net.minecraft.block.BlockState;
-import net.minecraft.block.Blocks;
-import net.minecraft.entity.LivingEntity;
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.entity.player.PlayerInventory;
-import net.minecraft.entity.player.ServerPlayerEntity;
-import net.minecraft.item.ItemStack;
-import net.minecraft.state.properties.BlockStateProperties;
-import net.minecraft.state.properties.DoorHingeSide;
-import net.minecraft.tileentity.TileEntity;
-import net.minecraft.util.ActionResultType;
-import net.minecraft.util.Direction;
-import net.minecraft.util.Hand;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.BlockRayTraceResult;
+import net.minecraft.world.level.block.entity.BlockEntityTicker;
+import net.minecraft.world.level.block.entity.BlockEntityType;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.block.Blocks;
+import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.entity.player.Inventory;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.block.state.properties.BlockStateProperties;
+import net.minecraft.world.level.block.state.properties.DoorHingeSide;
+import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.world.InteractionResult;
+import net.minecraft.core.Direction;
+import net.minecraft.world.InteractionHand;
+import net.minecraft.core.BlockPos;
+import net.minecraft.world.phys.BlockHitResult;
 
-import net.minecraft.world.IBlockReader;
-import net.minecraft.world.IWorld;
-import net.minecraft.world.World;
-import net.minecraftforge.fml.network.NetworkHooks;
-import net.minecraftforge.fml.network.PacketDistributor;
+import net.minecraft.world.level.BlockGetter;
+import net.minecraft.world.level.LevelAccessor;
+import net.minecraft.world.level.Level;
+import net.minecraftforge.fmllegacy.network.NetworkHooks;
+import net.minecraftforge.fmllegacy.network.PacketDistributor;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -48,19 +52,18 @@ public class TollGate extends AbstractTollGate {
 
     @Nullable
     @Override
-    public TileEntity createTileEntity(BlockState state, IBlockReader world) {
-        return new TollGateTileEntity();
+    public BlockEntity newBlockEntity(BlockPos blockPos, BlockState blockState) {
+        return new TollGateTileEntity(blockPos,blockState);
     }
 
     @Override
-    public void setPlacedBy(@Nonnull World world, @Nonnull BlockPos pos, @Nonnull BlockState state, @Nullable LivingEntity entity, @Nonnull ItemStack stack) {
+    public void setPlacedBy(@Nonnull Level world, @Nonnull BlockPos pos, @Nonnull BlockState state, @Nullable LivingEntity entity, @Nonnull ItemStack stack) {
         if (entity != null){
             //we initialise the id
             if (!world.isClientSide ) {
                 TollGateTileEntity tgte = (TollGateTileEntity) world.getBlockEntity(pos);
                 assert tgte != null;
-                tgte.changeId();
-                Networking.INSTANCE.send(PacketDistributor.PLAYER.with(()-> (ServerPlayerEntity)entity),new SetIdPacket(pos,tgte.getId()));
+                Networking.INSTANCE.send(PacketDistributor.PLAYER.with(()-> (ServerPlayer)entity),new SetIdPacket(pos,tgte.getId()));
             }
             super.setPlacedBy(world, pos, state, entity, stack);
         }
@@ -68,7 +71,7 @@ public class TollGate extends AbstractTollGate {
 
     @Nonnull
     @Override
-    public BlockState updateShape(BlockState stateIn, @Nonnull Direction facing, @Nonnull BlockState facingState, @Nonnull IWorld worldIn, @Nonnull BlockPos currentPos, @Nonnull BlockPos facingPos) {
+    public BlockState updateShape(BlockState stateIn, @Nonnull Direction facing, @Nonnull BlockState facingState, @Nonnull LevelAccessor worldIn, @Nonnull BlockPos currentPos, @Nonnull BlockPos facingPos) {
         BlockState futureState = super.updateShape(stateIn, facing, facingState, worldIn, currentPos, facingPos);
         if (futureState.getBlock() == Blocks.AIR){
             onTollGateRemoved(worldIn,currentPos);
@@ -79,22 +82,22 @@ public class TollGate extends AbstractTollGate {
 
 
     @Override
-    public void playerWillDestroy(World world, @Nonnull BlockPos pos, @Nonnull BlockState state, PlayerEntity entity) {
+    public void playerWillDestroy(Level world, @Nonnull BlockPos pos, @Nonnull BlockState state, Player entity) {
         System.out.println("destroying all block of toll gate");
         onTollGateRemoved(world,pos);
         super.playerWillDestroy(world, pos, state, entity);
     }
 
-    private void removeUselessKey(IWorld world,BlockPos pos){
+    private void removeUselessKey(LevelAccessor world,BlockPos pos){
         TollKeyItem key = (TollKeyItem) ModItem.TOLL_GATE_KEY.asItem();
         BlockState state = world.getBlockState(pos);
         ItemStack oldStack = new ItemStack(key);
         BlockPos keyPos = getKeyPos(pos,state);
         key.setTGPosition(oldStack, world, keyPos);
-        List<? extends PlayerEntity> players = world.players();
+        List<? extends Player> players = world.players();
         AtomicBoolean foundKey = new AtomicBoolean(false);
         players.forEach(p -> {
-            PlayerInventory inventory = p.inventory;
+            Inventory inventory = p.getInventory();
             if (!foundKey.get()) {
                 if (inventory.contains(oldStack)) {
                     int slot = inventory.findSlotMatchingItem(oldStack);
@@ -127,7 +130,7 @@ public class TollGate extends AbstractTollGate {
         }
     }
 
-    private void onTollGateRemoved(IWorld world, BlockPos pos){
+    private void onTollGateRemoved(LevelAccessor world, BlockPos pos){
         BlockState state = world.getBlockState(pos);
         TollGateTileEntity tgte = (TollGateTileEntity) world.getBlockEntity(pos);
         assert tgte != null;
@@ -144,7 +147,7 @@ public class TollGate extends AbstractTollGate {
 
 
     @Override
-    public ActionResultType use(BlockState state, World world, BlockPos pos, PlayerEntity entity, Hand hand, BlockRayTraceResult blockRayTraceResult) {
+    public InteractionResult use(BlockState state, Level world, BlockPos pos, Player entity, InteractionHand hand, BlockHitResult blockRayTraceResult) {
         //old functionality of block
 
         TollGateTileEntity tgte = (TollGateTileEntity) world.getBlockEntity(pos);
@@ -153,7 +156,7 @@ public class TollGate extends AbstractTollGate {
         TollGateTileEntity.changePlayerId(entity);
 
         if (state.getValue(TG_POSITION) != TollGPosition.CONTROL_UNIT){
-            return ActionResultType.FAIL;
+            return InteractionResult.FAIL;
         }
         Direction facing = state.getValue(BlockStateProperties.HORIZONTAL_FACING);
         Direction entity_looking_direction = Functions.getDirectionFromEntity(entity,pos);
@@ -166,12 +169,20 @@ public class TollGate extends AbstractTollGate {
             System.out.println("opening user gui !!");
             ((TollGateTileEntity) Objects.requireNonNull(world.getBlockEntity(pos))).setSide(true);
             if (!world.isClientSide) {
-                NetworkHooks.openGui((ServerPlayerEntity) entity, tgte, tgte.getBlockPos());
+                NetworkHooks.openGui((ServerPlayer) entity, tgte, tgte.getBlockPos());
             }
-            return ActionResultType.SUCCESS;
+            return InteractionResult.SUCCESS;
         }
-        return ActionResultType.FAIL;
+        return InteractionResult.FAIL;
     }
 
-
+    @Nullable
+    @Override
+    public <T extends BlockEntity> BlockEntityTicker<T> getTicker(Level p_153212_, BlockState p_153213_, BlockEntityType<T> type) {
+        return (type == ModBlock.TOLL_GATE_ENTITY_TYPE) ? (((level1, blockPos, blockState, t) -> {
+            if (t instanceof TollGateTileEntity) {
+                ((TollGateTileEntity) t).tick(level1);
+            }
+        })) : null;
+    }
 }

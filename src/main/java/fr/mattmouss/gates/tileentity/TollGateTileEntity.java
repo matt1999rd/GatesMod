@@ -9,22 +9,21 @@ import fr.mattmouss.gates.items.CardKeyItem;
 import fr.mattmouss.gates.items.ModItem;
 import fr.mattmouss.gates.tollcapability.TollStorage;
 import fr.mattmouss.gates.util.Functions;
-import net.minecraft.block.*;
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.entity.player.PlayerInventory;
-import net.minecraft.inventory.container.Container;
-import net.minecraft.inventory.container.INamedContainerProvider;
-import net.minecraft.item.ItemStack;
-import net.minecraft.item.Items;
-import net.minecraft.nbt.CompoundNBT;
-import net.minecraft.state.properties.BlockStateProperties;
-import net.minecraft.state.properties.DoorHingeSide;
-import net.minecraft.tileentity.ITickableTileEntity;
-import net.minecraft.util.Direction;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.vector.Vector3d;
-import net.minecraft.util.text.ITextComponent;
-import net.minecraft.util.text.StringTextComponent;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.entity.player.Inventory;
+import net.minecraft.world.inventory.AbstractContainerMenu;
+import net.minecraft.world.MenuProvider;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Items;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.state.properties.BlockStateProperties;
+import net.minecraft.world.level.block.state.properties.DoorHingeSide;
+import net.minecraft.core.Direction;
+import net.minecraft.core.BlockPos;
+import net.minecraft.world.phys.Vec3;
+import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.TextComponent;
 import net.minecraftforge.common.capabilities.Capability;
 import net.minecraftforge.common.util.INBTSerializable;
 import net.minecraftforge.common.util.LazyOptional;
@@ -37,11 +36,9 @@ import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.atomic.AtomicInteger;
 
-public class TollGateTileEntity extends AbstractTollGateTileEntity implements ITickableTileEntity, INamedContainerProvider,IControlIdTE,IPriceControllingTE {
+import net.minecraft.world.level.block.state.BlockState;
 
-    public TollGateTileEntity() {
-        super(ModBlock.TOLL_GATE_ENTITY_TYPE);
-    }
+public class TollGateTileEntity extends AbstractTollGateTileEntity implements MenuProvider,IControlIdTE,IPriceControllingTE {
 
     private static int amount_paid = 0;
 
@@ -50,6 +47,10 @@ public class TollGateTileEntity extends AbstractTollGateTileEntity implements IT
     private static int last_user_player_id = 0;
 
     private final LazyOptional<IItemHandler> handler = LazyOptional.of(this::createHandler).cast();
+
+    public TollGateTileEntity(BlockPos blockPos, BlockState blockState) {
+        super(ModBlock.TOLL_GATE_ENTITY_TYPE,blockPos,blockState);
+    }
 
     //true for user gui
     //false for technician gui
@@ -86,14 +87,12 @@ public class TollGateTileEntity extends AbstractTollGateTileEntity implements IT
         };
     }
 
-    public static void changePlayerId(PlayerEntity entity) {
+    public static void changePlayerId(Player entity) {
         last_user_player_id = entity.getId();
     }
 
-    @Override
-    public void tick() {
+    public void tick(Level level) {
         //updatePrice();
-        assert level != null;
         if (!level.isClientSide) {
             boolean isAnimationDone = manageAnimation();
             if (!isAnimationDone) {
@@ -107,12 +106,12 @@ public class TollGateTileEntity extends AbstractTollGateTileEntity implements IT
         if (isRightTE()) {
             if (this.getBlockState().getValue(TollGate.ANIMATION) == 4) {
                 assert level != null;
-                PlayerEntity entity = (PlayerEntity) level.getEntity(last_user_player_id);
+                Player entity = (Player) level.getEntity(last_user_player_id);
                 if (entity == null) {
                     return;
                 }
                 double[] entity_pos = new double[3];
-                Vector3d vec3d = entity.position();
+                Vec3 vec3d = entity.position();
                 entity_pos[0] = vec3d.x;
                 entity_pos[1] = vec3d.y;
                 entity_pos[2] = vec3d.z;
@@ -149,7 +148,7 @@ public class TollGateTileEntity extends AbstractTollGateTileEntity implements IT
                     return;
                 }
                 assert level != null;
-                PlayerEntity entity = (PlayerEntity) level.getEntity(last_user_player_id);
+                Player entity = (Player) level.getEntity(last_user_player_id);
                 //when payment is not completely done
                 if (stack0.getItem() == Items.EMERALD) {
                     if (number_of_emerald >= this.getRemainingPayment()) {
@@ -262,22 +261,22 @@ public class TollGateTileEntity extends AbstractTollGateTileEntity implements IT
     }
 
     @Override
-    public void load(BlockState state,CompoundNBT compound) {
+    public void load(CompoundTag compound) {
         boolean isRightTE = compound.getBoolean("isCU");
         if (isRightTE) {
-            CompoundNBT invTag = compound.getCompound("inv");
-            getCapability(CapabilityItemHandler.ITEM_HANDLER_CAPABILITY).ifPresent(h -> ((INBTSerializable<CompoundNBT>) h).deserializeNBT(invTag));
+            CompoundTag invTag = compound.getCompound("inv");
+            getCapability(CapabilityItemHandler.ITEM_HANDLER_CAPABILITY).ifPresent(h -> ((INBTSerializable<CompoundTag>) h).deserializeNBT(invTag));
         }
-        super.load(state, compound);
+        super.load(compound);
     }
 
 
 
     @Override
-    public CompoundNBT save(CompoundNBT tag) {
+    public CompoundTag save(CompoundTag tag) {
         if (canWrite()) {
             getCapability(CapabilityItemHandler.ITEM_HANDLER_CAPABILITY).ifPresent(h -> {
-                CompoundNBT compoundNBT = ((INBTSerializable<CompoundNBT>) h).serializeNBT();
+                CompoundTag compoundNBT = ((INBTSerializable<CompoundTag>) h).serializeNBT();
                 tag.put("inv", compoundNBT);
             });
         }
@@ -307,13 +306,13 @@ public class TollGateTileEntity extends AbstractTollGateTileEntity implements IT
     }
 
     @Override
-    public ITextComponent getDisplayName() {
-        return new StringTextComponent(Objects.requireNonNull(getType().getRegistryName()).getPath());
+    public Component getDisplayName() {
+        return new TextComponent(Objects.requireNonNull(getType().getRegistryName()).getPath());
     }
 
     @Nullable
     @Override
-    public Container createMenu(int i, PlayerInventory playerInventory, PlayerEntity playerEntity) {
+    public AbstractContainerMenu createMenu(int i, Inventory playerInventory, Player playerEntity) {
         assert level != null;
         if (UserGuiOpen){
             return new TGUserContainer(i,level,worldPosition,playerInventory,playerEntity);
@@ -336,5 +335,11 @@ public class TollGateTileEntity extends AbstractTollGateTileEntity implements IT
             }
         });
         return id.get();
+    }
+
+    @Override
+    @Nonnull
+    public CompoundTag getUpdateTag() {
+        return this.save(new CompoundTag());
     }
 }

@@ -1,11 +1,11 @@
 package fr.mattmouss.gates.network;
 
 import fr.mattmouss.gates.items.ModItem;
-import net.minecraft.entity.player.ServerPlayerEntity;
-import net.minecraft.item.ItemStack;
-import net.minecraft.nbt.CompoundNBT;
-import net.minecraft.network.PacketBuffer;
-import net.minecraftforge.fml.network.NetworkEvent;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.network.FriendlyByteBuf;
+import net.minecraftforge.fmllegacy.network.NetworkEvent;
 
 import java.util.function.Supplier;
 
@@ -15,25 +15,25 @@ public class PacketGiveCard {
         this.id = id;
     }
 
-    public PacketGiveCard(PacketBuffer buf){
+    public PacketGiveCard(FriendlyByteBuf buf){
         this.id = buf.readInt();
     }
 
-    public void toBytes(PacketBuffer buf){
+    public void toBytes(FriendlyByteBuf buf){
         buf.writeInt(id);
     }
 
     public void handle(Supplier<NetworkEvent.Context> context){
         context.get().enqueueWork(()->{
-            ServerPlayerEntity entity = context.get().getSender();
+            ServerPlayer entity = context.get().getSender();
             assert entity != null;
-            int freeSlot = entity.inventory.getFreeSlot();
+            int freeSlot = entity.getInventory().getFreeSlot();
             ItemStack cardKeyStack = new ItemStack(ModItem.CARD_KEY);
             cardKeyStack.setCount(1);
-            CompoundNBT nbt = cardKeyStack.getOrCreateTag();
+            CompoundTag nbt = cardKeyStack.getOrCreateTag();
             nbt.putInt("id",id);
             if (freeSlot != -1){
-                entity.inventory.setItem(freeSlot,cardKeyStack);
+                entity.getInventory().setItem(freeSlot,cardKeyStack);
             }else {
                 entity.spawnAtLocation(cardKeyStack);
             }

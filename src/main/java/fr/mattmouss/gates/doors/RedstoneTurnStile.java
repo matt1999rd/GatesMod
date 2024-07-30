@@ -1,16 +1,20 @@
 package fr.mattmouss.gates.doors;
 
 
+import fr.mattmouss.gates.blocks.ModBlock;
+import fr.mattmouss.gates.tileentity.CardGetterTileEntity;
 import fr.mattmouss.gates.tileentity.RedstoneTurnStileTileEntity;
-import net.minecraft.block.Block;
-import net.minecraft.block.BlockState;
-import net.minecraft.item.BlockItemUseContext;
-import net.minecraft.state.StateContainer;
-import net.minecraft.state.properties.BlockStateProperties;
-import net.minecraft.tileentity.TileEntity;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.world.IBlockReader;
-import net.minecraft.world.World;
+import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.entity.BlockEntityTicker;
+import net.minecraft.world.level.block.entity.BlockEntityType;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.item.context.BlockPlaceContext;
+import net.minecraft.world.level.block.state.StateDefinition;
+import net.minecraft.world.level.block.state.properties.BlockStateProperties;
+import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.core.BlockPos;
+import net.minecraft.world.level.BlockGetter;
+import net.minecraft.world.level.Level;
 
 import javax.annotation.Nullable;
 import java.util.List;
@@ -25,26 +29,26 @@ public class RedstoneTurnStile extends AbstractTurnStile {
 
     @Nullable
     @Override
-    public TileEntity createTileEntity(BlockState state, IBlockReader world) {
-        return new RedstoneTurnStileTileEntity();
+    public BlockEntity newBlockEntity(BlockPos blockPos, BlockState blockState) {
+        return new RedstoneTurnStileTileEntity(blockPos,blockState);
     }
 
     @Override
-    protected void createBlockStateDefinition(StateContainer.Builder<Block, BlockState> builder) {
+    protected void createBlockStateDefinition(StateDefinition.Builder<Block, BlockState> builder) {
         builder.add(BlockStateProperties.POWERED);
         super.createBlockStateDefinition(builder);
     }
 
 
     @Override
-    public void neighborChanged(BlockState state, World worldIn, BlockPos pos, Block blockIn, BlockPos fromPos, boolean isMoving) {
+    public void neighborChanged(BlockState state, Level worldIn, BlockPos pos, Block blockIn, BlockPos fromPos, boolean isMoving) {
         boolean flag = isNeighBorTSPartPowered(pos,state,worldIn);
         if (blockIn != this && flag != state.getValue(BlockStateProperties.POWERED)){
             worldIn.setBlock(pos, state.setValue(BlockStateProperties.POWERED, flag).setValue(WAY_IS_ON,flag), 2);
         }
     }
 
-    private boolean isNeighBorTSPartPowered(BlockPos pos, BlockState state, World world) {
+    private boolean isNeighBorTSPartPowered(BlockPos pos, BlockState state, Level world) {
         List<BlockPos> blockPosList = getPositionOfBlockConnected(state,pos);
         if (world.hasNeighborSignal(pos)){
             return true;
@@ -59,7 +63,7 @@ public class RedstoneTurnStile extends AbstractTurnStile {
 
     @Nullable
     @Override
-    public BlockState getStateForPlacement(BlockItemUseContext context) {
+    public BlockState getStateForPlacement(BlockPlaceContext context) {
         BlockState state = super.getStateForPlacement(context);
         if (state == null)return null;
         return state.setValue(BlockStateProperties.POWERED,false);
@@ -72,5 +76,13 @@ public class RedstoneTurnStile extends AbstractTurnStile {
                 .setValue(WAY_IS_ON,facingState.getValue(WAY_IS_ON));
     }
 
-
+    @Nullable
+    @Override
+    public <T extends BlockEntity> BlockEntityTicker<T> getTicker(Level level, BlockState state, BlockEntityType<T> type) {
+        return (type == ModBlock.REDSTONE_TURNSTILE_TILE_TYPE) ? (((level1, blockPos, blockState, t) -> {
+            if (t instanceof RedstoneTurnStileTileEntity) {
+                ((RedstoneTurnStileTileEntity) t).tick();
+            }
+        })) : null;
+    }
 }

@@ -4,43 +4,49 @@ import com.google.common.collect.Lists;
 import fr.mattmouss.gates.enum_door.DoorPlacing;
 import fr.mattmouss.gates.enum_door.DrawBridgePosition;
 import fr.mattmouss.gates.enum_door.TurnSPosition;
+import fr.mattmouss.gates.items.TollKeyItem;
+import fr.mattmouss.gates.items.TurnStileKeyItem;
 import fr.mattmouss.gates.voxels.VoxelDoubles;
 import fr.mattmouss.gates.windows.WindowBlock;
 import fr.mattmouss.gates.windows.WindowPlace;
-import net.minecraft.block.*;
-import net.minecraft.entity.LivingEntity;
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.inventory.EquipmentSlotType;
-import net.minecraft.item.BlockItemUseContext;
-import net.minecraft.item.ItemStack;
-import net.minecraft.state.properties.BlockStateProperties;
-import net.minecraft.state.properties.DoorHingeSide;
-import net.minecraft.util.Direction;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.MathHelper;
-import net.minecraft.util.math.shapes.VoxelShape;
-import net.minecraft.util.math.shapes.VoxelShapes;
-import net.minecraft.util.math.vector.Vector3d;
-import net.minecraft.world.World;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.entity.EquipmentSlot;
+import net.minecraft.world.item.Item;
+import net.minecraft.world.item.context.BlockPlaceContext;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.block.state.properties.BlockStateProperties;
+import net.minecraft.world.level.block.state.properties.DoorHingeSide;
+import net.minecraft.core.Direction;
+import net.minecraft.core.BlockPos;
+import net.minecraft.util.Mth;
+import net.minecraft.world.phys.shapes.VoxelShape;
+import net.minecraft.world.phys.shapes.Shapes;
+import net.minecraft.world.phys.Vec3;
+import net.minecraft.world.level.Level;
 
 import javax.annotation.Nullable;
 import java.util.List;
 import java.util.Objects;
 
+import net.minecraft.world.level.block.state.BlockState;
+
 public class Functions {
 
-    public static void moveMainOldStackToFreeSlot(PlayerEntity entity){
-        ItemStack oldStack = entity.getItemBySlot(EquipmentSlotType.MAINHAND);
+    public static void moveMainOldStackToFreeSlot(Player entity){
+        ItemStack oldStack = entity.getItemBySlot(EquipmentSlot.MAINHAND);
         oldStack.shrink(1);
-        int freeSlot= entity.inventory.getFreeSlot();
+        int freeSlot= entity.getInventory().getFreeSlot();
         if (freeSlot != -1){
-            entity.setSlot(freeSlot,oldStack);
+            entity.getInventory().setItem(freeSlot,oldStack);
+            //entity.setSlot(freeSlot,oldStack);
         }else {
             entity.spawnAtLocation(oldStack);
         }
     }
     public static Direction getDirectionFromEntity(LivingEntity placer,BlockPos pos){
-        Vector3d vec3d = placer.position();
+        Vec3 vec3d = placer.position();
         Direction d= Direction.getNearest(vec3d.x-pos.getX(),vec3d.y-pos.getY(),vec3d.z-pos.getZ());
         if (d== Direction.DOWN || d== Direction.UP){
             return Direction.NORTH;
@@ -48,10 +54,10 @@ public class Functions {
         return d;
     }
 
-    public static ExtendDirection getDirectionFromEntityAndNeighbor(LivingEntity placer, BlockPos pos, World world){
+    public static ExtendDirection getDirectionFromEntityAndNeighbor(LivingEntity placer, BlockPos pos, Level world){
         WindowBlock window = (WindowBlock)world.getBlockState(pos).getBlock();
         ExtendDirection defaultDir = ExtendDirection.getFacingFromPlayer(placer,pos);
-        Vector3d vec3d = placer.position();
+        Vec3 vec3d = placer.position();
         boolean northSouth = false;
         boolean eastWest = false;
         boolean northWestSouthEast = false;
@@ -180,17 +186,17 @@ public class Functions {
 
 
     public static double Distance3(double[] first_pos, double[] player_pos) {
-        return MathHelper.sqrt(
-                Math.pow(first_pos[0]-player_pos[0],2.0)+
-                        Math.pow(first_pos[1]-player_pos[1],2.0)+
-                        Math.pow(first_pos[2]-player_pos[2],2.0)) ;
+        return Mth.sqrt(
+                (float) (Math.pow(first_pos[0]-player_pos[0],2.0)+
+                                        Math.pow(first_pos[1]-player_pos[1],2.0)+
+                                        Math.pow(first_pos[2]-player_pos[2],2.0))) ;
 
     }
 
     public static VoxelShape getShapeFromVoxelIntsTab(VoxelDoubles[] usedVoxels, Direction facing, VoxelShape shape){
         for (VoxelDoubles vi : usedVoxels){
             vi = vi.rotate(Direction.EAST,facing);
-            shape = VoxelShapes.or(shape,vi.getAssociatedShape());
+            shape = Shapes.or(shape,vi.getAssociatedShape());
         }
         return shape;
     }
@@ -198,12 +204,12 @@ public class Functions {
     public static VoxelShape getShapeFromVoxelIntsTab(List<VoxelDoubles> usedVoxels,Direction facing,VoxelShape shape){
         for (VoxelDoubles vi : usedVoxels){
             vi = vi.rotate(Direction.EAST,facing);
-            shape = VoxelShapes.or(shape,vi.getAssociatedShape());
+            shape = Shapes.or(shape,vi.getAssociatedShape());
         }
         return shape;
     }
 
-    public static boolean testReplaceable(BlockItemUseContext context,BlockPos... positions){
+    public static boolean testReplaceable(BlockPlaceContext context,BlockPos... positions){
         boolean isReplaceable = true;
         for (BlockPos pos : positions){
             isReplaceable = isReplaceable && context.getLevel().getBlockState(pos).canBeReplaced(context);
@@ -292,7 +298,7 @@ public class Functions {
                 voxels.set(i,symVoxel);
             }
         }
-        return getShapeFromVoxelIntsTab(voxels,facing,VoxelShapes.empty());
+        return getShapeFromVoxelIntsTab(voxels,facing,Shapes.empty());
     }
 
     public static VoxelShape makeSquareShape(DoorPlacing placing,Direction facing,boolean isOpen){
@@ -312,7 +318,7 @@ public class Functions {
                 voxels.set(i,symVoxel);
             }
         }
-        return getShapeFromVoxelIntsTab(voxels,facing,VoxelShapes.empty());
+        return getShapeFromVoxelIntsTab(voxels,facing,Shapes.empty());
     }
 
     public static VoxelShape makeGardenDoorShape(DoorPlacing placing, Direction facing, boolean isOpen){
@@ -396,7 +402,7 @@ public class Functions {
                 voxels.set(i,symVoxel);
             }
         }
-        return getShapeFromVoxelIntsTab(voxels,facing,VoxelShapes.empty());
+        return getShapeFromVoxelIntsTab(voxels,facing,Shapes.empty());
     }
 
     public static VoxelShape makeDrawBridgeShape(DrawBridgePosition position,int animState,Direction facing){
@@ -420,7 +426,7 @@ public class Functions {
         }
         //add the bridge
         double deltaZ=Math.tan(Math.PI/8*animState);
-        int endY=MathHelper.fastFloor(40*Math.cos(animState*Math.PI/8));
+        int endY=Mth.fastFloor(40*Math.cos(animState*Math.PI/8));
         if (!position.isUp()){
             if (animState==4){
                 voxels.add(new VoxelDoubles(begX,0,16,12,2,16,true)); //open bridge
@@ -431,9 +437,9 @@ public class Functions {
             }
         }
         //merge all vi for voxel-shape
-        VoxelShape shape = VoxelShapes.empty();
+        VoxelShape shape = Shapes.empty();
         for (VoxelDoubles vi : voxels){
-            shape = VoxelShapes.or(shape, vi.rotate(Direction.SOUTH, facing).getAssociatedShape());
+            shape = Shapes.or(shape, vi.rotate(Direction.SOUTH, facing).getAssociatedShape());
         }
         return shape;
     }

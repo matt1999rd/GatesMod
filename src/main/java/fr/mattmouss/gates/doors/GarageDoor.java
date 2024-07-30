@@ -1,38 +1,47 @@
 package fr.mattmouss.gates.doors;
 
+import fr.mattmouss.gates.blocks.ModBlock;
 import fr.mattmouss.gates.enum_door.Placing;
+import fr.mattmouss.gates.tileentity.CardGetterTileEntity;
 import fr.mattmouss.gates.tileentity.GarageTileEntity;
 import fr.mattmouss.gates.util.Functions;
-import net.minecraft.block.*;
-import net.minecraft.block.material.Material;
-import net.minecraft.entity.LivingEntity;
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.item.ItemStack;
-import net.minecraft.pathfinding.PathType;
-import net.minecraft.state.EnumProperty;
-import net.minecraft.state.IntegerProperty;
-import net.minecraft.state.StateContainer;
-import net.minecraft.state.properties.BlockStateProperties;
-import net.minecraft.tileentity.TileEntity;
-import net.minecraft.util.ActionResultType;
+import net.minecraft.world.level.block.EntityBlock;
+import net.minecraft.world.level.block.entity.BlockEntityTicker;
+import net.minecraft.world.level.block.entity.BlockEntityType;
+import net.minecraft.world.level.material.Material;
+import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.pathfinder.PathComputationType;
+import net.minecraft.world.level.block.state.properties.EnumProperty;
+import net.minecraft.world.level.block.state.properties.IntegerProperty;
+import net.minecraft.world.level.block.state.StateDefinition;
+import net.minecraft.world.level.block.state.properties.BlockStateProperties;
+import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.world.InteractionResult;
 // for 1.14
 //import net.minecraft.util.BlockRenderLayer;
-import net.minecraft.util.Direction;
-import net.minecraft.util.Hand;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.BlockRayTraceResult;
-import net.minecraft.util.math.shapes.ISelectionContext;
-import net.minecraft.util.math.shapes.VoxelShape;
-import net.minecraft.world.IBlockReader;
-import net.minecraft.world.IWorld;
-import net.minecraft.world.World;
+import net.minecraft.core.Direction;
+import net.minecraft.world.InteractionHand;
+import net.minecraft.core.BlockPos;
+import net.minecraft.world.phys.BlockHitResult;
+import net.minecraft.world.phys.shapes.CollisionContext;
+import net.minecraft.world.phys.shapes.VoxelShape;
+import net.minecraft.world.level.BlockGetter;
+import net.minecraft.world.level.LevelAccessor;
+import net.minecraft.world.level.Level;
 
 import javax.annotation.Nullable;
 import javax.annotation.ParametersAreNonnullByDefault;
 import java.util.List;
 
 
-public class GarageDoor extends Block {
+import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.Blocks;
+import net.minecraft.world.level.block.SoundType;
+import net.minecraft.world.level.block.state.BlockState;
+
+public class GarageDoor extends Block implements EntityBlock {
 
     /**
     * one thing to do :
@@ -69,7 +78,7 @@ public class GarageDoor extends Block {
 
 
     @Override
-    public VoxelShape getShape(BlockState state, IBlockReader p_220053_2_, BlockPos p_220053_3_, ISelectionContext p_220053_4_) {
+    public VoxelShape getShape(BlockState state, BlockGetter p_220053_2_, BlockPos p_220053_3_, CollisionContext p_220053_4_) {
         Placing placing = state.getValue(GARAGE_PLACING);
         int val = state.getValue(ANIMATION);
         Direction dir = state.getValue(BlockStateProperties.HORIZONTAL_FACING);
@@ -162,26 +171,22 @@ public class GarageDoor extends Block {
 
     }
 
-    @Override
-    public boolean hasTileEntity(BlockState state) {
-        return true;
-    }
-
     @Nullable
     @Override
-    public TileEntity createTileEntity(BlockState state, IBlockReader world) {
-        return new GarageTileEntity();
+    public BlockEntity newBlockEntity(BlockPos blockPos, BlockState blockState) {
+        return new GarageTileEntity(blockPos,blockState);
     }
 
+
     @Override
-    protected void createBlockStateDefinition(StateContainer.Builder<Block, BlockState> builder) {
+    protected void createBlockStateDefinition(StateDefinition.Builder<Block, BlockState> builder) {
         builder.add(BlockStateProperties.HORIZONTAL_FACING, GARAGE_PLACING,ANIMATION);
     }
 
 
 
     @Override
-    public void setPlacedBy(World world, BlockPos pos, BlockState state, @Nullable LivingEntity entity, ItemStack stack) {
+    public void setPlacedBy(Level world, BlockPos pos, BlockState state, @Nullable LivingEntity entity, ItemStack stack) {
         if (entity != null){
             Direction dir_entity = Functions.getDirectionFromEntity(entity,pos);
             System.out.println("dir_entity :"+dir_entity.getSerializedName());
@@ -218,7 +223,7 @@ public class GarageDoor extends Block {
 
     @Override
     @ParametersAreNonnullByDefault
-    public void playerWillDestroy(World world, BlockPos pos, BlockState state, PlayerEntity playerEntity) {
+    public void playerWillDestroy(Level world, BlockPos pos, BlockState state, Player playerEntity) {
         ItemStack itemstack = playerEntity.getMainHandItem();
         if (!world.isClientSide && !playerEntity.isCreative()) {
             Block.dropResources(state, world, pos, null, playerEntity, itemstack);
@@ -227,12 +232,12 @@ public class GarageDoor extends Block {
 
     @Override
     @ParametersAreNonnullByDefault
-    public void playerDestroy(World world, PlayerEntity entity, BlockPos pos, BlockState state, @Nullable TileEntity tileEntity, ItemStack stack) {
+    public void playerDestroy(Level world, Player entity, BlockPos pos, BlockState state, @Nullable BlockEntity tileEntity, ItemStack stack) {
         super.playerDestroy(world, entity, pos, Blocks.AIR.defaultBlockState(), tileEntity, stack);
     }
 
     @Override
-    public BlockState updateShape(BlockState stateIn, Direction facing, BlockState facingState, IWorld worldIn, BlockPos currentPos, BlockPos facingPos) {
+    public BlockState updateShape(BlockState stateIn, Direction facing, BlockState facingState, LevelAccessor worldIn, BlockPos currentPos, BlockPos facingPos) {
         Placing placing = stateIn.getValue(GARAGE_PLACING);
         Direction blockFacing = stateIn.getValue(BlockStateProperties.HORIZONTAL_FACING).getOpposite();
 
@@ -269,7 +274,7 @@ public class GarageDoor extends Block {
     //1.15 function
 
     @Override
-    public ActionResultType use(BlockState state, World world, BlockPos pos, PlayerEntity entity, Hand hand, BlockRayTraceResult blockRayTraceResult) {
+    public InteractionResult use(BlockState state, Level world, BlockPos pos, Player entity, InteractionHand hand, BlockHitResult blockRayTraceResult) {
         GarageTileEntity gte = (GarageTileEntity) world.getBlockEntity(pos);
         System.out.println("position of base block:"+pos);
         assert gte != null;
@@ -282,10 +287,10 @@ public class GarageDoor extends Block {
             gte2.startAnimation();
         }
         gte.startAnimation();
-        return ActionResultType.SUCCESS;
+        return InteractionResult.SUCCESS;
     }
 
-    public boolean isPathfindable(BlockState state, IBlockReader reader, BlockPos pos, PathType pathType) {
+    public boolean isPathfindable(BlockState state, BlockGetter reader, BlockPos pos, PathComputationType pathType) {
         switch(pathType) {
             case LAND:
             case AIR:
@@ -295,6 +300,15 @@ public class GarageDoor extends Block {
         }
     }
 
+    @Nullable
+    @Override
+    public <T extends BlockEntity> BlockEntityTicker<T> getTicker(Level level, BlockState state, BlockEntityType<T> type) {
+        return (type == ModBlock.GARAGE_TILE_TYPE) ? (((level1, blockPos, blockState, t) -> {
+            if (t instanceof GarageTileEntity) {
+                ((GarageTileEntity) t).tick(level1);
+            }
+        })) : null;
+    }
 
     static {
         SOUTH_AABB = Block.box(0.0D, 0.0D, 0.0D, 16.0D, 16.0D, 1.0D);
@@ -305,6 +319,7 @@ public class GarageDoor extends Block {
         UP_AABB = Block.box(0.0D,15.0D,0.0D,16.0D,16.0D,16.0D);
         FULL_AABB = Block.box(0.0D,0.0D,0.0D,16.0D,16.0D,16.0D);
     }
+
 
 
 }

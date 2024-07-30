@@ -2,16 +2,16 @@ package fr.mattmouss.gates.items;
 
 import fr.mattmouss.gates.doors.TurnStile;
 import fr.mattmouss.gates.tileentity.TurnStileTileEntity;
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.entity.player.ServerPlayerEntity;
-import net.minecraft.item.ItemStack;
-import net.minecraft.item.ItemUseContext;
-import net.minecraft.tileentity.TileEntity;
-import net.minecraft.util.ActionResultType;
-import net.minecraft.util.Hand;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.world.World;
-import net.minecraftforge.fml.network.NetworkHooks;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.context.UseOnContext;
+import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.world.InteractionResult;
+import net.minecraft.world.InteractionHand;
+import net.minecraft.core.BlockPos;
+import net.minecraft.world.level.Level;
+import net.minecraftforge.fmllegacy.network.NetworkHooks;
 
 public class TurnStileKeyItem extends KeyItem {
     public TurnStileKeyItem() {
@@ -20,14 +20,14 @@ public class TurnStileKeyItem extends KeyItem {
     }
 
     @Override
-    public ActionResultType useOn(ItemUseContext context) {
+    public InteractionResult useOn(UseOnContext context) {
         BlockPos pos = context.getClickedPos();
-        PlayerEntity entity = context.getPlayer();
-        World world = context.getLevel();
-        Hand hand = context.getHand();
+        Player entity = context.getPlayer();
+        Level world = context.getLevel();
+        InteractionHand hand = context.getHand();
         assert entity != null;
         ItemStack stack = entity.getItemInHand(hand);
-        TileEntity te= world.getBlockEntity(pos);
+        BlockEntity te= world.getBlockEntity(pos);
         if (!(te instanceof TurnStileTileEntity)){
             //we exit the function if it is not a TurnStileTileEntity
             return super.useOn(context);
@@ -62,7 +62,7 @@ public class TurnStileKeyItem extends KeyItem {
         TurnStileTileEntity tste = (TurnStileTileEntity) world.getBlockEntity(pos);
         if (!world.isClientSide) {
             assert tste != null;
-            NetworkHooks.openGui((ServerPlayerEntity) entity, tste, tste.getBlockPos());
+            NetworkHooks.openGui((ServerPlayer) entity, tste, tste.getBlockPos());
         }
         return super.useOn(context);
 

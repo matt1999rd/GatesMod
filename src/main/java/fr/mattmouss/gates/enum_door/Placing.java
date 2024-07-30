@@ -1,8 +1,8 @@
 package fr.mattmouss.gates.enum_door;
 
-import net.minecraft.util.IStringSerializable;
+import net.minecraft.util.StringRepresentable;
 
-public enum Placing implements IStringSerializable {
+public enum Placing implements StringRepresentable {
     DOWN_LEFT(0,"down_left"),
     DOWN_RIGHT(1,"down_right"),
     UP_LEFT(2,"up_left"),

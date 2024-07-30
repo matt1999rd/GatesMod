@@ -3,41 +3,40 @@ package fr.mattmouss.gates.tileentity;
 import fr.mattmouss.gates.blocks.ModBlock;
 import fr.mattmouss.gates.doors.WindowDoor;
 import fr.mattmouss.gates.enum_door.DoorPlacing;
-import net.minecraft.block.BlockState;
-import net.minecraft.entity.player.ServerPlayerEntity;
-import net.minecraft.state.properties.BlockStateProperties;
-import net.minecraft.tileentity.ITickableTileEntity;
-import net.minecraft.tileentity.TileEntity;
-import net.minecraft.util.Direction;
-import net.minecraft.util.math.vector.Vector3d;
-import net.minecraft.world.server.ServerWorld;
+import net.minecraft.core.BlockPos;
+import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.level.block.state.properties.BlockStateProperties;
+import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.core.Direction;
+import net.minecraft.world.phys.Vec3;
+import net.minecraft.server.level.ServerLevel;
 import java.util.List;
 
 
-public class WindowDoorTileEntity extends TileEntity implements ITickableTileEntity {
+public class WindowDoorTileEntity extends BlockEntity {
 
     boolean isOpening=false,isClosing=false;
 
-    public WindowDoorTileEntity() {
-        super(ModBlock.WINDOW_DOOR_TILE_TYPE);
+    public WindowDoorTileEntity(BlockPos blockPos, BlockState blockState) {
+        super(ModBlock.WINDOW_DOOR_TILE_TYPE,blockPos,blockState);
     }
 
 
-    @Override
-    public void tick() {
-        if (this.getBlockState().getValue(WindowDoor.PLACING) == DoorPlacing.CENTER_DOWN) {
-            assert level != null;
+
+    public void tick(Level level,BlockState state) {
+        if (state.getValue(WindowDoor.PLACING) == DoorPlacing.CENTER_DOWN) {
             if (!level.isClientSide) {
-                int animation = getBlockState().getValue(WindowDoor.ANIMATION);
+                int animation = state.getValue(WindowDoor.ANIMATION);
                 if (animation == 0 || animation == 4) {
-                    ServerWorld world = (ServerWorld) getLevel();
+                    ServerLevel world = (ServerLevel) level;
                     boolean existPlayerNearby = false;
-                    assert world != null;
-                    List<ServerPlayerEntity> playerEntities = world.players();
-                    for (ServerPlayerEntity player : playerEntities) {
+                    List<ServerPlayer> playerEntities = world.players();
+                    for (ServerPlayer player : playerEntities) {
                         if (!existPlayerNearby) {
-                            Vector3d playerPos = player.position();
-                            if (playerPos.distanceTo(new Vector3d(worldPosition.getX() + 0.5, worldPosition.getY(), worldPosition.getZ() + 0.5)) < 3.0F) {
+                            Vec3 playerPos = player.position();
+                            if (playerPos.distanceTo(new Vec3(worldPosition.getX() + 0.5, worldPosition.getY(), worldPosition.getZ() + 0.5)) < 3.0F) {
                                 existPlayerNearby = true;
                             }
                         }

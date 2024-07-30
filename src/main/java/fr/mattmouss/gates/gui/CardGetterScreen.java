@@ -1,30 +1,31 @@
 package fr.mattmouss.gates.gui;
 
-import com.mojang.blaze3d.matrix.MatrixStack;
+import com.mojang.blaze3d.systems.RenderSystem;
+import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.platform.GlStateManager;
 import fr.mattmouss.gates.GatesMod;
 import fr.mattmouss.gates.network.Networking;
 import fr.mattmouss.gates.network.PacketChangeSelectedID;
 import fr.mattmouss.gates.tileentity.CardGetterTileEntity;
-import net.minecraft.client.gui.FontRenderer;
-import net.minecraft.client.gui.IGuiEventListener;
-import net.minecraft.client.gui.screen.inventory.ContainerScreen;
-import net.minecraft.client.gui.widget.button.ImageButton;
-import net.minecraft.entity.player.PlayerInventory;
-import net.minecraft.util.ResourceLocation;
-import net.minecraft.util.math.MathHelper;
-import net.minecraft.util.text.ITextComponent;
+import net.minecraft.client.gui.Font;
+import net.minecraft.client.gui.components.events.GuiEventListener;
+import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
+import net.minecraft.client.gui.components.ImageButton;
+import net.minecraft.world.entity.player.Inventory;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.util.Mth;
+import net.minecraft.network.chat.Component;
 
 import javax.annotation.Nonnull;
 import java.util.List;
 
-public class CardGetterScreen extends ContainerScreen<CardGetterContainer> implements IGuiEventListener {
-    public CardGetterScreen(CardGetterContainer container, PlayerInventory inventory, ITextComponent component) {
+public class CardGetterScreen extends AbstractContainerScreen<CardGetterContainer> implements GuiEventListener {
+    public CardGetterScreen(CardGetterContainer container, Inventory inventory, Component component) {
         super(container, inventory, component);
         this.inventoryLabelX = container.leftCol-1;
         this.inventoryLabelY = container.topRow-1-9;
     }
-    private static final int white = MathHelper.color(1f,1f,1f);
+    private static final int white = Mth.color(1f,1f,1f);
     private static int rank_first_element = 0;
     private static final int numberOfIdDisplayed = 6;
 
@@ -60,12 +61,12 @@ public class CardGetterScreen extends ContainerScreen<CardGetterContainer> imple
                         7, //difference in y between hovered and non hovered button
                         WIDGET, //png where the image is
                         button -> selectDownId()); //to move to up id
-        addButton(UpArrow);
-        addButton(DownArrow);
+        addRenderableWidget(UpArrow);
+        addRenderableWidget(DownArrow);
     }
 
     @Override
-    public void render(@Nonnull MatrixStack stack, int mouseX, int mouseY, float partialTicks) {
+    public void render(@Nonnull PoseStack stack, int mouseX, int mouseY, float partialTicks) {
         this.renderBackground(stack);
         super.render(stack,mouseX, mouseY, partialTicks);
         this.renderTooltip(stack,mouseX,mouseY);
@@ -89,9 +90,9 @@ public class CardGetterScreen extends ContainerScreen<CardGetterContainer> imple
     }
 
     @Override
-    protected void renderLabels(@Nonnull MatrixStack stack, int p_146979_1_, int p_146979_2_) {
+    protected void renderLabels(@Nonnull PoseStack stack, int p_146979_1_, int p_146979_2_) {
         assert this.minecraft != null;
-        FontRenderer fontRenderer = this.minecraft.font;
+        Font fontRenderer = this.minecraft.font;
         CardGetterTileEntity cgte = this.getMenu().getTileEntity();
         int nbOfId = getMenu().getIdNumber();
         // is done when rank first element increase the size of possible value
@@ -105,7 +106,7 @@ public class CardGetterScreen extends ContainerScreen<CardGetterContainer> imple
             int id = getIdFromOrder(i);
             if (id != -1){
                 int price = cgte.getPrice(id);
-                this.minecraft.getTextureManager().bind(WIDGET);
+                RenderSystem.setShaderTexture(0,WIDGET);
                 int offset = (i-rank_first_element)*23;
                 //two first argument are up left coordinate of the button in gui
                 //two second argument are up left coordinate of the button in texture WIDGET
@@ -123,9 +124,8 @@ public class CardGetterScreen extends ContainerScreen<CardGetterContainer> imple
 
 
     @Override
-    protected void renderBg(@Nonnull MatrixStack stack, float partialTicks, int mouseX, int mouseY) {
-        assert this.minecraft != null;
-        this.minecraft.getTextureManager().bind(GUI);
+    protected void renderBg(@Nonnull PoseStack stack, float partialTicks, int mouseX, int mouseY) {
+        RenderSystem.setShaderTexture(0,GUI);
         int WIDTH = (this.width - this.imageWidth) / 2;
         int HEIGHT = (this.height - this.imageHeight) / 2;
         //1.14 : .blitOffset 1.15 : getBlitOffset()
@@ -136,7 +136,7 @@ public class CardGetterScreen extends ContainerScreen<CardGetterContainer> imple
     private int getIdClicked(double mouseX,double mouseY){
         if (mouseX>leftPos+91 || mouseX<leftPos+4 || mouseY<topPos+17 || mouseY>topPos+154) return -1;
         else {
-            int image_order = MathHelper.floor((mouseY-topPos-17f)/23f);
+            int image_order = Mth.floor((mouseY-topPos-17f)/23f);
             return getIdFromOrder(image_order+rank_first_element);
         }
     }

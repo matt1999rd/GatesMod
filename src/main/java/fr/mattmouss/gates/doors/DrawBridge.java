@@ -1,39 +1,45 @@
 package fr.mattmouss.gates.doors;
 
 import com.google.common.collect.Lists;
+import fr.mattmouss.gates.blocks.ModBlock;
 import fr.mattmouss.gates.enum_door.DrawBridgePosition;
+import fr.mattmouss.gates.tileentity.CardGetterTileEntity;
 import fr.mattmouss.gates.tileentity.DrawBridgeTileEntity;
 import fr.mattmouss.gates.util.Functions;
 import fr.mattmouss.gates.voxels.VoxelDefinition;
 import fr.mattmouss.gates.voxels.VoxelDoubles;
-import net.minecraft.block.Block;
-import net.minecraft.block.BlockState;
-import net.minecraft.block.Blocks;
-import net.minecraft.block.SoundType;
-import net.minecraft.block.material.Material;
-import net.minecraft.entity.LivingEntity;
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.item.BlockItemUseContext;
-import net.minecraft.item.ItemStack;
-import net.minecraft.pathfinding.PathType;
-import net.minecraft.state.EnumProperty;
-import net.minecraft.state.IntegerProperty;
-import net.minecraft.state.StateContainer;
-import net.minecraft.state.properties.BlockStateProperties;
-import net.minecraft.tileentity.TileEntity;
-import net.minecraft.util.Direction;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.shapes.ISelectionContext;
-import net.minecraft.util.math.shapes.VoxelShape;
-import net.minecraft.util.math.shapes.VoxelShapes;
-import net.minecraft.world.IBlockReader;
-import net.minecraft.world.IWorld;
-import net.minecraft.world.World;
+import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.EntityBlock;
+import net.minecraft.world.level.block.entity.BlockEntityTicker;
+import net.minecraft.world.level.block.entity.BlockEntityType;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.block.Blocks;
+import net.minecraft.world.level.block.SoundType;
+import net.minecraft.world.level.material.Material;
+import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.context.BlockPlaceContext;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.pathfinder.PathComputationType;
+import net.minecraft.world.level.block.state.properties.EnumProperty;
+import net.minecraft.world.level.block.state.properties.IntegerProperty;
+import net.minecraft.world.level.block.state.StateDefinition;
+import net.minecraft.world.level.block.state.properties.BlockStateProperties;
+import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.core.Direction;
+import net.minecraft.core.BlockPos;
+import net.minecraft.world.phys.shapes.CollisionContext;
+import net.minecraft.world.phys.shapes.VoxelShape;
+import net.minecraft.world.phys.shapes.Shapes;
+import net.minecraft.world.level.BlockGetter;
+import net.minecraft.world.level.LevelAccessor;
+import net.minecraft.world.level.Level;
 
 import javax.annotation.Nullable;
 import java.util.List;
 
-public class DrawBridge extends Block {
+
+public class DrawBridge extends Block implements EntityBlock {
     public static EnumProperty<DrawBridgePosition> POSITION=EnumProperty.create("position",DrawBridgePosition.class);
 
     public static IntegerProperty ANIMATION = IntegerProperty.create("animation",0,4);
@@ -47,25 +53,20 @@ public class DrawBridge extends Block {
         this.setRegistryName(key);
     }
 
-    @Override
-    public boolean hasTileEntity(BlockState state) {
-        return state.getValue(POSITION) == DrawBridgePosition.DOOR_LEFT_DOWN;
-    }
-
     @Nullable
     @Override
-    public TileEntity createTileEntity(BlockState state, IBlockReader world) {
-        return hasTileEntity(state)?new DrawBridgeTileEntity():null;
+    public BlockEntity newBlockEntity(BlockPos blockPos, BlockState blockState) {
+        return new DrawBridgeTileEntity(blockPos,blockState);
     }
 
     @Override
-    public VoxelShape getShape(BlockState state, IBlockReader worldIn, BlockPos pos, ISelectionContext context) {
+    public VoxelShape getShape(BlockState state, BlockGetter worldIn, BlockPos pos, CollisionContext context) {
         DrawBridgePosition position = state.getValue(POSITION);
         int animState=state.getValue(ANIMATION);
         Direction facing=state.getValue(BlockStateProperties.HORIZONTAL_FACING);
         //opening bridge part when closed (or almost)
         if (position.isBridge()) {
-            if (animState != 4 || position.isBridgeExt())return VoxelShapes.empty();
+            if (animState != 4 || position.isBridgeExt())return Shapes.empty();
             int begX = (position.isRight())?4:0;
             VoxelDoubles voxel = new VoxelDoubles(begX,0,16,12,2,28,true);
             return voxel.rotate(Direction.SOUTH,facing).getAssociatedShape();
@@ -84,7 +85,7 @@ public class DrawBridge extends Block {
     }
 
     @Override
-    public void setPlacedBy(World worldIn, BlockPos pos, BlockState state, @Nullable LivingEntity placer, ItemStack stack) {
+    public void setPlacedBy(Level worldIn, BlockPos pos, BlockState state, @Nullable LivingEntity placer, ItemStack stack) {
         if (placer != null){
             Direction facing = Functions.getDirectionFromEntity(placer,pos).getOpposite();
             for (DrawBridgePosition position : DrawBridgePosition.values()){
@@ -95,7 +96,7 @@ public class DrawBridge extends Block {
 
     @Nullable
     @Override
-    public BlockState getStateForPlacement(BlockItemUseContext context) {
+    public BlockState getStateForPlacement(BlockPlaceContext context) {
         if (checkFeasibility(context)){
             BlockState state = defaultBlockState();
             Direction facing = context.getHorizontalDirection();
@@ -105,10 +106,10 @@ public class DrawBridge extends Block {
         }
     }
 
-    public boolean checkFeasibility(BlockItemUseContext context){
+    public boolean checkFeasibility(BlockPlaceContext context){
         BlockPos pos=context.getClickedPos();
         Direction facing = context.getHorizontalDirection();
-        World world= context.getLevel();
+        Level world= context.getLevel();
         List<BlockPos> posList = getNeighborPositions(facing,pos,DrawBridgePosition.DOOR_LEFT_DOWN);
         for (BlockPos aPos : posList){
             if (!world.getBlockState(aPos).canBeReplaced(context)){
@@ -119,7 +120,7 @@ public class DrawBridge extends Block {
     }
 
     @Override
-    protected void createBlockStateDefinition(StateContainer.Builder<Block, BlockState> builder) {
+    protected void createBlockStateDefinition(StateDefinition.Builder<Block, BlockState> builder) {
         builder.add(BlockStateProperties.POWERED,BlockStateProperties.HORIZONTAL_FACING,POSITION,ANIMATION);
     }
 
@@ -133,12 +134,12 @@ public class DrawBridge extends Block {
     }
 
     @Override
-    public void playerDestroy(World world, PlayerEntity entity, BlockPos pos, BlockState state, @Nullable TileEntity tileEntity, ItemStack stack) {
+    public void playerDestroy(Level world, Player entity, BlockPos pos, BlockState state, @Nullable BlockEntity tileEntity, ItemStack stack) {
         super.playerDestroy(world, entity, pos, Blocks.AIR.defaultBlockState(), tileEntity, stack);
     }
 
     @Override
-    public void playerWillDestroy(World world, BlockPos pos, BlockState state, PlayerEntity entity) {
+    public void playerWillDestroy(Level world, BlockPos pos, BlockState state, Player entity) {
         System.out.println("destroying all block of turn stile");
         ItemStack stack = entity.getMainHandItem();
         if (!world.isClientSide) {
@@ -147,7 +148,7 @@ public class DrawBridge extends Block {
         super.playerWillDestroy(world, pos, state, entity);
     }
 
-    public boolean isPathfindable(BlockState state, IBlockReader reader, BlockPos pos, PathType pathType) {
+    public boolean isPathfindable(BlockState state, BlockGetter reader, BlockPos pos, PathComputationType pathType) {
         switch(pathType) {
             case LAND:
             case AIR:
@@ -158,7 +159,7 @@ public class DrawBridge extends Block {
     }
 
     @Override
-    public BlockState updateShape(BlockState stateIn, Direction facing, BlockState facingState, IWorld worldIn, BlockPos currentPos, BlockPos facingPos) {
+    public BlockState updateShape(BlockState stateIn, Direction facing, BlockState facingState, LevelAccessor worldIn, BlockPos currentPos, BlockPos facingPos) {
         DrawBridgePosition position = stateIn.getValue(POSITION);
         Direction blockFacing = stateIn.getValue(BlockStateProperties.HORIZONTAL_FACING);
         if (isInnerUpdate(position,facing,blockFacing) &&  !(facingState.getBlock() instanceof DrawBridge)){
@@ -175,7 +176,7 @@ public class DrawBridge extends Block {
     }
 
     @Override
-    public void neighborChanged(BlockState state, World worldIn, BlockPos pos, Block blockIn, BlockPos fromPos, boolean isMoving) {
+    public void neighborChanged(BlockState state, Level worldIn, BlockPos pos, Block blockIn, BlockPos fromPos, boolean isMoving) {
         boolean flag = isNeighBorDoorBlockPowered(pos,state,worldIn);
         DrawBridgePosition position = state.getValue(POSITION);
         if (blockIn != this && flag != state.getValue(BlockStateProperties.POWERED) && position == DrawBridgePosition.DOOR_LEFT_DOWN){
@@ -183,7 +184,7 @@ public class DrawBridge extends Block {
         }
     }
 
-    private boolean isNeighBorDoorBlockPowered(BlockPos pos, BlockState state, World world) {
+    private boolean isNeighBorDoorBlockPowered(BlockPos pos, BlockState state, Level world) {
         DrawBridgePosition dbp = state.getValue(POSITION);
         Direction facing = state.getValue(BlockStateProperties.HORIZONTAL_FACING);
         List<BlockPos> blockPosList = getNeighborPositions(facing,pos,dbp);
@@ -198,5 +199,13 @@ public class DrawBridge extends Block {
         return false;
     }
 
-
+    @Nullable
+    @Override
+    public <T extends BlockEntity> BlockEntityTicker<T> getTicker(Level level, BlockState state, BlockEntityType<T> type) {
+        return (type == ModBlock.DRAW_BRIDGE_TILE_TYPE) ? (((level1, blockPos, blockState, t) -> {
+            if (t instanceof DrawBridgeTileEntity) {
+                ((DrawBridgeTileEntity) t).tick(blockState);
+            }
+        })) : null;
+    }
 }

@@ -4,11 +4,11 @@ package fr.mattmouss.gates.network;
 import fr.mattmouss.gates.tileentity.TollGateTileEntity;
 import fr.mattmouss.gates.tileentity.TurnStileTileEntity;
 
-import net.minecraft.network.PacketBuffer;
-import net.minecraft.tileentity.TileEntity;
-import net.minecraft.util.math.BlockPos;
-import net.minecraftforge.fml.network.NetworkEvent;
-import net.minecraftforge.fml.network.PacketDistributor;
+import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.core.BlockPos;
+import net.minecraftforge.fmllegacy.network.NetworkEvent;
+import net.minecraftforge.fmllegacy.network.PacketDistributor;
 
 import java.util.Objects;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -19,7 +19,7 @@ public class ChangeIdPacket {
     private final int key_id;
 
 
-    public ChangeIdPacket(PacketBuffer buf) {
+    public ChangeIdPacket(FriendlyByteBuf buf) {
         pos = buf.readBlockPos();
         key_id = buf.readInt();
     }
@@ -29,7 +29,7 @@ public class ChangeIdPacket {
         key_id = id;
     }
 
-    public void toBytes(PacketBuffer buf){
+    public void toBytes(FriendlyByteBuf buf){
         buf.writeBlockPos(pos);
         buf.writeInt(key_id);
     }
@@ -37,7 +37,7 @@ public class ChangeIdPacket {
     public void handle(Supplier<NetworkEvent.Context> context){
         AtomicInteger val = new AtomicInteger(0);
         context.get().enqueueWork(()->{
-            TileEntity te = Objects.requireNonNull(context.get().getSender()).getLevel().getBlockEntity(pos);
+            BlockEntity te = Objects.requireNonNull(context.get().getSender()).getLevel().getBlockEntity(pos);
             if (key_id == -1) {
                 System.out.println("packet handled : no key found");
                 if (te instanceof TollGateTileEntity) {

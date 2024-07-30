@@ -4,8 +4,8 @@ import java.util.HashMap;
 
 public interface ICostStorage {
     HashMap<Integer,Integer> getCostMap();
-    void addIdWithCost(int id,int cost);
-    void addIdWithoutCost(int id);
+    void addIdWithPrice(int id, int cost);
+    void addIdWithoutPrice(int id);
     void removeId(int id);
     boolean containsId(int id);
     int getPrice(int id);

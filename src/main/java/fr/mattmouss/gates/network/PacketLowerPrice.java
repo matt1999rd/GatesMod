@@ -1,9 +1,9 @@
 package fr.mattmouss.gates.network;
 
 import fr.mattmouss.gates.tileentity.IPriceControllingTE;
-import net.minecraft.network.PacketBuffer;
-import net.minecraft.util.math.BlockPos;
-import net.minecraftforge.fml.network.NetworkEvent;
+import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.core.BlockPos;
+import net.minecraftforge.fmllegacy.network.NetworkEvent;
 
 
 import java.util.Objects;
@@ -12,11 +12,11 @@ import java.util.function.Supplier;
 public class PacketLowerPrice {
     private final BlockPos pos;
 
-    public PacketLowerPrice(PacketBuffer buf){
+    public PacketLowerPrice(FriendlyByteBuf buf){
         pos = buf.readBlockPos();
     }
 
-    public void toBytes(PacketBuffer buf){
+    public void toBytes(FriendlyByteBuf buf){
         buf.writeBlockPos(pos);
     }
 

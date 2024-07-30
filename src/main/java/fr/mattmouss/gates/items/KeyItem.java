@@ -7,23 +7,23 @@ import fr.mattmouss.gates.tileentity.TollGateTileEntity;
 
 import fr.mattmouss.gates.tileentity.TurnStileTileEntity;
 import fr.mattmouss.gates.util.Functions;
-import net.minecraft.client.util.ITooltipFlag;
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.entity.player.ServerPlayerEntity;
-import net.minecraft.item.Item;
-import net.minecraft.item.ItemStack;
-import net.minecraft.item.ItemUseContext;
-import net.minecraft.nbt.CompoundNBT;
-import net.minecraft.tileentity.TileEntity;
-import net.minecraft.util.ActionResultType;
-import net.minecraft.util.Hand;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.text.ITextComponent;
-import net.minecraft.util.text.StringTextComponent;
-import net.minecraft.util.text.TranslationTextComponent;
-import net.minecraft.world.IWorld;
-import net.minecraft.world.World;
-import net.minecraftforge.fml.network.NetworkHooks;
+import net.minecraft.world.item.TooltipFlag;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.item.Item;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.context.UseOnContext;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.world.InteractionResult;
+import net.minecraft.world.InteractionHand;
+import net.minecraft.core.BlockPos;
+import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.TextComponent;
+import net.minecraft.network.chat.TranslatableComponent;
+import net.minecraft.world.level.LevelAccessor;
+import net.minecraft.world.level.Level;
+import net.minecraftforge.fmllegacy.network.NetworkHooks;
 
 import javax.annotation.Nullable;
 import java.util.List;
@@ -42,8 +42,8 @@ public abstract class KeyItem extends Item {
      */
 
     //used in various function for obtaining the position registered (with world return null if position is an old and unused registering)
-    public BlockPos getTGPosition(ItemStack stack,@Nullable World world){
-        CompoundNBT nbt=stack.getOrCreateTag();
+    public BlockPos getTGPosition(ItemStack stack,@Nullable Level world){
+        CompoundTag nbt=stack.getOrCreateTag();
         //choose between testing only the nbt value corresponding to "toll_gate" or the reality of block position with world
         boolean isTGPosReg = (world == null)? isTGPositionReg(nbt) : isTGPositionReg(nbt, world);
         //System.out.println(isTGPosReg);
@@ -59,7 +59,7 @@ public abstract class KeyItem extends Item {
     }
 
     //used only in this class for the function that checks directly the pos relevancy
-    private BlockPos getTGPosition(CompoundNBT nbt){
+    private BlockPos getTGPosition(CompoundTag nbt){
         if (isTGPositionReg(nbt)){
             int x = nbt.getInt("pos_x");
             int y = nbt.getInt("pos_y");
@@ -70,7 +70,7 @@ public abstract class KeyItem extends Item {
     }
 
     //to know whether this item tag contains the block position of a TollGateTileEntity(present or absent)
-    protected boolean isTGPositionReg(CompoundNBT nbt){
+    protected boolean isTGPositionReg(CompoundTag nbt){
         if (nbt.contains("te")){
             //System.out.println("checking the nbt string");
             String te_name = nbt.getString("te");
@@ -81,11 +81,11 @@ public abstract class KeyItem extends Item {
     }
 
     //this function also checks that this block in world still exists (if not return false and remove the pos
-    protected boolean isTGPositionReg(CompoundNBT nbt, IWorld world){
+    protected boolean isTGPositionReg(CompoundTag nbt, LevelAccessor world){
         System.out.println("first test in isTGPositionReg(nbt,world) : "+isTGPositionReg(nbt));
         if (isTGPositionReg(nbt)){
             System.out.println("pos of tile entity to check : "+getTGPosition(nbt));
-            TileEntity te = world.getBlockEntity(Objects.requireNonNull(getTGPosition(nbt)));
+            BlockEntity te = world.getBlockEntity(Objects.requireNonNull(getTGPosition(nbt)));
             if (te == null){
                 //System.out.println("***********************removing tag of compound******************");
                 nbt.remove("te");
@@ -101,8 +101,8 @@ public abstract class KeyItem extends Item {
     }
 
     //to set TG position pos in the item stack
-    public void setTGPosition(ItemStack stack,IWorld world,BlockPos pos){
-        CompoundNBT nbt = stack.getOrCreateTag();
+    public void setTGPosition(ItemStack stack,LevelAccessor world,BlockPos pos){
+        CompoundTag nbt = stack.getOrCreateTag();
         System.out.println("defining new blockPos");
         if (isTGPositionReg(nbt,world) || isTSPositionReg(nbt,world)){
             System.out.println("not working because nbt are already defined ");
@@ -120,8 +120,8 @@ public abstract class KeyItem extends Item {
      */
 
     //used in various function for obtaining the position registered (with world return null if position is an old and unused registering)
-    public BlockPos getTSPosition(ItemStack stack,@Nullable World world){
-        CompoundNBT nbt=stack.getOrCreateTag();
+    public BlockPos getTSPosition(ItemStack stack,@Nullable Level world){
+        CompoundTag nbt=stack.getOrCreateTag();
         //choose between testing only the nbt value corresponding to "turn_stile" or the reality of block position with world
         boolean isTSPosReg = (world == null)? isTSPositionReg(nbt) : isTSPositionReg(nbt, world);
         //System.out.println(isTGPosReg);
@@ -137,7 +137,7 @@ public abstract class KeyItem extends Item {
     }
 
     //used only in this class for the function that checks directly the pos relevancy
-    private BlockPos getTSPosition(CompoundNBT nbt){
+    private BlockPos getTSPosition(CompoundTag nbt){
         if (isTSPositionReg(nbt)){
             int x = nbt.getInt("pos_x");
             int y = nbt.getInt("pos_y");
@@ -148,7 +148,7 @@ public abstract class KeyItem extends Item {
     }
 
     //to know whether this item tag contains the block position of a TollGateTileEntity(present or absent)
-    protected boolean isTSPositionReg(CompoundNBT nbt){
+    protected boolean isTSPositionReg(CompoundTag nbt){
         if (nbt.contains("te")){
             //System.out.println("checking the nbt string");
             String te_name = nbt.getString("te");
@@ -159,11 +159,11 @@ public abstract class KeyItem extends Item {
     }
 
     //this function also checks that this block in world still exists (if not return false and remove the pos
-    protected boolean isTSPositionReg(CompoundNBT nbt, IWorld world){
+    protected boolean isTSPositionReg(CompoundTag nbt, LevelAccessor world){
         System.out.println("first test in isTSPositionReg(nbt,world) : "+isTSPositionReg(nbt));
         if (isTSPositionReg(nbt)){
             System.out.println("pos of tile entity to check : "+getTSPosition(nbt));
-            TileEntity te = world.getBlockEntity(Objects.requireNonNull(getTSPosition(nbt)));
+            BlockEntity te = world.getBlockEntity(Objects.requireNonNull(getTSPosition(nbt)));
             if (te == null){
                 System.out.println("***********************removing tag of compound******************");
                 nbt.remove("te");
@@ -178,8 +178,8 @@ public abstract class KeyItem extends Item {
         return false;
     }
 
-    public void setTSPosition(ItemStack stack,IWorld world,BlockPos pos){
-        CompoundNBT nbt = stack.getOrCreateTag();
+    public void setTSPosition(ItemStack stack,LevelAccessor world,BlockPos pos){
+        CompoundTag nbt = stack.getOrCreateTag();
         System.out.println("defining new blockPos");
         if (isTSPositionReg(nbt,world)){
             System.out.println("not working because nbt are already defined ");
@@ -194,7 +194,7 @@ public abstract class KeyItem extends Item {
 
 
     @Override
-    public ITextComponent getName(ItemStack stack) {
+    public Component getName(ItemStack stack) {
         //this first five line is a filter for when stack has no position stored
         BlockPos registeredPos = getTGPosition(stack,null);
 
@@ -207,20 +207,20 @@ public abstract class KeyItem extends Item {
         int id = Functions.getIdFromBlockPos(registeredPos);
         String formattedString = "# %1$d";
         String st =String.format(formattedString,id);
-        return new TranslationTextComponent(this.getDescriptionId(stack),st);
+        return new TranslatableComponent(this.getDescriptionId(stack),st);
     }
 
     @Override
-    public void appendHoverText(ItemStack stack, @Nullable World world, List<ITextComponent> componentList, ITooltipFlag flag) {
+    public void appendHoverText(ItemStack stack, @Nullable Level world, List<Component> componentList, TooltipFlag flag) {
         assert stack.getTag() != null;
         if (stack.getTag().contains("id")){
             int id = stack.getTag().getInt("id");
-            componentList.add(new StringTextComponent("Id :"+id));
+            componentList.add(new TextComponent("Id :"+id));
         }
         super.appendHoverText(stack, world, componentList, flag);
     }
 
-    private BlockPos getTSorTGPosition(ItemStack stack,World world){
+    public BlockPos getTSorTGPosition(ItemStack stack,Level world){
         Item item = stack.getItem();
         if (item instanceof TollKeyItem){
             return getTGPosition(stack,world);
@@ -232,12 +232,12 @@ public abstract class KeyItem extends Item {
     }
 
     @Override
-    public ActionResultType useOn(ItemUseContext context) {
+    public InteractionResult useOn(UseOnContext context) {
         BlockPos pos = context.getClickedPos();
-        PlayerEntity entity = context.getPlayer();
-        World world = context.getLevel();
-        Hand hand = context.getHand();
-        TileEntity te= world.getBlockEntity(pos);
+        Player entity = context.getPlayer();
+        Level world = context.getLevel();
+        InteractionHand hand = context.getHand();
+        BlockEntity te= world.getBlockEntity(pos);
         if (te instanceof CardGetterTileEntity) {
             CardGetterTileEntity cgte = (CardGetterTileEntity) te;
             assert entity != null;
@@ -255,7 +255,7 @@ public abstract class KeyItem extends Item {
                 cgte.setSide(false);
                 //we give to TE our id to modify its price
                 cgte.setTechKeyId(id);
-                if (!world.isClientSide) NetworkHooks.openGui((ServerPlayerEntity) entity, cgte, cgte.getBlockPos());
+                if (!world.isClientSide) NetworkHooks.openGui((ServerPlayer) entity, cgte, cgte.getBlockPos());
             }
         }
         return super.useOn(context);

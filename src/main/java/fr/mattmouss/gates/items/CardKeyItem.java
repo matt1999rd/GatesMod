@@ -3,19 +3,19 @@ package fr.mattmouss.gates.items;
 import fr.mattmouss.gates.setup.ModSetup;
 import fr.mattmouss.gates.tileentity.IControlIdTE;
 import fr.mattmouss.gates.tileentity.TurnStileTileEntity;
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.item.Item;
-import net.minecraft.item.ItemStack;
-import net.minecraft.item.ItemUseContext;
-import net.minecraft.nbt.CompoundNBT;
-import net.minecraft.tileentity.TileEntity;
-import net.minecraft.util.ActionResultType;
-import net.minecraft.util.Hand;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.Item;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.context.UseOnContext;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.world.InteractionResult;
+import net.minecraft.world.InteractionHand;
 
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.text.ITextComponent;
-import net.minecraft.util.text.TranslationTextComponent;
-import net.minecraft.world.World;
+import net.minecraft.core.BlockPos;
+import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.TranslatableComponent;
+import net.minecraft.world.level.Level;
 
 
 
@@ -27,15 +27,15 @@ public class CardKeyItem extends Item {
     }
 
     @Override
-    public ActionResultType useOn(ItemUseContext context) {
+    public InteractionResult useOn(UseOnContext context) {
         System.out.println("on item use !!");
         BlockPos pos = context.getClickedPos();
-        PlayerEntity entity = context.getPlayer();
-        Hand hand = context.getHand();
+        Player entity = context.getPlayer();
+        InteractionHand hand = context.getHand();
         assert entity != null;
         ItemStack stack = entity.getItemInHand(hand);
-        World world = context.getLevel();
-        TileEntity te = world.getBlockEntity(pos);
+        Level world = context.getLevel();
+        BlockEntity te = world.getBlockEntity(pos);
         if (!(te instanceof IControlIdTE)) {
             //we exit the function if it is not a TollGateTileEntity or a TurnStileTileEntity
             System.out.println("not the right tile entity : "+te);
@@ -46,16 +46,16 @@ public class CardKeyItem extends Item {
         if (te_id == -1){
             return super.useOn(context);
         }
-        CompoundNBT tag = stack.getTag();
+        CompoundTag tag = stack.getTag();
         //if id is not existing we fix it
         if (tag == null){
-            tag = new CompoundNBT();
+            tag = new CompoundTag();
         }
         if (!tag.contains("id")) {
             System.out.println("registering id of block");
             tag.putInt("id", te_id);
             stack.setTag(tag);
-            return ActionResultType.SUCCESS;
+            return InteractionResult.SUCCESS;
         }
         int id = tag.getInt("id");
         //for turn stile we do the test
@@ -63,11 +63,11 @@ public class CardKeyItem extends Item {
             System.out.println("test of th key");
 
         }
-        return ActionResultType.FAIL;
+        return InteractionResult.FAIL;
     }
 
     @Override
-    public ITextComponent getName(ItemStack stack) {
+    public Component getName(ItemStack stack) {
         //this first five line is a filter for when stack has no id stored
         int id = getId(stack);
         if (id == -1){
@@ -75,13 +75,13 @@ public class CardKeyItem extends Item {
         }
         String formattedString = "# %1$d";
         String st =String.format(formattedString,id);
-        return new TranslationTextComponent(this.getOrCreateDescriptionId(),st);
+        return new TranslatableComponent(this.getOrCreateDescriptionId(),st);
     }
 
 
 
     public int getId(ItemStack stack) {
-        CompoundNBT nbt =stack.getTag();
+        CompoundTag nbt =stack.getTag();
         if (nbt != null && nbt.contains("id")){
             return nbt.getInt("id");
         }

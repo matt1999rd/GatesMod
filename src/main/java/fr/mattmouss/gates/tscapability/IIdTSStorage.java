@@ -1,10 +1,10 @@
 package fr.mattmouss.gates.tscapability;
 
-import net.minecraft.world.World;
+import net.minecraft.world.level.Level;
 
 public interface IIdTSStorage {
     int getId();
-    void changeId(World world);
+    void changeId(Level world);
     void setId(int newId);
-    void setId(int newId,World world);
+    void setId(int newId,Level world);
 }

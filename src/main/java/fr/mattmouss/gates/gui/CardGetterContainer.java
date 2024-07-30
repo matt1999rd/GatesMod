@@ -2,15 +2,15 @@ package fr.mattmouss.gates.gui;
 
 import fr.mattmouss.gates.blocks.ModBlock;
 import fr.mattmouss.gates.tileentity.CardGetterTileEntity;
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.entity.player.PlayerInventory;
-import net.minecraft.inventory.container.Container;
-import net.minecraft.inventory.container.Slot;
-import net.minecraft.item.ItemStack;
-import net.minecraft.item.Items;
-import net.minecraft.util.IWorldPosCallable;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.world.World;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.entity.player.Inventory;
+import net.minecraft.world.inventory.AbstractContainerMenu;
+import net.minecraft.world.inventory.Slot;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Items;
+import net.minecraft.world.inventory.ContainerLevelAccess;
+import net.minecraft.core.BlockPos;
+import net.minecraft.world.level.Level;
 import net.minecraftforge.items.CapabilityItemHandler;
 import net.minecraftforge.items.IItemHandler;
 import net.minecraftforge.items.SlotItemHandler;
@@ -18,16 +18,16 @@ import net.minecraftforge.items.wrapper.InvWrapper;
 import javax.annotation.Nonnull;
 import java.util.Objects;
 
-public class CardGetterContainer extends Container {
+public class CardGetterContainer extends AbstractContainerMenu {
 
     private final CardGetterTileEntity tileEntity ;
-    private final PlayerEntity playerEntity;
+    private final Player playerEntity;
     private final IItemHandler inventory;
     public final int leftCol = 107;
     public final int topRow = 83;
 
 
-    public CardGetterContainer(int windowId, World world, BlockPos pos, PlayerInventory inventory, PlayerEntity player) {
+    public CardGetterContainer(int windowId, Level world, BlockPos pos, Inventory inventory, Player player) {
         super(ModBlock.CARD_GETTER_CONTAINER, windowId);
         tileEntity = (CardGetterTileEntity) world.getBlockEntity(pos);
         playerEntity= player;
@@ -46,10 +46,10 @@ public class CardGetterContainer extends Container {
                     return false;
                 }
                 @Override
-                public ItemStack onTake(PlayerEntity entity, ItemStack stack) {
+                public void onTake(Player entity, ItemStack stack) {
                     //we notify te of card taken
                     tileEntity.onCardTake();
-                    return super.onTake(entity,stack);
+                    super.onTake(entity,stack);
                 }
             });
         });
@@ -58,9 +58,9 @@ public class CardGetterContainer extends Container {
 
 
     @Override
-    public boolean stillValid(PlayerEntity playerIn) {
+    public boolean stillValid(Player playerIn) {
         return stillValid(
-                IWorldPosCallable.create(Objects.requireNonNull(tileEntity.getLevel()),tileEntity.getBlockPos()),
+                ContainerLevelAccess.create(Objects.requireNonNull(tileEntity.getLevel()),tileEntity.getBlockPos()),
                 playerEntity,
                 ModBlock.CARD_GETTER
         );
@@ -76,7 +76,7 @@ public class CardGetterContainer extends Container {
 
 
     @Override
-    public ItemStack quickMoveStack(PlayerEntity player, int index) {
+    public ItemStack quickMoveStack(Player player, int index) {
         ItemStack stack = ItemStack.EMPTY;
         Slot slot = this.slots.get(index);
         if (slot != null && slot.hasItem()){

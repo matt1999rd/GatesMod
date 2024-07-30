@@ -1,23 +1,21 @@
 package fr.mattmouss.gates.tileentity;
 
 import fr.mattmouss.gates.blocks.ModBlock;
-import net.minecraft.block.BlockState;
-import net.minecraft.state.properties.BlockStateProperties;
-import net.minecraft.tileentity.ITickableTileEntity;
+import net.minecraft.core.BlockPos;
+import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.block.state.properties.BlockStateProperties;;
 
-public class RedstoneTollGateTileEntity extends AbstractTollGateTileEntity implements ITickableTileEntity {
+public class RedstoneTollGateTileEntity extends AbstractTollGateTileEntity {
     private boolean lastPowered = false;
     private boolean initialise = false;
 
-    public RedstoneTollGateTileEntity() {
-        super(ModBlock.REDSTONE_TOLL_GATE_ENTITY_TYPE);
+    public RedstoneTollGateTileEntity(BlockPos blockPos, BlockState blockState) {
+        super(ModBlock.REDSTONE_TOLL_GATE_ENTITY_TYPE,blockPos,blockState);
     }
 
-    @Override
-    public void tick() {
-        assert level != null;
+    public void tick(Level level,BlockState state) {
         if (!level.isClientSide) {
-            BlockState state = this.getBlockState();
             if (!initialise){
                 initialise = true;
                 lastPowered = state.getValue(BlockStateProperties.POWERED);

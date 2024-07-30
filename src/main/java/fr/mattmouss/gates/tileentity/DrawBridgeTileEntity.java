@@ -2,13 +2,12 @@ package fr.mattmouss.gates.tileentity;
 
 import fr.mattmouss.gates.blocks.ModBlock;
 import fr.mattmouss.gates.doors.DrawBridge;
-import net.minecraft.block.AirBlock;
-import net.minecraft.block.Block;
-import net.minecraft.block.BlockState;
-import net.minecraft.state.properties.BlockStateProperties;
-import net.minecraft.tileentity.ITickableTileEntity;
-import net.minecraft.tileentity.TileEntity;
-import net.minecraft.util.math.BlockPos;
+import net.minecraft.world.level.block.AirBlock;
+import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.block.state.properties.BlockStateProperties;
+import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.core.BlockPos;
 
 import java.util.List;
 
@@ -16,20 +15,20 @@ import static fr.mattmouss.gates.doors.DrawBridge.ANIMATION;
 import static fr.mattmouss.gates.doors.DrawBridge.POSITION;
 import static fr.mattmouss.gates.enum_door.DrawBridgePosition.DOOR_LEFT_DOWN;
 
-public class DrawBridgeTileEntity extends TileEntity implements ITickableTileEntity {
+public class DrawBridgeTileEntity extends BlockEntity {
 
     private boolean isOpening =   false;
     private boolean isClosing =   false;
     private boolean lastPowered = false;
     private boolean initialise =  false;
     private int ticksGap =10;
-    public DrawBridgeTileEntity() {
-        super(ModBlock.DRAW_BRIDGE_TILE_TYPE);
+
+    public DrawBridgeTileEntity(BlockPos blockPos, BlockState blockState) {
+        super(ModBlock.DRAW_BRIDGE_TILE_TYPE,blockPos,blockState);
     }
 
-    @Override
-    public void tick() {
-        BlockState state = this.getBlockState();
+
+    public void tick(BlockState state) {
         Block block=state.getBlock();
         if (!(block instanceof DrawBridge))return;
         if (state.getValue(POSITION) == DOOR_LEFT_DOWN) {

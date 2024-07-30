@@ -1,11 +1,11 @@
 package fr.mattmouss.gates.enum_door;
 
-import net.minecraft.util.Direction;
-import net.minecraft.util.IStringSerializable;
-import net.minecraft.util.math.BlockPos;
+import net.minecraft.core.Direction;
+import net.minecraft.util.StringRepresentable;
+import net.minecraft.core.BlockPos;
 
 
-public enum DrawBridgePosition implements IStringSerializable {
+public enum DrawBridgePosition implements StringRepresentable {
     DOOR_LEFT_UP(0,"door_left_up"),
     DOOR_RIGHT_UP(1,"door_right_up"),
     DOOR_LEFT_UUP(2,"door_left_up_up"),

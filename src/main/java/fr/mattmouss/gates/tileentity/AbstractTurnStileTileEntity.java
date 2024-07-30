@@ -9,18 +9,18 @@ import fr.mattmouss.gates.setup.ModSound;
 import fr.mattmouss.gates.tscapability.ITSStorage;
 import fr.mattmouss.gates.tscapability.TSStorage;
 import fr.mattmouss.gates.tscapability.TurnStileBooleanCapability;
-import net.minecraft.block.Block;
-import net.minecraft.block.BlockState;
+import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.audio.SimpleSound;
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.nbt.CompoundNBT;
-import net.minecraft.state.properties.BlockStateProperties;
-import net.minecraft.tileentity.TileEntity;
-import net.minecraft.tileentity.TileEntityType;
-import net.minecraft.util.Direction;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.vector.Vector3d;
+import net.minecraft.client.resources.sounds.SimpleSoundInstance;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.world.level.block.state.properties.BlockStateProperties;
+import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.world.level.block.entity.BlockEntityType;
+import net.minecraft.core.Direction;
+import net.minecraft.core.BlockPos;
+import net.minecraft.world.phys.Vec3;
 import net.minecraftforge.common.capabilities.Capability;
 import net.minecraftforge.common.util.LazyOptional;
 
@@ -28,12 +28,12 @@ import javax.annotation.Nonnull;
 import java.util.ArrayList;
 import java.util.List;
 
-public abstract class AbstractTurnStileTileEntity extends TileEntity {
+public abstract class AbstractTurnStileTileEntity extends BlockEntity {
 
     private final LazyOptional<TSStorage> boolStorage = LazyOptional.of(this::getBoolStorage).cast();
 
-    public AbstractTurnStileTileEntity(TileEntityType<?> p_i48289_1_) {
-        super(p_i48289_1_);
+    public AbstractTurnStileTileEntity(BlockEntityType<?> type,BlockPos pos,BlockState state) {
+        super(type,pos,state);
     }
 
     @Nonnull
@@ -43,23 +43,23 @@ public abstract class AbstractTurnStileTileEntity extends TileEntity {
 
     protected void managePlayerMovement(){
         BlockState state = this.getBlockState();
-        Vector3d vector3d = Vector3d.atCenterOf(getMainPos());
+        Vec3 vector3d = Vec3.atCenterOf(getMainPos());
         assert level != null;
-        PlayerEntity player = level.getNearestPlayer(vector3d.x, vector3d.y, vector3d.z, 2, false);
+        Player player = level.getNearestPlayer(vector3d.x, vector3d.y, vector3d.z, 2, false);
         if (state.getValue(TurnStile.WAY_IS_ON)) {
             movePlayer(player,false);
         }
         movePlayer(player,true);
     }
 
-    private void movePlayer(PlayerEntity player, boolean fromExit){
+    private void movePlayer(Player player, boolean fromExit){
         if (this.isAnimationInWork() && checkPlayerMovement(player,fromExit)) {
             movePlayerGoingThrough(player, fromExit);
             return;
         }
         if (playerIsGoingThrough(player, fromExit)) {
             movePlayerGoingThrough(player, fromExit);
-            Minecraft.getInstance().getSoundManager().play(SimpleSound.forUI(ModSound.TURN_STILE_PASS, 1.0F));
+            Minecraft.getInstance().getSoundManager().play(SimpleSoundInstance.forUI(ModSound.TURN_STILE_PASS, 1.0F));
         }
     }
 
@@ -121,17 +121,17 @@ public abstract class AbstractTurnStileTileEntity extends TileEntity {
     }
 
     //this function check movement of the player
-    protected boolean checkPlayerMovement(PlayerEntity entity,boolean fromExit){
+    protected boolean checkPlayerMovement(Player entity,boolean fromExit){
         Direction facing = this.getBlockState().getValue(BlockStateProperties.HORIZONTAL_FACING);
         if (entity != null){
-            Vector3d deltaMovement = entity.getDeltaMovement();
+            Vec3 deltaMovement = entity.getDeltaMovement();
             return (Direction.getNearest(deltaMovement.x,deltaMovement.y,deltaMovement.z)) == ((fromExit)? facing : facing.getOpposite());
         }
         return false;
     }
 
     //this function check if the player in argument is going into this turn stile with a certain speed
-    protected boolean playerIsGoingThrough(PlayerEntity entity,boolean fromExit) {
+    protected boolean playerIsGoingThrough(Player entity,boolean fromExit) {
         Direction horizontalFacing = this.getBlockState().getValue(BlockStateProperties.HORIZONTAL_FACING);
         Direction positionFacingToCheck = (!fromExit)? horizontalFacing : horizontalFacing.getOpposite();
         BlockPos mainPos = this.getMainPos();
@@ -141,7 +141,7 @@ public abstract class AbstractTurnStileTileEntity extends TileEntity {
         if (entity != null){
             //the player is going in the direction of the turn stile
             boolean isRightMove = checkPlayerMovement(entity,fromExit);
-            Vector3d player_pos = entity.position();
+            Vec3 player_pos = entity.position();
             double x_player = player_pos.x;
             double y_player = player_pos.y;
             double z_player = player_pos.z;
@@ -174,7 +174,7 @@ public abstract class AbstractTurnStileTileEntity extends TileEntity {
 
 
     //this function is aimed to move the player into the turn stile
-    protected void movePlayerGoingThrough(PlayerEntity player, boolean fromExit) {
+    protected void movePlayerGoingThrough(Player player, boolean fromExit) {
         if (player == null){
             return;
         }
@@ -230,10 +230,10 @@ public abstract class AbstractTurnStileTileEntity extends TileEntity {
     }
 
     @Override
-    public void load(@Nonnull BlockState state, CompoundNBT tag) {
+    public void load(CompoundTag tag) {
         boolean isRightTSB = tag.getBoolean("isCU");
         if (isRightTSB) {
-            CompoundNBT storage_tag;
+            CompoundTag storage_tag;
             if (tag.contains("storage")){
                 storage_tag = tag.getCompound("storage");
             }else {
@@ -241,15 +241,15 @@ public abstract class AbstractTurnStileTileEntity extends TileEntity {
             }
             boolStorage.ifPresent(s -> s.deserializeNBT(storage_tag));
         }
-        super.load(state,tag);
+        super.load(tag);
     }
 
     @Nonnull
     @Override
-    public CompoundNBT save(@Nonnull CompoundNBT tag) {
+    public CompoundTag save(@Nonnull CompoundTag tag) {
         if (canWrite()){
             boolStorage.ifPresent(e->{
-                CompoundNBT nbt =e.serializeNBT();
+                CompoundTag nbt =e.serializeNBT();
                 tag.put("bool_storage",nbt);
             });
             getCapability(TurnStileBooleanCapability.TURN_STILE_BOOLEAN_STORAGE);

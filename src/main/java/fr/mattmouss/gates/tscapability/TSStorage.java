@@ -1,9 +1,9 @@
 package fr.mattmouss.gates.tscapability;
 
-import net.minecraft.nbt.CompoundNBT;
+import net.minecraft.nbt.CompoundTag;
 import net.minecraftforge.common.util.INBTSerializable;
 
-public class TSStorage implements ITSStorage, INBTSerializable<CompoundNBT> {
+public class TSStorage implements ITSStorage, INBTSerializable<CompoundTag> {
     private boolean isAnimationInWork;
 
     public TSStorage(){
@@ -25,15 +25,15 @@ public class TSStorage implements ITSStorage, INBTSerializable<CompoundNBT> {
     }
 
     @Override
-    public CompoundNBT serializeNBT() {
-        CompoundNBT tag = new CompoundNBT();
+    public CompoundTag serializeNBT() {
+        CompoundTag tag = new CompoundTag();
         System.out.println("------------boolean written : "+ isAnimationInWork);
         tag.putBoolean("isopen", isAnimationInWork);
         return tag;
     }
 
     @Override
-    public void deserializeNBT(CompoundNBT nbt) {
+    public void deserializeNBT(CompoundTag nbt) {
         if (isValidNbt(nbt)) {
             System.out.println("------------boolean read : " + nbt.getInt("isopen"));
             isAnimationInWork = nbt.getBoolean("isopen");
@@ -41,7 +41,7 @@ public class TSStorage implements ITSStorage, INBTSerializable<CompoundNBT> {
         System.out.println("nothing has been found");
     }
 
-    protected boolean isValidNbt(CompoundNBT nbt){
+    protected boolean isValidNbt(CompoundTag nbt){
         return nbt.contains("isopen");
     }
 }

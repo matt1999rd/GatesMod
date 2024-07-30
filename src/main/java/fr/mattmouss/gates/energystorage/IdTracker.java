@@ -1,31 +1,30 @@
 package fr.mattmouss.gates.energystorage;
 
 import fr.mattmouss.gates.GatesMod;
-import net.minecraft.nbt.CompoundNBT;
-import net.minecraft.nbt.INBT;
-import net.minecraft.nbt.ListNBT;
-import net.minecraft.world.storage.WorldSavedData;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.nbt.Tag;
+import net.minecraft.nbt.ListTag;
+import net.minecraft.world.level.saveddata.SavedData;
 
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
-public class IdTracker extends WorldSavedData {
+public class IdTracker extends SavedData {
     private final HashMap<Integer,Integer> all_id = new HashMap<>();
 
     public IdTracker() {
-        super("idgates");
+        super(/*"idgates"*/);
     }
 
-    @Override
-    public void load(CompoundNBT compoundNBT) {
-        if (compoundNBT.contains("idlist") && compoundNBT.get("idlist") instanceof ListNBT){
-            ListNBT nbt = (ListNBT) compoundNBT.get("idlist");
+    public IdTracker(CompoundTag tag){
+        if (tag.contains("idlist") && tag.get("idlist") instanceof ListTag){
+            ListTag nbt = (ListTag) tag.get("idlist");
             assert nbt != null;
-            for (INBT inbt : nbt){
-                CompoundNBT nbt_id = ((CompoundNBT)inbt).getCompound("id");
+            for (Tag inbt : nbt){
+                CompoundTag nbt_id = ((CompoundTag)inbt).getCompound("id");
                 int id= nbt_id.getInt("id");
-                CompoundNBT nbt_number = ((CompoundNBT)inbt).getCompound("number");
+                CompoundTag nbt_number = ((CompoundTag)inbt).getCompound("number");
                 int nb = nbt_number.getInt("nb");
                 System.out.println("reading id : "+id);
                 System.out.println("reading number : "+nb);
@@ -36,19 +35,18 @@ public class IdTracker extends WorldSavedData {
                 }
             }
         }
-
     }
 
     @Override
-    public CompoundNBT save(CompoundNBT compound) {
-        ListNBT nbt = new ListNBT();
+    public CompoundTag save(CompoundTag compound) {
+        ListTag nbt = new ListTag();
         all_id.forEach((id,number)->{//for each key we add a compound intern nbt which contains
             //a compound "id" for stocking an int "id" -> id of gates
             //a compound "nb" for stocking an int "nb" -> number of gates with this id
-            CompoundNBT internNbt = new CompoundNBT();
-            CompoundNBT nbt_id = new CompoundNBT();
+            CompoundTag internNbt = new CompoundTag();
+            CompoundTag nbt_id = new CompoundTag();
             nbt_id.putInt("id",id);
-            CompoundNBT nbt_number = new CompoundNBT();
+            CompoundTag nbt_number = new CompoundTag();
             nbt_number.putInt("nb",number);
             internNbt.put("id",nbt_id);
             System.out.println("writing id : "+id);

@@ -1,34 +1,34 @@
 package fr.mattmouss.gates.voxels;
 
-import net.minecraft.block.Block;
-import net.minecraft.util.Direction;
-import net.minecraft.util.math.shapes.VoxelShape;
-import net.minecraft.util.math.shapes.VoxelShapes;
+import net.minecraft.world.level.block.Block;
+import net.minecraft.core.Direction;
+import net.minecraft.world.phys.shapes.VoxelShape;
+import net.minecraft.world.phys.shapes.Shapes;
 
 //util class to simplify VoxelShape creation
 public class VoxelDoubles {
     public static final VoxelDoubles EMPTY = new VoxelDoubles(0,0,0,0,0,0,false);
     public static final VoxelDoubles FULL = new VoxelDoubles(0,0,0,16,16,16,false);
 
-    private final double[] plane_val ;
+    private final double[] planeVal;
     public VoxelDoubles(int x1, int y1, int z1, int x2, int y2, int z2, boolean isSizeUsed){
         if (isSizeUsed){
             //we build our voxel on size x y z for second argument
-            plane_val= new double[]{x1, y1, z1, x1+x2, y1+y2, z1+z2};
+            planeVal = new double[]{x1, y1, z1, x1+x2, y1+y2, z1+z2};
             return;
         }
         //we build our voxel on origin and end of the cube
-        plane_val= new double[]{x1, y1, z1, x2, y2, z2};
+        planeVal = new double[]{x1, y1, z1, x2, y2, z2};
     }
 
     public VoxelDoubles(double x1, double y1, double z1, double x2, double y2, double z2, boolean isSizeUsed){
         if (isSizeUsed){
             //we build our voxel on size x y z for second argument
-            plane_val= new double[]{x1, y1, z1, x1+x2, y1+y2, z1+z2};
+            planeVal = new double[]{x1, y1, z1, x1+x2, y1+y2, z1+z2};
             return;
         }
         //we build our voxel on origin and end of the cube
-        plane_val= new double[]{x1, y1, z1, x2, y2, z2};
+        planeVal = new double[]{x1, y1, z1, x2, y2, z2};
     }
 
 
@@ -42,12 +42,12 @@ public class VoxelDoubles {
     //rotate around given axis with angle of 90° * number_of_rotation clock wise
     public VoxelDoubles rotateCW(int number_of_rotation, Direction.Axis axis){
         number_of_rotation = number_of_rotation%4;
-        double x1 = plane_val[0];
-        double y1 = plane_val[1];
-        double z1 = plane_val[2];
-        double x2 = plane_val[3];
-        double y2 = plane_val[4];
-        double z2 = plane_val[5];
+        double x1 = planeVal[0];
+        double y1 = planeVal[1];
+        double z1 = planeVal[2];
+        double x2 = planeVal[3];
+        double y2 = planeVal[4];
+        double z2 = planeVal[5];
         switch (number_of_rotation){
             case 0:
                 return this;
@@ -128,12 +128,12 @@ public class VoxelDoubles {
         if (axis1 == axis2){
             throw new IllegalArgumentException("The Axis selected are identical no axial symmetry can be done");
         }
-        double x1 = plane_val[0];
-        double y1 = plane_val[1];
-        double z1 = plane_val[2];
-        double x2 = plane_val[3];
-        double y2 = plane_val[4];
-        double z2 = plane_val[5];
+        double x1 = planeVal[0];
+        double y1 = planeVal[1];
+        double z1 = planeVal[2];
+        double x2 = planeVal[3];
+        double y2 = planeVal[4];
+        double z2 = planeVal[5];
         //symmetry regarding XY plane
         if ((axis1== Direction.Axis.X && axis2== Direction.Axis.Y)
                 ||(axis1== Direction.Axis.Y && axis2== Direction.Axis.X)){
@@ -154,12 +154,27 @@ public class VoxelDoubles {
 
     public VoxelShape getAssociatedShape(){
         if (this == EMPTY){
-            return VoxelShapes.empty();
+            return Shapes.empty();
         }else if (this == FULL){
-            return VoxelShapes.block();
+            return Shapes.block();
+        }
+        if (planeVal[0]> planeVal[3]){
+            double pv0 = planeVal[0];
+            planeVal[0] = planeVal[3];
+            planeVal[3] = pv0;
+        }
+        if (planeVal[1]> planeVal[4]){
+            double pv1 = planeVal[1];
+            planeVal[1] = planeVal[4];
+            planeVal[4] = pv1;
+        }
+        if (planeVal[2]> planeVal[5]){
+            double pv2 = planeVal[2];
+            planeVal[2] = planeVal[5];
+            planeVal[5] = pv2;
         }
         return Block.box(
-                plane_val[0], plane_val[1], plane_val[2],
-                plane_val[3], plane_val[4], plane_val[5]);
+                planeVal[0], planeVal[1], planeVal[2],
+                planeVal[3], planeVal[4], planeVal[5]);
     }
 }

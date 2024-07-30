@@ -2,28 +2,30 @@ package fr.mattmouss.gates.doors;
 
 import fr.mattmouss.gates.enum_door.DoorPlacing;
 import fr.mattmouss.gates.util.Functions;
-import net.minecraft.block.Block;
-import net.minecraft.block.BlockState;
-import net.minecraft.block.Blocks;
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.item.BlockItemUseContext;
-import net.minecraft.item.ItemStack;
-import net.minecraft.state.EnumProperty;
-import net.minecraft.state.StateContainer;
-import net.minecraft.state.properties.BlockStateProperties;
-import net.minecraft.tileentity.TileEntity;
-import net.minecraft.util.ActionResultType;
-import net.minecraft.util.Direction;
-import net.minecraft.util.Hand;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.BlockRayTraceResult;
-import net.minecraft.world.IWorld;
-import net.minecraft.world.IWorldReader;
-import net.minecraft.world.World;
+import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.block.Blocks;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.context.BlockPlaceContext;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.block.state.properties.EnumProperty;
+import net.minecraft.world.level.block.state.StateDefinition;
+import net.minecraft.world.level.block.state.properties.BlockStateProperties;
+import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.world.InteractionResult;
+import net.minecraft.core.Direction;
+import net.minecraft.world.InteractionHand;
+import net.minecraft.core.BlockPos;
+import net.minecraft.world.phys.BlockHitResult;
+import net.minecraft.world.level.LevelAccessor;
+import net.minecraft.world.level.LevelReader;
+import net.minecraft.world.level.Level;
 
 import javax.annotation.Nullable;
 import java.util.List;
 
+
+import net.minecraft.world.level.block.state.BlockBehaviour.Properties;
 
 public abstract class MultipleBlockDoor extends Block {
 
@@ -32,7 +34,7 @@ public abstract class MultipleBlockDoor extends Block {
         super(properties);
     }
 
-    private boolean isNeighBorDoorBlockPowered(BlockPos pos, BlockState state, World world) {
+    private boolean isNeighBorDoorBlockPowered(BlockPos pos, BlockState state, Level world) {
         DoorPlacing placing = state.getValue(getPlacingBSP());
         Direction facing = state.getValue(BlockStateProperties.HORIZONTAL_FACING);
         List<BlockPos> blockPosList = getPosOfNeighborBlock(pos,placing,facing);
@@ -54,20 +56,20 @@ public abstract class MultipleBlockDoor extends Block {
     protected abstract boolean isInnerUpdate(DoorPlacing placing, Direction facingUpdate, Direction blockFacing);
 
     @Override
-    protected void createBlockStateDefinition(StateContainer.Builder<Block, BlockState> builder) {
+    protected void createBlockStateDefinition(StateDefinition.Builder<Block, BlockState> builder) {
         builder.add(BlockStateProperties.HORIZONTAL_FACING,BlockStateProperties.OPEN,getPlacingBSP(),BlockStateProperties.POWERED);
     }
 
     @Override
-    public ActionResultType use(BlockState state, World world, BlockPos pos, PlayerEntity player, Hand hand, BlockRayTraceResult result) {
+    public InteractionResult use(BlockState state, Level world, BlockPos pos, Player player, InteractionHand hand, BlockHitResult result) {
         state = state.cycle(BlockStateProperties.OPEN);
         world.setBlock(pos,state,10);
-        return ActionResultType.SUCCESS;
+        return InteractionResult.SUCCESS;
     }
 
 
     @Override
-    public boolean canSurvive(BlockState state, IWorldReader worldIn, BlockPos pos) {
+    public boolean canSurvive(BlockState state, LevelReader worldIn, BlockPos pos) {
         BlockState downBlockState = worldIn.getBlockState(pos.below());
         if (state.getValue(getPlacingBSP()).isUp()){
             Block block = downBlockState.getBlock();
@@ -79,7 +81,7 @@ public abstract class MultipleBlockDoor extends Block {
 
     @Nullable
     @Override
-    public BlockState getStateForPlacement(BlockItemUseContext context) {
+    public BlockState getStateForPlacement(BlockPlaceContext context) {
         BlockPos pos = context.getClickedPos();
         Direction facing = context.getHorizontalDirection();
         List<BlockPos> neighborFuturePos = getPosOfNeighborBlock(pos,DoorPlacing.LEFT_DOWN,facing);
@@ -96,7 +98,7 @@ public abstract class MultipleBlockDoor extends Block {
     }
 
     @Override
-    public BlockState updateShape(BlockState stateIn, Direction facing, BlockState facingState, IWorld worldIn, BlockPos currentPos, BlockPos facingPos) {
+    public BlockState updateShape(BlockState stateIn, Direction facing, BlockState facingState, LevelAccessor worldIn, BlockPos currentPos, BlockPos facingPos) {
         DoorPlacing placing= stateIn.getValue(getPlacingBSP());
         Direction blockFacing = stateIn.getValue(BlockStateProperties.HORIZONTAL_FACING);
         if (isInnerUpdate(placing,facing,blockFacing)){
@@ -113,14 +115,14 @@ public abstract class MultipleBlockDoor extends Block {
     }
 
     @Override
-    public void neighborChanged(BlockState state, World worldIn, BlockPos pos, Block blockIn, BlockPos fromPos, boolean isMoving) {
+    public void neighborChanged(BlockState state, Level worldIn, BlockPos pos, Block blockIn, BlockPos fromPos, boolean isMoving) {
         boolean flag = isNeighBorDoorBlockPowered(pos,state,worldIn);
         if (blockIn != this && flag != state.getValue(BlockStateProperties.POWERED)){
             worldIn.setBlock(pos, state.setValue(BlockStateProperties.POWERED, flag).setValue(BlockStateProperties.OPEN, flag), 2);
         }
     }
 
-    public void playerWillDestroy(World world, BlockPos pos, BlockState state, PlayerEntity player) {
+    public void playerWillDestroy(Level world, BlockPos pos, BlockState state, Player player) {
         ItemStack itemstack = player.getMainHandItem();
         if (!world.isClientSide && !player.isCreative()) {
             Block.dropResources(state, world, pos, null, player, itemstack);
@@ -128,7 +130,7 @@ public abstract class MultipleBlockDoor extends Block {
         super.playerWillDestroy(world, pos, state, player);
     }
 
-    public void playerDestroy(World worldIn, PlayerEntity player, BlockPos pos, BlockState state, @Nullable TileEntity te, ItemStack stack) {
+    public void playerDestroy(Level worldIn, Player player, BlockPos pos, BlockState state, @Nullable BlockEntity te, ItemStack stack) {
         super.playerDestroy(worldIn, player, pos, Blocks.AIR.defaultBlockState(), te, stack);
     }
 

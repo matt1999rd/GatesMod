@@ -3,15 +3,16 @@ package fr.mattmouss.gates.windows;
 import fr.mattmouss.gates.voxels.VoxelDoubles;
 import fr.mattmouss.gates.util.ExtendDirection;
 import fr.mattmouss.gates.util.Functions;
-import net.minecraft.block.Block;
-import net.minecraft.block.BlockState;
-import net.minecraft.state.properties.BlockStateProperties;
-import net.minecraft.util.Direction;
-import net.minecraft.util.IStringSerializable;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.shapes.VoxelShape;
-import net.minecraft.util.math.shapes.VoxelShapes;
-import net.minecraft.world.World;
+import net.minecraft.MethodsReturnNonnullByDefault;
+import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.block.state.properties.BlockStateProperties;
+import net.minecraft.core.Direction;
+import net.minecraft.util.StringRepresentable;
+import net.minecraft.core.BlockPos;
+import net.minecraft.world.phys.shapes.VoxelShape;
+import net.minecraft.world.phys.shapes.Shapes;
+import net.minecraft.world.level.Level;
 
 import javax.annotation.Nullable;
 import java.util.ArrayList;
@@ -22,7 +23,7 @@ import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Consumer;
 import java.util.function.Predicate;
 
-public enum WindowPlace implements IStringSerializable {
+public enum WindowPlace implements StringRepresentable {
     //a one block window
     FULL(0,"full",0x0000,makeShape(0x0000)),
     //a two block window
@@ -65,7 +66,7 @@ public enum WindowPlace implements IStringSerializable {
             usedVoxels[i] = new VoxelDoubles(i, 0, i, 2, 16, 2, true);
         }
         for (int i=0;i<4;i++) {
-            windows_closed[i] = Functions.getShapeFromVoxelIntsTab(usedVoxels, Direction.from2DDataValue(i), VoxelShapes.empty());
+            windows_closed[i] = Functions.getShapeFromVoxelIntsTab(usedVoxels, Direction.from2DDataValue(i), Shapes.empty());
         }
     }
 
@@ -121,7 +122,7 @@ public enum WindowPlace implements IStringSerializable {
 
 
 
-    public static WindowPlace getFromNeighboring(World world, BlockPos pos, BlockState state,@Nullable ExtendDirection future_facing) {
+    public static WindowPlace getFromNeighboring(Level world, BlockPos pos, BlockState state,@Nullable ExtendDirection future_facing) {
         //we get direction where there is not a window block
         List<ExtendDirection> notWindowNeighBorFound = getNonWindowNeighbor(world, pos, state, future_facing);
         Places places = new Places();
@@ -176,7 +177,7 @@ public enum WindowPlace implements IStringSerializable {
         return getWindowPlaceFromPlaces(places, world, pos, extDirProperty);
     }
 
-    private static WindowPlace getWindowPlaceFromPlaces(Places places,World world,BlockPos pos,ExtendDirection facing){
+    private static WindowPlace getWindowPlaceFromPlaces(Places places,Level world,BlockPos pos,ExtendDirection facing){
         //all filter occur
         if (places.getSize() == 1){
             //we get the only windowPlace remaining
@@ -267,7 +268,7 @@ public enum WindowPlace implements IStringSerializable {
 
     //flag is a boolean that store validity of windows place
     //flag = 0xAnA(n-1)...A0 where Ai = (is the i-th WindowPlace valid)
-    private static int getValidityFlag(Places cornerPlaces,World world,BlockPos pos,ExtendDirection facing){
+    private static int getValidityFlag(Places cornerPlaces,Level world,BlockPos pos,ExtendDirection facing){
         AtomicInteger flag = new AtomicInteger(0);
         AtomicInteger increment = new AtomicInteger(0);
         cornerPlaces.forEach(windowPlace -> {
@@ -282,7 +283,7 @@ public enum WindowPlace implements IStringSerializable {
     //we will use this function to notify nearby block of changes in this window Block
     //the direction offset of block nearby are stocked within a base 6 integer
     // i = (a b c d...)6 where every a b c d represent a direction index (which is between 0 and 5)
-    public List<WindowDirection> getDirectionOfChangingWindow(ExtendDirection facing, World world, BlockPos pos){
+    public List<WindowDirection> getDirectionOfChangingWindow(ExtendDirection facing, Level world, BlockPos pos){
         List<WindowDirection> directions = new ArrayList<>();
         if (this.isUpPlace()){
             directions.add(new WindowDirection(1,ExtendDirection.DOWN));
@@ -345,7 +346,7 @@ public enum WindowPlace implements IStringSerializable {
 
     //give the invalid corner if it exists, full if not
     //return null if multiple when boolean is true
-    private static WindowPlace getInvalidCorner(Places cornerPlaces, World world, BlockPos pos, boolean ifMultipleReturnNull, ExtendDirection facing){
+    private static WindowPlace getInvalidCorner(Places cornerPlaces, Level world, BlockPos pos, boolean ifMultipleReturnNull, ExtendDirection facing){
         AtomicReference<WindowPlace> unValidCorner = new AtomicReference<>(WindowPlace.FULL);
         AtomicInteger number_of_def = new AtomicInteger(0);
         cornerPlaces.forEach(windowPlace -> {
@@ -364,7 +365,7 @@ public enum WindowPlace implements IStringSerializable {
 
     //this function will check if the corner at the opposite position is really there
 
-    private boolean checkValidity(World world, BlockPos pos,ExtendDirection facing) {
+    private boolean checkValidity(Level world, BlockPos pos,ExtendDirection facing) {
         if (this == WindowPlace.BOTH_MIDDLE){
             return true;
         }
@@ -395,7 +396,7 @@ public enum WindowPlace implements IStringSerializable {
 
 
 
-    private static List<ExtendDirection> getNonWindowNeighbor(World world, BlockPos pos, BlockState state, ExtendDirection future_facing) {
+    private static List<ExtendDirection> getNonWindowNeighbor(Level world, BlockPos pos, BlockState state, ExtendDirection future_facing) {
         ExtendDirection.Axis FrontalAxis;
         BlockState windowState =  world.getBlockState(pos);
         WindowBlock windowBlock = (WindowBlock)windowState.getBlock();
@@ -428,6 +429,7 @@ public enum WindowPlace implements IStringSerializable {
         return NeighborDirs;
     }
 
+    @MethodsReturnNonnullByDefault
     @Override
     public String getSerializedName() {
         return this.name;
@@ -478,16 +480,16 @@ public enum WindowPlace implements IStringSerializable {
         isRight = (flag & 0x0001)==0x0001;
         for (int i=0;i<4;i++){
             glass_height = 16;
-            VoxelShape shape= VoxelShapes.empty();
+            VoxelShape shape= Shapes.empty();
             Direction facing = Direction.from2DDataValue(i);
             if (!isRight){
-                shape = VoxelShapes.or(shape, leftMainPilar.rotate(Direction.EAST, facing).getAssociatedShape());
+                shape = Shapes.or(shape, leftMainPilar.rotate(Direction.EAST, facing).getAssociatedShape());
             } else {
                 glass_length = 13;
             }
 
             if (!isLeft){
-                shape = VoxelShapes.or(shape, rightMainPilar.rotate(Direction.EAST, facing).getAssociatedShape());
+                shape = Shapes.or(shape, rightMainPilar.rotate(Direction.EAST, facing).getAssociatedShape());
             } else {
                 glass_length = 13;
             }

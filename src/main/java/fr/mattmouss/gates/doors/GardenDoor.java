@@ -3,23 +3,25 @@ package fr.mattmouss.gates.doors;
 import com.google.common.collect.Lists;
 import fr.mattmouss.gates.enum_door.DoorPlacing;
 import fr.mattmouss.gates.voxels.VoxelDefinition;
-import net.minecraft.block.BlockState;
-import net.minecraft.block.material.Material;
-import net.minecraft.entity.LivingEntity;
-import net.minecraft.item.ItemStack;
-import net.minecraft.state.EnumProperty;
-import net.minecraft.state.properties.BlockStateProperties;
-import net.minecraft.util.Direction;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.shapes.ISelectionContext;
-import net.minecraft.util.math.shapes.VoxelShape;
-import net.minecraft.util.math.shapes.VoxelShapes;
-import net.minecraft.world.IBlockReader;
-import net.minecraft.world.World;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.material.Material;
+import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.block.state.properties.EnumProperty;
+import net.minecraft.world.level.block.state.properties.BlockStateProperties;
+import net.minecraft.core.Direction;
+import net.minecraft.core.BlockPos;
+import net.minecraft.world.phys.shapes.CollisionContext;
+import net.minecraft.world.phys.shapes.VoxelShape;
+import net.minecraft.world.phys.shapes.Shapes;
+import net.minecraft.world.level.BlockGetter;
+import net.minecraft.world.level.Level;
 
 import javax.annotation.Nullable;
 import java.util.List;
 
+
+import net.minecraft.world.level.block.state.BlockBehaviour.Properties;
 
 public class GardenDoor extends MultipleBlockDoor {
 
@@ -32,8 +34,8 @@ public class GardenDoor extends MultipleBlockDoor {
     }
 
     @Override
-    public VoxelShape getShape(BlockState state, IBlockReader worldIn, BlockPos pos, ISelectionContext context) {
-        if (!state.getValue(PLACING).isSide() ||state.getValue(PLACING).isCenterY())return VoxelShapes.empty();
+    public VoxelShape getShape(BlockState state, BlockGetter worldIn, BlockPos pos, CollisionContext context) {
+        if (!state.getValue(PLACING).isSide() ||state.getValue(PLACING).isCenterY())return Shapes.empty();
         int meta=state.getValue(PLACING).getMeta();
         Direction facing=state.getValue(BlockStateProperties.HORIZONTAL_FACING);
         boolean isOpen = state.getValue(BlockStateProperties.OPEN);
@@ -45,7 +47,7 @@ public class GardenDoor extends MultipleBlockDoor {
     }
 
     @Override
-    public void setPlacedBy(World worldIn, BlockPos pos, BlockState state, @Nullable LivingEntity placer, ItemStack stack) {
+    public void setPlacedBy(Level worldIn, BlockPos pos, BlockState state, @Nullable LivingEntity placer, ItemStack stack) {
         Direction facing = state.getValue(BlockStateProperties.HORIZONTAL_FACING);
         worldIn.setBlock(pos.above(), state.setValue(PLACING, DoorPlacing.LEFT_UP), 3);
         worldIn.setBlock(pos.relative(facing.getCounterClockWise()),state.setValue(PLACING,DoorPlacing.RIGHT_DOWN),3);

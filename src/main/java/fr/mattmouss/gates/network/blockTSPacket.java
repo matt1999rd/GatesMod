@@ -1,11 +1,11 @@
 package fr.mattmouss.gates.network;
 
 import fr.mattmouss.gates.tileentity.AbstractTurnStileTileEntity;
-import net.minecraft.network.PacketBuffer;
+import net.minecraft.network.FriendlyByteBuf;
 
-import net.minecraft.tileentity.TileEntity;
-import net.minecraft.util.math.BlockPos;
-import net.minecraftforge.fml.network.NetworkEvent;
+import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.core.BlockPos;
+import net.minecraftforge.fmllegacy.network.NetworkEvent;
 
 import java.util.List;
 import java.util.Objects;
@@ -15,7 +15,7 @@ public class blockTSPacket {
     private final BlockPos pos;
 
 
-    public blockTSPacket(PacketBuffer buf) {
+    public blockTSPacket(FriendlyByteBuf buf) {
         pos = buf.readBlockPos();
     }
 
@@ -23,14 +23,14 @@ public class blockTSPacket {
         pos = pos_in;
     }
 
-    public void toBytes(PacketBuffer buf){
+    public void toBytes(FriendlyByteBuf buf){
         buf.writeBlockPos(pos);
     }
 
     public void handle(Supplier<NetworkEvent.Context> context){
         context.get().enqueueWork(()->{
             System.out.println("packet blockTS handled !");
-            TileEntity te= Objects.requireNonNull(context.get().getSender()).getLevel().getBlockEntity(pos);
+            BlockEntity te= Objects.requireNonNull(context.get().getSender()).getLevel().getBlockEntity(pos);
             List<BlockPos> posList;
             AbstractTurnStileTileEntity atste = (AbstractTurnStileTileEntity) te;
             assert atste != null;

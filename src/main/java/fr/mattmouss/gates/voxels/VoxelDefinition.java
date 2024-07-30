@@ -3,8 +3,8 @@ package fr.mattmouss.gates.voxels;
 import fr.mattmouss.gates.enum_door.DoorPlacing;
 import fr.mattmouss.gates.enum_door.DrawBridgePosition;
 import fr.mattmouss.gates.util.Functions;
-import net.minecraft.util.Direction;
-import net.minecraft.util.math.shapes.VoxelShape;
+import net.minecraft.core.Direction;
+import net.minecraft.world.phys.shapes.VoxelShape;
 
 public class VoxelDefinition {
     public static VoxelShape[] largeDoorCircleShape = new VoxelShape[48];

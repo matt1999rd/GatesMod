@@ -1,10 +1,10 @@
 package fr.mattmouss.gates.animationboolean;
 
-import net.minecraft.nbt.CompoundNBT;
+import net.minecraft.nbt.CompoundTag;
 import net.minecraftforge.common.util.INBTSerializable;
 
 
-public class AnimationBoolean implements INBTSerializable<CompoundNBT>,IAnimationBoolean {
+public class AnimationBoolean implements INBTSerializable<CompoundTag>,IAnimationBoolean {
 
     private boolean startOpeningAnimation ;
     private boolean startClosingAnimation ;
@@ -33,9 +33,9 @@ public class AnimationBoolean implements INBTSerializable<CompoundNBT>,IAnimatio
     }
 
     @Override
-    public CompoundNBT serializeNBT() {
-        CompoundNBT tag = new CompoundNBT();
-        CompoundNBT tag_bool = new CompoundNBT();
+    public CompoundTag serializeNBT() {
+        CompoundTag tag = new CompoundTag();
+        CompoundTag tag_bool = new CompoundTag();
         tag_bool.putBoolean("open",startOpeningAnimation);
         tag_bool.putBoolean("close",startClosingAnimation);
         tag.put("anim",tag_bool);
@@ -43,9 +43,9 @@ public class AnimationBoolean implements INBTSerializable<CompoundNBT>,IAnimatio
     }
 
     @Override
-    public void deserializeNBT(CompoundNBT nbt) {
+    public void deserializeNBT(CompoundTag nbt) {
         if (nbt.contains("anim")) {
-            CompoundNBT tag_bool = (CompoundNBT) nbt.get("anim");
+            CompoundTag tag_bool = (CompoundTag) nbt.get("anim");
 
             assert tag_bool != null;
             startOpeningAnimation = tag_bool.getBoolean("open");

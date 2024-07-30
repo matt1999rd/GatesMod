@@ -3,28 +3,28 @@ package fr.mattmouss.gates.doors;
 import fr.mattmouss.gates.enum_door.TollGPosition;
 import fr.mattmouss.gates.util.Functions;
 import fr.mattmouss.gates.voxels.VoxelDoubles;
-import net.minecraft.block.*;
-import net.minecraft.block.material.Material;
-import net.minecraft.entity.LivingEntity;
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.item.BlockItemUseContext;
-import net.minecraft.item.ItemStack;
-import net.minecraft.pathfinding.PathType;
-import net.minecraft.state.EnumProperty;
-import net.minecraft.state.IntegerProperty;
-import net.minecraft.state.StateContainer;
-import net.minecraft.state.properties.BlockStateProperties;
-import net.minecraft.state.properties.DoorHingeSide;
-import net.minecraft.tileentity.TileEntity;
+import net.minecraft.world.level.block.*;
+import net.minecraft.world.level.material.Material;
+import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.context.BlockPlaceContext;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.pathfinder.PathComputationType;
+import net.minecraft.world.level.block.state.properties.EnumProperty;
+import net.minecraft.world.level.block.state.properties.IntegerProperty;
+import net.minecraft.world.level.block.state.StateDefinition;
+import net.minecraft.world.level.block.state.properties.BlockStateProperties;
+import net.minecraft.world.level.block.state.properties.DoorHingeSide;
+import net.minecraft.world.level.block.entity.BlockEntity;
 //import net.minecraft.util.BlockRenderLayer;
-import net.minecraft.util.Direction;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.shapes.ISelectionContext;
-import net.minecraft.util.math.shapes.VoxelShape;
-import net.minecraft.util.math.shapes.VoxelShapes;
-import net.minecraft.world.IBlockReader;
-import net.minecraft.world.IWorld;
-import net.minecraft.world.World;
+import net.minecraft.core.Direction;
+import net.minecraft.core.BlockPos;
+import net.minecraft.world.phys.shapes.CollisionContext;
+import net.minecraft.world.phys.shapes.VoxelShape;
+import net.minecraft.world.phys.shapes.Shapes;
+import net.minecraft.world.level.BlockGetter;
+import net.minecraft.world.level.LevelAccessor;
+import net.minecraft.world.level.Level;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -35,7 +35,9 @@ import java.util.List;
 import static fr.mattmouss.gates.enum_door.TollGPosition.*;
 
 
-public abstract class AbstractTollGate extends Block {
+import net.minecraft.world.level.block.state.BlockState;
+
+public abstract class AbstractTollGate extends Block implements EntityBlock {
 
     public AbstractTollGate() {
         super(Properties.of(Material.METAL)
@@ -73,15 +75,9 @@ public abstract class AbstractTollGate extends Block {
         return BlockRenderLayer.CUTOUT_MIPPED;
     }
 */
-
-    @Override
-    public boolean hasTileEntity(BlockState state) {
-        return true;
-    }
-
     @Nonnull
     @Override
-    public VoxelShape getShape(BlockState state, @Nonnull IBlockReader reader, @Nonnull BlockPos pos, @Nonnull ISelectionContext context) {
+    public VoxelShape getShape(BlockState state, @Nonnull BlockGetter reader, @Nonnull BlockPos pos, @Nonnull CollisionContext context) {
         TollGPosition tgp = state.getValue(TG_POSITION);
         int animation = state.getValue(ANIMATION);
         DoorHingeSide dhs= state.getValue(BlockStateProperties.DOOR_HINGE);
@@ -102,7 +98,7 @@ public abstract class AbstractTollGate extends Block {
             VoxelDoubles beg_bar_VoxInt = (animation == 0) ? BEG_BAR : BEG_BAR_OPEN;
             VoxelShape beg_bar_shape = getEmptyBaseShape(dhs,facing,beg_bar_VoxInt) ;
             //association of the three voxel-shapes
-            return VoxelShapes.or(base_shape,hinge_shape,beg_bar_shape);
+            return Shapes.or(base_shape,hinge_shape,beg_bar_shape);
         }
         return PLANE.rotate(Direction.NORTH,facing).getAssociatedShape();
     }
@@ -130,7 +126,7 @@ public abstract class AbstractTollGate extends Block {
     }
 
     @Override
-    public void setPlacedBy(@Nonnull World world, @Nonnull BlockPos pos, @Nonnull BlockState state, @Nullable LivingEntity entity, @Nonnull ItemStack stack) {
+    public void setPlacedBy(@Nonnull Level world, @Nonnull BlockPos pos, @Nonnull BlockState state, @Nullable LivingEntity entity, @Nonnull ItemStack stack) {
         //we place the main block where the clicked position is defined
         //the barrier hinge parameter is defined according to the position of the player when he placed the block
         if (entity != null){
@@ -176,12 +172,12 @@ public abstract class AbstractTollGate extends Block {
     }
 
     @Override
-    public void playerDestroy(@Nonnull World world, @Nonnull PlayerEntity entity, @Nonnull BlockPos pos, @Nonnull BlockState state, @Nullable TileEntity tileEntity, @Nonnull ItemStack stack) {
+    public void playerDestroy(@Nonnull Level world, @Nonnull Player entity, @Nonnull BlockPos pos, @Nonnull BlockState state, @Nullable BlockEntity tileEntity, @Nonnull ItemStack stack) {
         super.playerDestroy(world, entity, pos, Blocks.AIR.defaultBlockState(), tileEntity, stack);
     }
 
     @Override
-    public void playerWillDestroy(World world, @Nonnull BlockPos pos, @Nonnull BlockState state, PlayerEntity entity) {
+    public void playerWillDestroy(Level world, @Nonnull BlockPos pos, @Nonnull BlockState state, Player entity) {
         System.out.println("destroying all block of toll gate");
         ItemStack stack = entity.getMainHandItem();
         if (!world.isClientSide) {
@@ -191,11 +187,11 @@ public abstract class AbstractTollGate extends Block {
     }
 
     @Override
-    protected void createBlockStateDefinition(StateContainer.Builder<Block, BlockState> builder) {
+    protected void createBlockStateDefinition(StateDefinition.Builder<Block, BlockState> builder) {
         builder.add(BlockStateProperties.HORIZONTAL_FACING,TG_POSITION,BlockStateProperties.DOOR_HINGE,ANIMATION);
     }
 
-    public boolean isPathfindable(@Nonnull BlockState state, @Nonnull IBlockReader reader, @Nonnull BlockPos pos, PathType pathType) {
+    public boolean isPathfindable(@Nonnull BlockState state, @Nonnull BlockGetter reader, @Nonnull BlockPos pos, PathComputationType pathType) {
         switch(pathType) {
             case LAND:
             case AIR:
@@ -242,7 +238,7 @@ public abstract class AbstractTollGate extends Block {
 
     @Nullable
     @Override
-    public BlockState getStateForPlacement(BlockItemUseContext context) {
+    public BlockState getStateForPlacement(BlockPlaceContext context) {
         Direction facing = context.getHorizontalDirection();
         if (checkFeasibility(context)){
             BlockState state = defaultBlockState();
@@ -252,10 +248,10 @@ public abstract class AbstractTollGate extends Block {
         }
     }
 
-    public static boolean checkFeasibility(BlockItemUseContext context){
+    public static boolean checkFeasibility(BlockPlaceContext context){
         BlockPos pos =context.getClickedPos();
-        PlayerEntity entity = context.getPlayer();
-        World world = context.getLevel();
+        Player entity = context.getPlayer();
+        Level world = context.getLevel();
         assert entity != null;
         Direction facing = Functions.getDirectionFromEntity(entity,pos);
         DoorHingeSide dhs = Functions.getHingeSideFromEntity(entity,pos,facing);
@@ -294,7 +290,7 @@ public abstract class AbstractTollGate extends Block {
 
     @Nonnull
     @Override
-    public BlockState updateShape(BlockState stateIn, @Nonnull Direction facing, @Nonnull BlockState facingState, @Nonnull IWorld worldIn, @Nonnull BlockPos currentPos, @Nonnull BlockPos facingPos) {
+    public BlockState updateShape(BlockState stateIn, @Nonnull Direction facing, @Nonnull BlockState facingState, @Nonnull LevelAccessor worldIn, @Nonnull BlockPos currentPos, @Nonnull BlockPos facingPos) {
         TollGPosition position = stateIn.getValue(TG_POSITION);
         Direction blockFacing = stateIn.getValue(BlockStateProperties.HORIZONTAL_FACING);
         DoorHingeSide dhs = stateIn.getValue(BlockStateProperties.DOOR_HINGE);

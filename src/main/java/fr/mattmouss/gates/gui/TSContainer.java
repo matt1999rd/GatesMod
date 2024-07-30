@@ -5,15 +5,15 @@ import fr.mattmouss.gates.blocks.ModBlock;
 import fr.mattmouss.gates.items.ModItem;
 import fr.mattmouss.gates.tileentity.TurnStileTileEntity;
 import fr.mattmouss.gates.tscapability.TurnStileIdCapability;
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.entity.player.PlayerInventory;
-import net.minecraft.inventory.container.Container;
-import net.minecraft.inventory.container.Slot;
-import net.minecraft.item.ItemStack;
-import net.minecraft.util.IWorldPosCallable;
-import net.minecraft.util.IntReferenceHolder;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.world.World;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.entity.player.Inventory;
+import net.minecraft.world.inventory.AbstractContainerMenu;
+import net.minecraft.world.inventory.Slot;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.inventory.ContainerLevelAccess;
+import net.minecraft.world.inventory.DataSlot;
+import net.minecraft.core.BlockPos;
+import net.minecraft.world.level.Level;
 import net.minecraftforge.items.CapabilityItemHandler;
 import net.minecraftforge.items.IItemHandler;
 import net.minecraftforge.items.SlotItemHandler;
@@ -22,21 +22,21 @@ import net.minecraftforge.items.wrapper.InvWrapper;
 import javax.annotation.Nonnull;
 import java.util.Objects;
 
-public class TSContainer extends Container {
+public class TSContainer extends AbstractContainerMenu {
 
     private final TurnStileTileEntity tileEntity ;
-    private final PlayerEntity playerEntity;
+    private final Player playerEntity;
     private final IItemHandler inventory;
     public final int leftCol = 8;
     public final int topRow = 84;
 
-    public TSContainer(int windowId, World world, BlockPos pos, PlayerInventory inventory, PlayerEntity player) {
+    public TSContainer(int windowId, Level world, BlockPos pos, Inventory inventory, Player player) {
         super(ModBlock.TURN_STILE_CONTAINER, windowId);
         tileEntity = (TurnStileTileEntity) world.getBlockEntity(pos);
         playerEntity = player;
         this.inventory = new InvWrapper(inventory);
 
-        addDataSlot(new IntReferenceHolder() {
+        addDataSlot(new DataSlot() {
             @Override
             public int get() {
                 return getId();
@@ -73,9 +73,9 @@ public class TSContainer extends Container {
     }
 
     @Override
-    public boolean stillValid(PlayerEntity playerIn) {
+    public boolean stillValid(Player playerIn) {
         return stillValid(
-                IWorldPosCallable.create(Objects.requireNonNull(tileEntity.getLevel()),tileEntity.getBlockPos()),
+                ContainerLevelAccess.create(Objects.requireNonNull(tileEntity.getLevel()),tileEntity.getBlockPos()),
                 playerEntity,
                 ModBlock.TURN_STILE
         );
@@ -109,7 +109,7 @@ public class TSContainer extends Container {
     }
 
     @Override
-    public ItemStack quickMoveStack(PlayerEntity playerIn, int index) {
+    public ItemStack quickMoveStack(Player playerIn, int index) {
         ItemStack itemStack =ItemStack.EMPTY;
         Slot slot = this.slots.get(index);
         if (slot !=null && slot.hasItem()) {

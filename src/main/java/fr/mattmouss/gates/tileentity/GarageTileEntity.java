@@ -8,18 +8,17 @@ import fr.mattmouss.gates.doors.GarageDoor;
 import fr.mattmouss.gates.blocks.ModBlock;
 import fr.mattmouss.gates.enum_door.Placing;
 import fr.mattmouss.gates.setup.ModSound;
-import net.minecraft.block.*;
 
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.audio.SimpleSound;
-import net.minecraft.nbt.CompoundNBT;
-import net.minecraft.state.properties.BlockStateProperties;
+import net.minecraft.client.resources.sounds.SimpleSoundInstance;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.state.properties.BlockStateProperties;
 
-import net.minecraft.tileentity.ITickableTileEntity;
-import net.minecraft.tileentity.TileEntity;
+import net.minecraft.world.level.block.entity.BlockEntity;
 
-import net.minecraft.util.Direction;
-import net.minecraft.util.math.BlockPos;
+import net.minecraft.core.Direction;
+import net.minecraft.core.BlockPos;
 
 import net.minecraftforge.common.capabilities.Capability;
 import net.minecraftforge.common.util.INBTSerializable;
@@ -30,41 +29,43 @@ import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.List;
 
-public class GarageTileEntity extends TileEntity implements ITickableTileEntity {
-    public GarageTileEntity() {
-        super(ModBlock.GARAGE_TILE_TYPE);
-    }
+import net.minecraft.world.level.block.state.BlockState;
+
+public class GarageTileEntity extends BlockEntity {
 
     private final LazyOptional<AnimationBoolean> startAnimation = LazyOptional.of(this::getAnimation).cast();
+
+    public GarageTileEntity(BlockPos blockPos, BlockState blockState) {
+        super(ModBlock.GARAGE_TILE_TYPE,blockPos,blockState);
+    }
 
     private AnimationBoolean getAnimation(){
         return new AnimationBoolean();
     }
 
-    @Override
-    public void tick() {
-        assert level != null;
+
+    public void tick(Level level) {
         if (!level.isClientSide) {
             BlockState state = this.getBlockState();
             if (animationOpeningInProcess()) {
                 int animationStep = state.getValue(GarageDoor.ANIMATION);
                 if (animationStep == 0){
-                    Minecraft.getInstance().getSoundManager().play(SimpleSound.forUI(ModSound.ANIMATION_GARAGE,1.0F));
+                    Minecraft.getInstance().getSoundManager().play(SimpleSoundInstance.forUI(ModSound.ANIMATION_GARAGE,1.0F));
                 }
                 if (animationStep == 5) {
                     setBoolOpen(false);
                 } else {
-                    this.level.setBlockAndUpdate(this.worldPosition, state.setValue(GarageDoor.ANIMATION, animationStep + 1));
+                    level.setBlockAndUpdate(this.worldPosition, state.setValue(GarageDoor.ANIMATION, animationStep + 1));
                 }
             } else if (animationClosingInProcess()) {
                 int animationStep = state.getValue(GarageDoor.ANIMATION);
                 if (animationStep == 5) {
-                    Minecraft.getInstance().getSoundManager().play(SimpleSound.forUI(ModSound.ANIMATION_GARAGE, 1.0F));
+                    Minecraft.getInstance().getSoundManager().play(SimpleSoundInstance.forUI(ModSound.ANIMATION_GARAGE, 1.0F));
                 }
                 if (animationStep == 0) {
                     setBoolClose(false);
                 } else {
-                    this.level.setBlockAndUpdate(this.worldPosition, state.setValue(GarageDoor.ANIMATION, animationStep - 1));
+                    level.setBlockAndUpdate(this.worldPosition, state.setValue(GarageDoor.ANIMATION, animationStep - 1));
                 }
             }
         }
@@ -100,17 +101,17 @@ public class GarageTileEntity extends TileEntity implements ITickableTileEntity 
     }
 
     @Override
-    public void load(BlockState state,CompoundNBT compound) {
-        CompoundNBT switch_tag = compound.getCompound("anim");
-        getCapability(AnimationBooleanCapability.ANIMATION_BOOLEAN_CAPABILITY).ifPresent(animationBoolean -> ((INBTSerializable<CompoundNBT>)animationBoolean).deserializeNBT(switch_tag));
-        super.load(state,compound);
+    public void load(CompoundTag compound) {
+        CompoundTag switch_tag = compound.getCompound("anim");
+        getCapability(AnimationBooleanCapability.ANIMATION_BOOLEAN_CAPABILITY).ifPresent(animationBoolean -> ((INBTSerializable<CompoundTag>)animationBoolean).deserializeNBT(switch_tag));
+        super.load(compound);
 
     }
 
     @Override
-    public CompoundNBT save(CompoundNBT tag) {
+    public CompoundTag save(CompoundTag tag) {
         getCapability(AnimationBooleanCapability.ANIMATION_BOOLEAN_CAPABILITY).ifPresent(animationBoolean -> {
-            CompoundNBT compoundNBT = animationBoolean.serializeNBT();
+            CompoundTag compoundNBT = animationBoolean.serializeNBT();
             tag.put("anim",compoundNBT);
         });
         return super.save(tag);

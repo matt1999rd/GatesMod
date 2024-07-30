@@ -10,14 +10,14 @@ import fr.mattmouss.gates.setup.IProxy;
 import fr.mattmouss.gates.setup.ModSetup;
 import fr.mattmouss.gates.setup.ServerProxy;
 import fr.mattmouss.gates.tileentity.*;
-import net.minecraft.block.Block;
+import net.minecraft.world.level.block.Block;
 import net.minecraft.client.renderer.RenderType;
-import net.minecraft.client.renderer.RenderTypeLookup;
-import net.minecraft.inventory.container.ContainerType;
-import net.minecraft.item.BlockItem;
-import net.minecraft.item.Item;
-import net.minecraft.tileentity.TileEntityType;
-import net.minecraft.util.math.BlockPos;
+import net.minecraft.client.renderer.ItemBlockRenderTypes;
+import net.minecraft.world.inventory.MenuType;
+import net.minecraft.world.item.BlockItem;
+import net.minecraft.world.item.Item;
+import net.minecraft.world.level.block.entity.BlockEntityType;
+import net.minecraft.core.BlockPos;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.common.extensions.IForgeContainerType;
@@ -82,7 +82,7 @@ public class GatesMod {
             WindowDoor windowDoor = new WindowDoor();
             blockRegistryEvent.getRegistry().register(windowDoor);
             if (FMLEnvironment.dist == Dist.CLIENT){
-                RenderTypeLookup.setRenderLayer(windowDoor, RenderType.cutoutMipped());
+                ItemBlockRenderTypes.setRenderLayer(windowDoor, RenderType.cutoutMipped());
             }
         }
 
@@ -102,9 +102,9 @@ public class GatesMod {
         }
 
         @SubscribeEvent
-        public static void onTileEntityRegistry(final RegistryEvent.Register<TileEntityType<?>> event){
+        public static void onTileEntityRegistry(final RegistryEvent.Register<BlockEntityType<?>> event){
             event.getRegistry().register(
-                    TileEntityType.Builder.of(GarageTileEntity::new,
+                    BlockEntityType.Builder.of(GarageTileEntity::new,
                             DoorRegister.ANDESITE_GARAGE,
                             DoorRegister.DIORITE_GARAGE,
                             DoorRegister.GRANITE_GARAGE,
@@ -130,31 +130,31 @@ public class GatesMod {
                             )
                             .build(null)
                             .setRegistryName("garage_door"));
-            event.getRegistry().register(TileEntityType.Builder.of(TollGateTileEntity::new,
+            event.getRegistry().register(BlockEntityType.Builder.of(TollGateTileEntity::new,
                     ModBlock.TOLL_GATE)
                     .build(null)
                     .setRegistryName("toll_gate"));
-            event.getRegistry().register(TileEntityType.Builder.of(RedstoneTollGateTileEntity::new,
+            event.getRegistry().register(BlockEntityType.Builder.of(RedstoneTollGateTileEntity::new,
                     ModBlock.REDSTONE_TOLL_GATE)
                     .build(null)
                     .setRegistryName("redstone_toll_gate"));
-            event.getRegistry().register(TileEntityType.Builder.of(TurnStileTileEntity::new,
+            event.getRegistry().register(BlockEntityType.Builder.of(TurnStileTileEntity::new,
                     ModBlock.TURN_STILE)
                     .build(null)
                     .setRegistryName("turn_stile"));
-            event.getRegistry().register(TileEntityType.Builder.of(RedstoneTurnStileTileEntity::new,
+            event.getRegistry().register(BlockEntityType.Builder.of(RedstoneTurnStileTileEntity::new,
                     ModBlock.REDSTONE_TURN_STILE)
                     .build(null)
                     .setRegistryName("redstone_turn_stile"));
-            event.getRegistry().register(TileEntityType.Builder.of(CardGetterTileEntity::new,
+            event.getRegistry().register(BlockEntityType.Builder.of(CardGetterTileEntity::new,
                     ModBlock.CARD_GETTER)
                     .build(null)
                     .setRegistryName("card_getter"));
-            event.getRegistry().register(TileEntityType.Builder.of(WindowDoorTileEntity::new,
+            event.getRegistry().register(BlockEntityType.Builder.of(WindowDoorTileEntity::new,
                     ModBlock.WINDOW_DOOR)
                     .build(null)
                     .setRegistryName("window_door"));
-            event.getRegistry().register(TileEntityType.Builder.of(DrawBridgeTileEntity::new,
+            event.getRegistry().register(BlockEntityType.Builder.of(DrawBridgeTileEntity::new,
                     DoorRegister.ACACIA_DRAW_BRIDGE,
                     DoorRegister.DARK_OAK_DRAW_BRIDGE,
                     DoorRegister.BIRCH_DRAW_BRIDGE,
@@ -166,7 +166,7 @@ public class GatesMod {
         }
 
         @SubscribeEvent
-        public static void onContainerRegistry(final RegistryEvent.Register<ContainerType<?>> event){
+        public static void onContainerRegistry(final RegistryEvent.Register<MenuType<?>> event){
             event.getRegistry().register(IForgeContainerType.create(((windowId, inv, data) -> {
                 BlockPos pos =data.readBlockPos();
                 return new TGUserContainer(windowId,

@@ -4,17 +4,17 @@ import fr.mattmouss.gates.doors.GarageDoor;
 import fr.mattmouss.gates.setup.ModSetup;
 
 import fr.mattmouss.gates.util.Functions;
-import net.minecraft.block.AirBlock;
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.item.BlockItem;
+import net.minecraft.world.level.block.AirBlock;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.BlockItem;
 
-import net.minecraft.item.BlockItemUseContext;
-import net.minecraft.item.Item;
-import net.minecraft.item.ItemUseContext;
-import net.minecraft.util.ActionResultType;
-import net.minecraft.util.Direction;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.world.World;
+import net.minecraft.world.item.context.BlockPlaceContext;
+import net.minecraft.world.item.Item;
+import net.minecraft.world.item.context.UseOnContext;
+import net.minecraft.world.InteractionResult;
+import net.minecraft.core.Direction;
+import net.minecraft.core.BlockPos;
+import net.minecraft.world.level.Level;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -26,19 +26,19 @@ public class GarageDoorItem extends BlockItem {
     }
 
     @Override
-    public ActionResultType useOn(ItemUseContext context) {
-        if (allBlockReplacedAreAir(new BlockItemUseContext(context)) && hasSupportToStay(new BlockItemUseContext(context))){
+    public InteractionResult useOn(UseOnContext context) {
+        if (allBlockReplacedAreAir(new BlockPlaceContext(context)) && hasSupportToStay(new BlockPlaceContext(context))){
             return super.useOn(context);
         }
         System.out.println("block not created");
-        return ActionResultType.FAIL;
+        return InteractionResult.FAIL;
     }
 
     // the function is not working  because we need to know where the first block will be created it depends on where the player clicked
     // need to check the onItemUse function of blockItem to know where it put the first value
-    private boolean allBlockReplacedAreAir(BlockItemUseContext context){
-        World world = context.getLevel();
-        PlayerEntity entity=context.getPlayer();
+    private boolean allBlockReplacedAreAir(BlockPlaceContext context){
+        Level world = context.getLevel();
+        Player entity=context.getPlayer();
         BlockPos pos_base =context.getClickedPos();
         assert entity != null;
         Direction facing = Functions.getDirectionFromEntity(entity,pos_base);
@@ -66,9 +66,9 @@ public class GarageDoorItem extends BlockItem {
         return true;
     }
 
-    private boolean hasSupportToStay(BlockItemUseContext context){
-        World world = context.getLevel();
-        PlayerEntity entity=context.getPlayer();
+    private boolean hasSupportToStay(BlockPlaceContext context){
+        Level world = context.getLevel();
+        Player entity=context.getPlayer();
         BlockPos pos_base =context.getClickedPos();
         assert entity != null;
         Direction facing = Functions.getDirectionFromEntity(entity,pos_base);

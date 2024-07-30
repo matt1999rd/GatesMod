@@ -3,17 +3,17 @@ package fr.mattmouss.gates.doors;
 import fr.mattmouss.gates.items.GarageDoorItem;
 import fr.mattmouss.gates.setup.ModSetup;
 import fr.mattmouss.gates.windows.WindowBlock;
-import net.minecraft.block.Block;
+import net.minecraft.world.level.block.Block;
 
-import net.minecraft.block.DoorBlock;
+import net.minecraft.world.level.block.DoorBlock;
 
 //1.15+ import for windows
 import net.minecraft.client.renderer.RenderType;
-import net.minecraft.client.renderer.RenderTypeLookup;
+import net.minecraft.client.renderer.ItemBlockRenderTypes;
 
-import net.minecraft.block.material.Material;
-import net.minecraft.item.BlockItem;
-import net.minecraft.item.Item;
+import net.minecraft.world.level.material.Material;
+import net.minecraft.world.item.BlockItem;
+import net.minecraft.world.item.Item;
 
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.event.RegistryEvent;
@@ -244,7 +244,7 @@ public class DoorRegister {
             //1.15 function
 
             if (FMLEnvironment.dist== Dist.CLIENT){
-                RenderTypeLookup.setRenderLayer(windowBlock, RenderType.cutoutMipped()); // for windows transparency
+                ItemBlockRenderTypes.setRenderLayer(windowBlock, RenderType.cutoutMipped()); // for windows transparency
             }
 
 

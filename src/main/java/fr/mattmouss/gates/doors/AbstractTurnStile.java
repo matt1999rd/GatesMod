@@ -5,30 +5,30 @@ package fr.mattmouss.gates.doors;
 import fr.mattmouss.gates.enum_door.TurnSPosition;
 import fr.mattmouss.gates.util.Functions;
 import fr.mattmouss.gates.voxels.VoxelDoubles;
-import net.minecraft.block.*;
-import net.minecraft.block.material.Material;
-import net.minecraft.entity.LivingEntity;
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.item.BlockItemUseContext;
-import net.minecraft.item.ItemStack;
-import net.minecraft.pathfinding.PathType;
-import net.minecraft.state.BooleanProperty;
-import net.minecraft.state.EnumProperty;
-import net.minecraft.state.IntegerProperty;
-import net.minecraft.state.StateContainer;
-import net.minecraft.state.properties.BlockStateProperties;
-import net.minecraft.state.properties.DoorHingeSide;
-import net.minecraft.tileentity.TileEntity;
+import net.minecraft.world.level.block.*;
+import net.minecraft.world.level.material.Material;
+import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.context.BlockPlaceContext;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.pathfinder.PathComputationType;
+import net.minecraft.world.level.block.state.properties.BooleanProperty;
+import net.minecraft.world.level.block.state.properties.EnumProperty;
+import net.minecraft.world.level.block.state.properties.IntegerProperty;
+import net.minecraft.world.level.block.state.StateDefinition;
+import net.minecraft.world.level.block.state.properties.BlockStateProperties;
+import net.minecraft.world.level.block.state.properties.DoorHingeSide;
+import net.minecraft.world.level.block.entity.BlockEntity;
 //import net.minecraft.util.BlockRenderLayer;
-import net.minecraft.util.Direction;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.shapes.ISelectionContext;
-import net.minecraft.util.math.shapes.VoxelShape;
-import net.minecraft.util.math.shapes.VoxelShapes;
-import net.minecraft.world.IBlockReader;
-import net.minecraft.world.IWorld;
-import net.minecraft.world.IWorldReader;
-import net.minecraft.world.World;
+import net.minecraft.core.Direction;
+import net.minecraft.core.BlockPos;
+import net.minecraft.world.phys.shapes.CollisionContext;
+import net.minecraft.world.phys.shapes.VoxelShape;
+import net.minecraft.world.phys.shapes.Shapes;
+import net.minecraft.world.level.BlockGetter;
+import net.minecraft.world.level.LevelAccessor;
+import net.minecraft.world.level.LevelReader;
+import net.minecraft.world.level.Level;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -39,7 +39,9 @@ import java.util.List;
 import static fr.mattmouss.gates.enum_door.TurnSPosition.*;
 
 
-public abstract class AbstractTurnStile extends Block {
+import net.minecraft.world.level.block.state.BlockState;
+
+public abstract class AbstractTurnStile extends Block implements EntityBlock {
 
     public static EnumProperty<TurnSPosition> TS_POSITION ;
     public static IntegerProperty ANIMATION;
@@ -64,13 +66,13 @@ public abstract class AbstractTurnStile extends Block {
 
     @Override
     @ParametersAreNonnullByDefault
-    public VoxelShape getShape(BlockState state,  IBlockReader reader, BlockPos pos, ISelectionContext context) {
+    public VoxelShape getShape(BlockState state,  BlockGetter reader, BlockPos pos, CollisionContext context) {
         if (state.getValue(TS_POSITION)!= TurnSPosition.MAIN && state.getValue(TS_POSITION)!=TurnSPosition.UP_BLOCK){
             //we need to block the jumping of player on the turn stile which mean fraud.
             return Block.box(0,0,0,16,18,16);
         }else if (state.getValue(TS_POSITION) == TurnSPosition.UP_BLOCK){
             //we had this block because player is jumping on the turn stile without this block
-            return (state.getValue(WAY_IS_ON))?VoxelShapes.empty():makeUpBlockShape(state.getValue(BlockStateProperties.HORIZONTAL_FACING));
+            return (state.getValue(WAY_IS_ON))?Shapes.empty():makeUpBlockShape(state.getValue(BlockStateProperties.HORIZONTAL_FACING));
         }
 
         return getTurnStileShape(state);
@@ -154,15 +156,15 @@ public abstract class AbstractTurnStile extends Block {
 
         for (VoxelDoubles vi : ForwardPart){
             vi =vi.rotate(Direction.NORTH,facing);
-            shape = VoxelShapes.or(shape,vi.getAssociatedShape());
+            shape = Shapes.or(shape,vi.getAssociatedShape());
         }
         for (VoxelDoubles vi : BackwardPart){
             vi =vi.rotate(Direction.NORTH,facing);
-            shape = VoxelShapes.or(shape,vi.getAssociatedShape());
+            shape = Shapes.or(shape,vi.getAssociatedShape());
         }
         for (VoxelDoubles vi : MiddlePart){
             vi =vi.rotate(Direction.NORTH,facing);
-            shape = VoxelShapes.or(shape,vi.getAssociatedShape());
+            shape = Shapes.or(shape,vi.getAssociatedShape());
         }
 
         return shape;
@@ -183,20 +185,14 @@ public abstract class AbstractTurnStile extends Block {
         }
     }
 
-
     @Override
-    public boolean hasTileEntity(BlockState state) {
-        return true;
-    }
-
-    @Override
-    protected void createBlockStateDefinition(StateContainer.Builder<Block, BlockState> builder) {
+    protected void createBlockStateDefinition(StateDefinition.Builder<Block, BlockState> builder) {
         builder.add(BlockStateProperties.HORIZONTAL_FACING,TS_POSITION,ANIMATION,BlockStateProperties.DOOR_HINGE,WAY_IS_ON);
     }
 
     @Nullable
     @Override
-    public BlockState getStateForPlacement(BlockItemUseContext context) {
+    public BlockState getStateForPlacement(BlockPlaceContext context) {
         Direction facing = context.getHorizontalDirection();
         if (checkFeasibility(context)){
             BlockState state = defaultBlockState();
@@ -208,7 +204,7 @@ public abstract class AbstractTurnStile extends Block {
 
     @Override
     @ParametersAreNonnullByDefault
-    public void setPlacedBy(World world, BlockPos pos, BlockState state, @Nullable LivingEntity player, ItemStack stack) {
+    public void setPlacedBy(Level world, BlockPos pos, BlockState state, @Nullable LivingEntity player, ItemStack stack) {
         if (player != null){
             Direction direction = Functions.getDirectionFromEntity(player,pos);
             DoorHingeSide dhs = Functions.getHingeSideFromEntity(player,pos,direction);
@@ -260,7 +256,7 @@ public abstract class AbstractTurnStile extends Block {
     }
 
     @Override
-    public boolean canSurvive(BlockState state, IWorldReader worldIn, BlockPos pos) {
+    public boolean canSurvive(BlockState state, LevelReader worldIn, BlockPos pos) {
         BlockState downBlockState = worldIn.getBlockState(pos.below());
         if (state.getValue(TS_POSITION) == UP_BLOCK){
             Block block = downBlockState.getBlock();
@@ -273,13 +269,13 @@ public abstract class AbstractTurnStile extends Block {
 
     @Override
     @ParametersAreNonnullByDefault
-    public void playerDestroy(World world, PlayerEntity entity, BlockPos pos, BlockState state, @Nullable TileEntity tileEntity, ItemStack stack) {
+    public void playerDestroy(Level world, Player entity, BlockPos pos, BlockState state, @Nullable BlockEntity tileEntity, ItemStack stack) {
         super.playerDestroy(world, entity, pos, Blocks.AIR.defaultBlockState(), tileEntity, stack);
     }
 
     @Override
     @ParametersAreNonnullByDefault
-    public void playerWillDestroy(World world, BlockPos pos, BlockState state, PlayerEntity entity) {
+    public void playerWillDestroy(Level world, BlockPos pos, BlockState state, Player entity) {
         System.out.println("destroying all block of turn stile");
         ItemStack stack = entity.getMainHandItem();
         if (!world.isClientSide) {
@@ -289,7 +285,7 @@ public abstract class AbstractTurnStile extends Block {
     }
 
     @ParametersAreNonnullByDefault
-    public boolean isPathfindable(BlockState state, IBlockReader reader, BlockPos pos, PathType pathType) {
+    public boolean isPathfindable(BlockState state, BlockGetter reader, BlockPos pos, PathComputationType pathType) {
         switch(pathType) {
             case LAND:
             case AIR:
@@ -299,10 +295,10 @@ public abstract class AbstractTurnStile extends Block {
         }
     }
 
-    private boolean checkFeasibility(BlockItemUseContext context) {
+    private boolean checkFeasibility(BlockPlaceContext context) {
         BlockPos pos =context.getClickedPos();
-        World world = context.getLevel();
-        PlayerEntity entity = context.getPlayer();
+        Level world = context.getLevel();
+        Player entity = context.getPlayer();
         assert entity != null;
         Direction facing = Functions.getDirectionFromEntity(entity,pos);
         DoorHingeSide dhs = Functions.getHingeSideFromEntity(entity,pos,facing);
@@ -374,7 +370,7 @@ public abstract class AbstractTurnStile extends Block {
     @Nonnull
     @Override
     @ParametersAreNonnullByDefault
-    public BlockState updateShape(BlockState stateIn, Direction facing, BlockState facingState, IWorld worldIn, BlockPos currentPos, BlockPos facingPos) {
+    public BlockState updateShape(BlockState stateIn, Direction facing, BlockState facingState, LevelAccessor worldIn, BlockPos currentPos, BlockPos facingPos) {
         TurnSPosition position = stateIn.getValue(TS_POSITION);
         Direction blockFacing = stateIn.getValue(BlockStateProperties.HORIZONTAL_FACING);
         if (isInnerUpdate(position,facing,blockFacing)){

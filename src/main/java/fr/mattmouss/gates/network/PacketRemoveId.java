@@ -1,10 +1,10 @@
 package fr.mattmouss.gates.network;
 
 import fr.mattmouss.gates.energystorage.IdTracker;
-import net.minecraft.network.PacketBuffer;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.world.server.ServerWorld;
-import net.minecraftforge.fml.network.NetworkEvent;
+import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.core.BlockPos;
+import net.minecraft.server.level.ServerLevel;
+import net.minecraftforge.fmllegacy.network.NetworkEvent;
 
 import java.util.Objects;
 import java.util.function.Supplier;
@@ -18,20 +18,20 @@ public class PacketRemoveId {
         this.id = id;
     }
 
-    public PacketRemoveId(PacketBuffer buf){
+    public PacketRemoveId(FriendlyByteBuf buf){
         this.pos = buf.readBlockPos();
         this.id = buf.readInt();
     }
 
-    public void toBytes(PacketBuffer buf){
+    public void toBytes(FriendlyByteBuf buf){
         buf.writeBlockPos(pos);
         buf.writeInt(id);
     }
 
     public void handle(Supplier<NetworkEvent.Context> context){
         context.get().enqueueWork(()->{
-            ServerWorld world = Objects.requireNonNull(context.get().getSender()).getLevel();
-            IdTracker idTracker = world.getDataStorage().computeIfAbsent(IdTracker::new, "idgates");
+            ServerLevel world = Objects.requireNonNull(context.get().getSender()).getLevel();
+            IdTracker idTracker = world.getDataStorage().computeIfAbsent(IdTracker::new,IdTracker::new, "idgates");
             idTracker.removeId(id);
         });
     }

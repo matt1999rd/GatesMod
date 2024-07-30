@@ -1,15 +1,15 @@
 package fr.mattmouss.gates.network;
 
-import net.minecraft.entity.Entity;
-import net.minecraft.entity.player.ServerPlayerEntity;
-import net.minecraft.network.PacketBuffer;
-import net.minecraft.state.properties.BlockStateProperties;
-import net.minecraft.tileentity.TileEntity;
-import net.minecraft.util.Direction;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.vector.Vector2f;
-import net.minecraft.world.server.ServerWorld;
-import net.minecraftforge.fml.network.NetworkEvent;
+import net.minecraft.world.entity.Entity;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.world.level.block.state.properties.BlockStateProperties;
+import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.core.Direction;
+import net.minecraft.core.BlockPos;
+import net.minecraft.world.phys.Vec2;
+import net.minecraft.server.level.ServerLevel;
+import net.minecraftforge.fmllegacy.network.NetworkEvent;
 
 import java.util.Objects;
 import java.util.UUID;
@@ -26,7 +26,7 @@ public class movePlayerPacket {
         fromExit=fromExit_in;
     }
 
-    public movePlayerPacket(PacketBuffer buf){
+    public movePlayerPacket(FriendlyByteBuf buf){
         te_pos =buf.readBlockPos();
         long lsb = buf.readLong();
         long msb = buf.readLong();
@@ -34,7 +34,7 @@ public class movePlayerPacket {
         fromExit = buf.readBoolean();
     }
 
-    public void toBytes(PacketBuffer buf){
+    public void toBytes(FriendlyByteBuf buf){
         buf.writeBlockPos(te_pos);
         buf.writeLong(player_uuid.getLeastSignificantBits());
         buf.writeLong(player_uuid.getMostSignificantBits());
@@ -43,21 +43,21 @@ public class movePlayerPacket {
 
     public void handle(Supplier<NetworkEvent.Context> context){
         context.get().enqueueWork(()->{
-            ServerWorld serverWorld = Objects.requireNonNull(context.get().getSender()).getLevel();
-            TileEntity te = serverWorld.getBlockEntity(te_pos);
+            ServerLevel serverWorld = Objects.requireNonNull(context.get().getSender()).getLevel();
+            BlockEntity te = serverWorld.getBlockEntity(te_pos);
             Entity entity =  serverWorld.getEntity(player_uuid);
             if (entity == null){
                 System.out.println("no entity found with given id !!");
             }
-            if (!(entity instanceof ServerPlayerEntity)){
+            if (!(entity instanceof ServerPlayer)){
                 assert entity != null;
                 System.out.println("error of id !!! the given entity is "+entity.getClass());
                 return;
             }
-            ServerPlayerEntity player = (ServerPlayerEntity)entity;
+            ServerPlayer player = (ServerPlayer)entity;
             assert te != null;
             Direction facing = te.getBlockState().getValue(BlockStateProperties.HORIZONTAL_FACING);
-            Vector2f rot =player.getRotationVector();
+            Vec2 rot =player.getRotationVector();
             Direction offsetDirection=(fromExit)? facing : facing.getOpposite();
             BlockPos final_pos = te_pos.relative(offsetDirection) ;
             player.absMoveTo(final_pos.getX(),final_pos.getY(),final_pos.getZ(),rot.y,rot.x);

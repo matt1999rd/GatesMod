@@ -4,20 +4,20 @@ import fr.mattmouss.gates.doors.TollGate;
 import fr.mattmouss.gates.enum_door.TollGPosition;
 import fr.mattmouss.gates.tileentity.TollGateTileEntity;
 import fr.mattmouss.gates.util.Functions;
-import net.minecraft.block.BlockState;
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.entity.player.ServerPlayerEntity;
-import net.minecraft.item.ItemStack;
-import net.minecraft.item.ItemUseContext;
-import net.minecraft.state.properties.BlockStateProperties;
-import net.minecraft.state.properties.DoorHingeSide;
-import net.minecraft.tileentity.TileEntity;
-import net.minecraft.util.ActionResultType;
-import net.minecraft.util.Direction;
-import net.minecraft.util.Hand;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.world.World;
-import net.minecraftforge.fml.network.NetworkHooks;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.context.UseOnContext;
+import net.minecraft.world.level.block.state.properties.BlockStateProperties;
+import net.minecraft.world.level.block.state.properties.DoorHingeSide;
+import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.world.InteractionResult;
+import net.minecraft.core.Direction;
+import net.minecraft.world.InteractionHand;
+import net.minecraft.core.BlockPos;
+import net.minecraft.world.level.Level;
+import net.minecraftforge.fmllegacy.network.NetworkHooks;
 
 public class TollKeyItem extends KeyItem {
 
@@ -27,14 +27,14 @@ public class TollKeyItem extends KeyItem {
     }
 
     @Override
-    public ActionResultType useOn(ItemUseContext context) {
+    public InteractionResult useOn(UseOnContext context) {
         BlockPos pos = context.getClickedPos();
-        PlayerEntity entity = context.getPlayer();
-        World world = context.getLevel();
-        Hand hand = context.getHand();
+        Player entity = context.getPlayer();
+        Level world = context.getLevel();
+        InteractionHand hand = context.getHand();
         assert entity != null;
         ItemStack stack = entity.getItemInHand(hand);
-        TileEntity te = world.getBlockEntity(pos);
+        BlockEntity te = world.getBlockEntity(pos);
         if (!(te instanceof TollGateTileEntity)){
             //we exit the function if it is not a TollGateTileEntity
             return super.useOn(context);
@@ -69,7 +69,7 @@ public class TollKeyItem extends KeyItem {
             //System.out.println("the player is a technician ");
             tgte.setSide(false);
             if (!world.isClientSide) {
-                NetworkHooks.openGui((ServerPlayerEntity) entity, tgte, tgte.getBlockPos());
+                NetworkHooks.openGui((ServerPlayer) entity, tgte, tgte.getBlockPos());
             }
         }
         return super.useOn(context);
@@ -77,7 +77,7 @@ public class TollKeyItem extends KeyItem {
     }
 
     //this function checks if the player is facing the key aperture face
-    private boolean isPlayerFacingTheRightFace(TollGateTileEntity tgte, PlayerEntity entity,BlockPos pos) {
+    private boolean isPlayerFacingTheRightFace(TollGateTileEntity tgte, Player entity,BlockPos pos) {
         BlockState state = tgte.getBlockState();
 
         Direction facing = state.getValue(BlockStateProperties.HORIZONTAL_FACING);

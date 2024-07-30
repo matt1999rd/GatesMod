@@ -1,13 +1,13 @@
 package fr.mattmouss.gates.costsstorage;
 
 import fr.mattmouss.gates.GatesMod;
-import net.minecraft.nbt.CompoundNBT;
-import net.minecraft.nbt.ListNBT;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.nbt.ListTag;
 import net.minecraftforge.common.util.INBTSerializable;
 
 import java.util.HashMap;
 
-public class CostStorage implements ICostStorage, INBTSerializable<CompoundNBT> {
+public class CostStorage implements ICostStorage, INBTSerializable<CompoundTag> {
     private final HashMap<Integer,Integer> cost;
 
     public CostStorage(){
@@ -21,12 +21,12 @@ public class CostStorage implements ICostStorage, INBTSerializable<CompoundNBT> 
     }
 
     @Override
-    public void addIdWithoutCost(int id) {
-        addIdWithCost(id,1);
+    public void addIdWithoutPrice(int id) {
+        addIdWithPrice(id,1);
     }
 
     @Override
-    public void addIdWithCost(int id,int price) {
+    public void addIdWithPrice(int id, int price) {
         if (!cost.containsKey(id)){
             cost.put(id,price);
         }else {
@@ -85,11 +85,11 @@ public class CostStorage implements ICostStorage, INBTSerializable<CompoundNBT> 
     }
 
     @Override
-    public CompoundNBT serializeNBT() {
-        CompoundNBT nbt= new CompoundNBT();
-        ListNBT nbt_list = new ListNBT();
+    public CompoundTag serializeNBT() {
+        CompoundTag nbt= new CompoundTag();
+        ListTag nbt_list = new ListTag();
         cost.forEach((id,price)->{
-            CompoundNBT id_tag = new CompoundNBT();
+            CompoundTag id_tag = new CompoundTag();
             id_tag.putInt("id",id);
             id_tag.putInt("price",price);
             nbt_list.add(id_tag);
@@ -99,10 +99,10 @@ public class CostStorage implements ICostStorage, INBTSerializable<CompoundNBT> 
     }
 
     @Override
-    public void deserializeNBT(CompoundNBT nbt) {
-        ListNBT nbt_list = nbt.getList("id_list",10);
+    public void deserializeNBT(CompoundTag nbt) {
+        ListTag nbt_list = nbt.getList("id_list",10);
         nbt_list.forEach(intern_nbt -> {
-            CompoundNBT nbt1 = (CompoundNBT)intern_nbt;
+            CompoundTag nbt1 = (CompoundTag)intern_nbt;
             int id=nbt1.getInt("id");
             int price = nbt1.getInt("price");
             cost.put(id,price);

@@ -1,8 +1,8 @@
 package fr.mattmouss.gates.enum_door;
 
-import net.minecraft.util.IStringSerializable;
+import net.minecraft.util.StringRepresentable;
 
-public enum TollGPosition implements IStringSerializable {
+public enum TollGPosition implements StringRepresentable {
     MAIN(0,"main"),
     EMPTY_BASE(1,"emptyb"),
     EMPTY_EXT(2,"emptye"),

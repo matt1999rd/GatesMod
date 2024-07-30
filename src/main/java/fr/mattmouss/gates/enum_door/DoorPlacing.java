@@ -1,11 +1,11 @@
 package fr.mattmouss.gates.enum_door;
 
 import com.google.common.collect.Lists;
-import net.minecraft.util.IStringSerializable;
+import net.minecraft.util.StringRepresentable;
 
 import java.util.List;
 
-public enum DoorPlacing implements IStringSerializable {
+public enum DoorPlacing implements StringRepresentable {
     LEFT_UP(0,"left_up"),
     RIGHT_UP(1,"right_up"),
     LEFT_DOWN(2,"left_down"),
