@@ -1,33 +1,36 @@
 package fr.mattmouss.gates.util;
 
-import net.minecraft.entity.LivingEntity;
-import net.minecraft.util.Direction;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.MathHelper;
-import net.minecraft.util.math.vector.Vector3d;
+import com.mojang.math.Vector3d;
+import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.core.Direction;
+import net.minecraft.core.BlockPos;
+import net.minecraft.util.Mth;
+import net.minecraft.world.phys.Vec3;
 
 
 public enum ExtendDirection {
-    SOUTH(0, Direction.SOUTH,Axis.Z,false),
-    WEST(1, Direction.WEST,Axis.X,false),
-    NORTH(2, Direction.NORTH,Axis.Z,false),
-    EAST(3, Direction.EAST,Axis.X,false),
-    SOUTH_WEST(4, Direction.WEST,Axis.XPZ,true),
-    NORTH_WEST(5, Direction.NORTH,Axis.XMZ,true),
-    NORTH_EAST(6, Direction.EAST,Axis.XPZ,true),
-    SOUTH_EAST(7, Direction.SOUTH,Axis.XMZ,true),
-    UP(8,Direction.UP,Axis.Y,false),
-    DOWN(9,Direction.DOWN,Axis.Y,false);
+    SOUTH(0, Direction.SOUTH,Axis.Z,Direction.AxisDirection.POSITIVE,false),
+    WEST(1, Direction.WEST,Axis.X,Direction.AxisDirection.NEGATIVE,false),
+    NORTH(2, Direction.NORTH,Axis.Z,Direction.AxisDirection.NEGATIVE,false),
+    EAST(3, Direction.EAST,Axis.X,Direction.AxisDirection.POSITIVE,false),
+    SOUTH_WEST(4, Direction.WEST,Axis.XPZ,Direction.AxisDirection.NEGATIVE,true),
+    NORTH_WEST(5, Direction.NORTH,Axis.XMZ,Direction.AxisDirection.NEGATIVE,true),
+    NORTH_EAST(6, Direction.EAST,Axis.XPZ,Direction.AxisDirection.POSITIVE,true),
+    SOUTH_EAST(7, Direction.SOUTH,Axis.XMZ,Direction.AxisDirection.POSITIVE,true),
+    UP(8,Direction.UP,Axis.Y,Direction.AxisDirection.POSITIVE,false),
+    DOWN(9,Direction.DOWN,Axis.Y,Direction.AxisDirection.NEGATIVE,false);
 
     private final int meta;
     private final Direction direction;
     private final Axis axis;
+    private final Direction.AxisDirection axisDirection;
     private final boolean rotated;
 
-    ExtendDirection(int meta, Direction direction,Axis axis, boolean rotated){
+    ExtendDirection(int meta, Direction direction,Axis axis,Direction.AxisDirection axisDirection, boolean rotated){
         this.meta = meta;
         this.direction = direction;
         this.axis = axis;
+        this.axisDirection = axisDirection;
         this.rotated = rotated;
     }
 
@@ -52,47 +55,8 @@ public enum ExtendDirection {
         }
     }
 
-    //return the direction that leads from the support pos to the pos of the block
-    public static ExtendDirection getDirectionFromPos(BlockPos supportPos, BlockPos pos) {
-        int x = pos.getX()-supportPos.getX();
-        int z = pos.getZ()-supportPos.getZ();
-        if (Math.abs(x)>1 || Math.abs(z)>1 || (x==0 && z==0))return null;
-        if (x==-1){
-            return (z == -1)? NORTH_WEST : (z == 0) ? WEST : SOUTH_WEST;
-        }else if (x == 0){
-            return (z == -1)? NORTH : SOUTH;
-        }else {
-            return (z == -1)? NORTH_EAST : (z == 0) ? EAST : SOUTH_EAST;
-        }
-    }
-
     public ExtendDirection getOpposite(){
         return getExtendedDirection(this.direction.getOpposite(),this.rotated);
-    }
-
-    public static ExtendDirection getExtendedDirection(Direction dir1, Direction dir2){
-        switch (dir1){
-            case DOWN:
-            case UP:
-            default:
-                return null;
-            case NORTH:
-                if (dir2 == Direction.EAST)return NORTH_EAST;
-                if (dir2 == Direction.WEST)return NORTH_WEST;
-                return null;
-            case SOUTH:
-                if (dir2 == Direction.EAST)return SOUTH_EAST;
-                if (dir2 == Direction.WEST)return SOUTH_WEST;
-                return null;
-            case WEST:
-                if (dir2 == Direction.NORTH)return NORTH_WEST;
-                if (dir2 == Direction.SOUTH)return SOUTH_WEST;
-                return null;
-            case EAST:
-                if (dir2 == Direction.NORTH)return NORTH_EAST;
-                if (dir2 == Direction.SOUTH)return SOUTH_EAST;
-                return null;
-        }
     }
 
     public BlockPos offset(BlockPos pos){
@@ -138,19 +102,8 @@ public enum ExtendDirection {
         return rotated;
     }
 
-    public float getAngleFrom(Direction direction){
-        float dir_angle = direction.toYRot();
-        float base_angle = this.rotated ? this.direction.toYRot()-45 : this.direction.toYRot();
-        float angleDiff = dir_angle - base_angle;
-        return toRadian(angleDiff);
-    }
-
-    public static float toRadian(double degreeAngle){
-        double radianAngle = (Math.PI/180.0)*degreeAngle;
-        if (radianAngle < 0){
-            radianAngle += 2*Math.PI;
-        }
-        return (float)radianAngle;
+    public Direction.AxisDirection getAxisDirection() {
+        return axisDirection;
     }
 
     public static double toDegree(double radianAngle){
@@ -168,15 +121,15 @@ public enum ExtendDirection {
     public static ExtendDirection getFacingFromPlayer(LivingEntity player, BlockPos pos){
         //for the purpose of getting the state of the panel we divide space around the center of the support in 8 part
         //division are for angle 22.5/67.5/112.5/157.5/202.5/247.5/292.5/337.5 (22.5+45*i for 0<=i<=7)
-        Vector3d future_window_center = getVecFromBlockPos(pos,0.5F);
-        Vector3d offsetPlayerPos = player.position().subtract(future_window_center);
+        Vec3 future_window_center = getVecFromBlockPos(pos,0.5F);
+        Vec3 offsetPlayerPos = player.position().subtract(future_window_center);
         //we compare our player position to the position of the support's center
         //we get angle using arc-tan function
-        double angle = MathHelper.atan2(offsetPlayerPos.x,offsetPlayerPos.z);
+        double angle = Mth.atan2(offsetPlayerPos.x,offsetPlayerPos.z);
         //we convert to degree and make it positive
         double degreeAngle =toDegree(angle);
         //then to index from 2 to 9 corresponding to the part of stage where the player is
-        int index = MathHelper.ceil((degreeAngle-22.5D)/45.0D);
+        int index = Mth.ceil((degreeAngle-22.5D)/45.0D);
         //we consider the part split by angle origin which correspond to 0
         // that we move of a complete circle for math simplification
         if (index == 0){
@@ -195,8 +148,8 @@ public enum ExtendDirection {
     //convert a block position into vec3d and adding an offset on x and z coordinate
     // (use in the conversion to vec3d of support and grid center block position)
 
-    public static Vector3d getVecFromBlockPos (BlockPos pos,float horOffset){
-        return new Vector3d(pos.getX()+horOffset,pos.getY(),pos.getZ()+horOffset);
+    public static Vec3 getVecFromBlockPos (BlockPos pos,float horOffset){
+        return new Vec3(pos.getX()+horOffset,pos.getY(),pos.getZ()+horOffset);
     }
 
     public enum Axis{
@@ -221,6 +174,22 @@ public enum ExtendDirection {
                     return true;
             }
             return false;
+        }
+
+        public double project(Vec3 vec3){
+            switch (this) {
+                case X:
+                    return vec3.x;
+                case Y:
+                    return vec3.y;
+                case Z:
+                    return vec3.z;
+                case XMZ:
+                    return (vec3.x + vec3.z)/Math.sqrt(2);
+                case XPZ:
+                    return (vec3.x - vec3.z)/Math.sqrt(2);
+            }
+            return 0; //unreachable code
         }
     }
 

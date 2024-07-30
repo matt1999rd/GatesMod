@@ -1,5 +1,6 @@
 package fr.mattmouss.gates.windows;
 
+import com.mojang.math.Vector3d;
 import fr.mattmouss.gates.util.ExtendDirection;
 import fr.mattmouss.gates.util.Functions;
 import net.minecraft.world.level.material.Material;
@@ -20,6 +21,7 @@ import net.minecraft.core.Direction;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.phys.BlockHitResult;
+import net.minecraft.world.phys.Vec3;
 import net.minecraft.world.phys.shapes.CollisionContext;
 import net.minecraft.world.phys.shapes.VoxelShape;
 import net.minecraft.world.phys.shapes.Shapes;
@@ -193,22 +195,16 @@ public class WindowBlock extends Block {
         List<WindowDirection> directions = placement.getDirectionOfChangingWindow(facing,world,pos);
         for (WindowDirection dir : directions){
             //the block position to offset
-            BlockPos ch_block_pos = pos;
-            //get nb_offset int[]
-            int[] offsets = dir.getDirections();
-            //when dir value is 0 this means that all offset has been taken in account
-            for(int i=0;i<10;i++){
-                if (offsets[i] != 0){
-                    assert ExtendDirection.byIndex(i) != null;
-                    ch_block_pos = ExtendDirection.byIndex(i).offset(ch_block_pos,offsets[i]);
+            BlockPos changingWindowPos = dir.offsetPos(pos);
+            BlockState changingWindowState = world.getBlockState(changingWindowPos);
+            Block changingWindow = changingWindowState.getBlock();
+            if (this.equals(changingWindow)){
+                WindowBlock window = (WindowBlock) changingWindow;
+                if (openingStateOnly){
+                    window.openOrCloseWindow(changingWindowState,changingWindowPos,world);
+                }else {
+                    window.updatePlacement(world,changingWindowPos,changingWindowState,facing);
                 }
-            }
-            Block ch_window = world.getBlockState(ch_block_pos).getBlock();
-            BlockState ch_w_state = world.getBlockState(ch_block_pos);
-            if (this.equals(ch_window)){
-                WindowBlock window = (WindowBlock)ch_window;
-                if (openingStateOnly) window.openOrCloseWindow(ch_w_state,ch_block_pos,world);
-                else window.updatePlacement(world,ch_block_pos,ch_w_state,facing);
             }
         }
     }
@@ -223,13 +219,33 @@ public class WindowBlock extends Block {
     //1.15 function
     @Override
     public InteractionResult use(BlockState state, Level world, BlockPos pos, Player player, InteractionHand hand, BlockHitResult result) {
-        openOrCloseWindow(state,pos,world);
-        WindowPlace placement = state.getValue(WINDOW_PLACE);
         Direction facing = state.getValue(BlockStateProperties.HORIZONTAL_FACING);
         boolean isRotated = state.getValue(ROTATED);
-        ExtendDirection extDir = ExtendDirection.getExtendedDirection(facing,isRotated);
-        notifyNeighborBlock(placement,extDir,world,pos,true);
+        ExtendDirection extDirection = ExtendDirection.getExtendedDirection(facing,isRotated);
+        assert extDirection != null;
+        if (isPlayerOutside(player,extDirection,pos)){
+            return InteractionResult.FAIL;
+        }
+        openOrCloseWindow(state,pos,world);
+        WindowPlace placement = state.getValue(WINDOW_PLACE);
+        notifyNeighborBlock(placement,extDirection,world,pos,true);
         return InteractionResult.SUCCESS;
+    }
+
+    private boolean isPlayerOutside(Player player, ExtendDirection direction, BlockPos pos){
+        Vec3 relPlayerPos = player.position().subtract(new Vec3(pos.getX()+(direction.getAxis() == ExtendDirection.Axis.XMZ ? 1 : 0) ,pos.getY(),pos.getZ()));
+        double playerPosXZ = direction.getAxis().project(relPlayerPos);
+        // this series of test is blocking the opening of windows from outside
+        if (direction.getAxisDirection() == Direction.AxisDirection.NEGATIVE) {
+            if (playerPosXZ > 0) {
+                return true;
+            }
+        }else {
+            if (playerPosXZ < 0){
+                return true;
+            }
+        }
+        return false;
     }
 
 

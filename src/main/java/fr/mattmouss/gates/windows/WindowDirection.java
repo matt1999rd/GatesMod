@@ -1,23 +1,29 @@
 package fr.mattmouss.gates.windows;
 
+import com.mojang.datafixers.util.Pair;
 import fr.mattmouss.gates.util.ExtendDirection;
+import net.minecraft.core.BlockPos;
 
 public class WindowDirection {
-    private final int[] dir = new int[10];
+    private final Pair<ExtendDirection,Integer> firstOffset;
+    private final Pair<ExtendDirection,Integer> secondOffset;
 
-    public WindowDirection(int nb_offset, ExtendDirection dir){
-        int index = dir.getIndex();
-        this.dir[index] = nb_offset;
+    public WindowDirection(int nbOffset, ExtendDirection dir){
+        firstOffset = new Pair<>(dir,nbOffset);
+        secondOffset = null;
 }
 
-    public WindowDirection(int nb_offset,ExtendDirection dir,int nb_offset2,ExtendDirection dir2){
-        int index = dir.getIndex();
-        this.dir[index] = nb_offset;
-        int index2 = dir2.getIndex();
-        this.dir[index2] = nb_offset2;
+    public WindowDirection(int nbOffset,ExtendDirection dir,int nbOffset2,ExtendDirection dir2){
+        firstOffset = new Pair<>(dir,nbOffset);
+        secondOffset = new Pair<>(dir2,nbOffset2);
     }
 
-    public int[] getDirections() {
-        return dir;
+    public BlockPos offsetPos(BlockPos originPos){
+        BlockPos pos = originPos.immutable();
+        pos = firstOffset.getFirst().offset(pos,firstOffset.getSecond());
+        if (secondOffset != null){
+            pos = secondOffset.getFirst().offset(pos,secondOffset.getSecond());
+        }
+        return pos;
     }
 }
