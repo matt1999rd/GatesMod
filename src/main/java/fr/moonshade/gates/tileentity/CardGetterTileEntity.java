@@ -1,0 +1,317 @@
+package fr.moonshade.gates.tileentity;
+
+import com.google.common.collect.Lists;
+import fr.moonshade.gates.blocks.ModBlock;
+import fr.moonshade.gates.costsstorage.CostStorage;
+import fr.moonshade.gates.costsstorage.CostStorageCapability;
+import fr.moonshade.gates.costsstorage.ICostStorage;
+import fr.moonshade.gates.energystorage.IdTracker;
+import fr.moonshade.gates.gui.CardGetterChoiceContainer;
+import fr.moonshade.gates.gui.CardGetterContainer;
+import fr.moonshade.gates.items.ModItem;
+import fr.moonshade.gates.network.Networking;
+import fr.moonshade.gates.network.PutIdsToClientPacket;
+import net.minecraft.core.BlockPos;
+import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.entity.player.Inventory;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.inventory.AbstractContainerMenu;
+import net.minecraft.world.MenuProvider;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Items;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.core.Direction;
+import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.TextComponent;
+import net.minecraftforge.common.capabilities.Capability;
+import net.minecraftforge.common.util.INBTSerializable;
+import net.minecraftforge.common.util.LazyOptional;
+import net.minecraftforge.network.PacketDistributor;
+import net.minecraftforge.items.CapabilityItemHandler;
+import net.minecraftforge.items.IItemHandler;
+import net.minecraftforge.items.ItemStackHandler;
+
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Objects;
+import java.util.concurrent.atomic.AtomicInteger;
+
+public class CardGetterTileEntity extends BlockEntity implements MenuProvider,IPriceControllingTE {
+
+    //boolean that is set to true when clicking as user
+    private static boolean UserGuiOpen = true;
+
+    //boolean that is set to true when value server side has changed
+    private static boolean isDirty = true;
+
+    private static boolean idSelectedChange = false;
+
+    //id that is defined by the key we are clicking with
+    private static int tech_key_id = -1;
+
+    //id that is set to the id that is selected into the gui
+    private static int selected_id = -1;
+
+    private final LazyOptional<IItemHandler> handler = LazyOptional.of(this::createHandler).cast();
+
+    private final LazyOptional<ICostStorage> costStorage = LazyOptional.of(this::getStorage).cast();
+
+    public CardGetterTileEntity(BlockPos blockPos, BlockState blockState) {
+        super(ModBlock.CARD_GETTER_TILE_TYPE,blockPos,blockState);
+    }
+
+    public ItemStackHandler createHandler() {
+        return new ItemStackHandler(2){
+            @Override
+            protected void onContentsChanged(int slot) {
+                setChanged();
+            }
+
+            @Override
+            public boolean isItemValid(int slot, @Nonnull ItemStack stack) {
+                if (slot == 0) {
+                    return (stack.getItem() == Items.EMERALD);
+                }else{
+                    return (stack.getItem() == ModItem.CARD_KEY);
+                }
+
+            }
+
+            @Nonnull
+            @Override
+            public ItemStack insertItem(int slot, @Nonnull ItemStack stack, boolean simulate) {
+                if ((stack.getItem() != Items.EMERALD && slot ==0)) {
+                    return stack;
+                }
+                return super.insertItem(slot, stack, simulate);
+            }
+        };
+    }
+
+    public void setTechKeyId(int keyId){
+        tech_key_id = keyId;
+    }
+
+    public int getKeyID(){
+        return tech_key_id;
+    }
+
+    public int getSelectedId(){
+        return selected_id;
+    }
+
+    public void changeSelectedId(int id){
+        selected_id = id;
+        idSelectedChange = true;
+    }
+
+    public int getPrice(int id){
+        return costStorage.map(iCostStorage -> iCostStorage.getPrice(id)).orElse(-1);
+    }
+
+    public CostStorage getStorage() {
+        return new CostStorage();
+    }
+
+
+    @Override
+    public Component getDisplayName() {
+        return new TextComponent("Card Getter User GUI");
+    }
+
+    @Nullable
+    @Override
+    public AbstractContainerMenu createMenu(int i, Inventory playerInventory, Player playerEntity) {
+        assert level != null;
+        if (UserGuiOpen){
+            return new CardGetterContainer(i,level,worldPosition,playerInventory,playerEntity);
+        }else {
+            return new CardGetterChoiceContainer(i,level,worldPosition,playerEntity);
+        }
+
+    }
+
+    public HashMap<Integer,Integer> getIdPriceMap() {
+        return costStorage.map(ICostStorage::getCostMap)
+                .orElseThrow(()-> new IllegalStateException("Intern Map is not found in the card getter tile entity !"));
+    }
+
+    public List<Integer> getIdList(){
+        return costStorage.map(iCostStorage -> new ArrayList<>(iCostStorage.getCostMap().keySet())).orElse(Lists.newArrayList());
+    }
+
+    public int getIdNumber(){
+        return costStorage.map(iCostStorage -> iCostStorage.getCostMap().keySet().size()).orElse(0);
+    }
+
+    public void addIdAndCost(int new_id,int new_cost){
+        costStorage.ifPresent(c->c.addIdWithPrice(new_id,new_cost));
+    }
+
+    public void removeId(int old_id) {
+        costStorage.ifPresent(c->c.removeId(old_id));
+    }
+
+    public void changeCost(int id,int new_price){
+        costStorage.ifPresent(c-> c.changeCost(id,new_price));
+    }
+
+    public void setSide(boolean b) {
+        UserGuiOpen = b;
+    }
+
+    public void tick(Level level) {
+        assert level != null;
+        if (!level.isClientSide){
+            List<Integer> id_list = Objects.requireNonNull(level.getServer())
+                    .overworld()
+                    .getDataStorage()
+                    .computeIfAbsent(IdTracker::new,IdTracker::new,"idgates").getList();
+            costStorage.ifPresent(iCostStorage -> {
+                id_list.forEach(id->{
+                    if (!iCostStorage.containsId(id)){
+                        iCostStorage.addIdWithoutPrice(id);
+                        isDirty = true;
+                    }
+                });
+
+                HashMap<Integer,Integer> costMap = iCostStorage.getCostMap();
+
+                List<Integer> id_to_remove = new ArrayList<>();
+                costMap.forEach((id,price)->{
+                    if (!id_list.contains(id)){
+                        id_to_remove.add(id);
+                        isDirty = true;
+                    }
+                });
+                for (int removed_id : id_to_remove){
+                    iCostStorage.removeId(removed_id);
+                }
+            });
+            HashMap<Integer,Integer> costMap = costStorage.map(ICostStorage::getCostMap).orElse(new HashMap<>());
+            if (isDirty){
+                if (level.players().isEmpty())return;
+                for (Player serverPlayer : level.players()){
+                    Networking.INSTANCE.send(PacketDistributor.PLAYER.with(()-> (ServerPlayer) serverPlayer),new PutIdsToClientPacket(worldPosition,costMap));
+                }
+            }
+            if (UserGuiOpen)manageEmeraldConsumption();
+        }
+    }
+
+    public void markIdDirty(boolean b){
+        isDirty = b;
+    }
+
+    private void manageEmeraldConsumption(){
+        int price_to_pay = costStorage.map(iCostStorage -> {
+            HashMap<Integer,Integer> costMap = iCostStorage.getCostMap();
+            if (!costMap.containsKey(selected_id))return -1;
+            return costMap.get(selected_id);
+        }).orElse(-1);
+        if (price_to_pay == -1)return;
+        handler.ifPresent(h->{
+            ItemStack EmStack = h.getStackInSlot(0);
+            int number_of_emerald = EmStack.getCount();
+            ItemStack CardStack = h.getStackInSlot(1);
+            //if the card is filled with a card we only check the price
+            if (!CardStack.isEmpty()){
+                //if id change or emerald are removed, and we finally cannot pay the card we remove the card
+                boolean flag = idSelectedChange || (number_of_emerald<price_to_pay);
+                if (flag) {
+                    h.extractItem(1,1,false);
+                    idSelectedChange =false;
+                }
+            }
+            if (EmStack.getItem() == Items.EMERALD){
+                if (number_of_emerald >= price_to_pay){
+                    ItemStack CardKeyStack = new ItemStack(ModItem.CARD_KEY);
+                    CardKeyStack.setCount(1);
+                    CompoundTag nbt = CardKeyStack.getOrCreateTag();
+                    nbt.putInt("id",selected_id);
+                    h.insertItem(1,CardKeyStack,false);
+                }
+            }
+
+        });
+    }
+
+    @Override
+    public void load(CompoundTag compoundNBT) {
+        CompoundTag invTag = compoundNBT.getCompound("inv");
+        CompoundTag costTag = compoundNBT.getCompound("cost");
+        getCapability(CapabilityItemHandler.ITEM_HANDLER_CAPABILITY).ifPresent(h -> ((INBTSerializable<CompoundTag>) h).deserializeNBT(invTag));
+        getCapability(CostStorageCapability.COST_STORAGE).ifPresent(c->c.deserializeNBT(costTag));
+        super.load(compoundNBT);
+    }
+
+    @Override
+    protected void saveAdditional(CompoundTag tag) {
+        getCapability(CapabilityItemHandler.ITEM_HANDLER_CAPABILITY).ifPresent(h -> {
+            CompoundTag compoundNBT = ((INBTSerializable<CompoundTag>) h).serializeNBT();
+            tag.put("inv", compoundNBT);
+        });
+        getCapability(CostStorageCapability.COST_STORAGE).ifPresent(c->{
+            CompoundTag compoundNBT = c.serializeNBT();
+            tag.put("cost",compoundNBT);
+        });
+        super.saveAdditional(tag);
+    }
+
+    @Nonnull
+    @Override
+    public <T> LazyOptional<T> getCapability(@Nonnull Capability<T> cap, @Nullable Direction side) {
+        if (cap == CapabilityItemHandler.ITEM_HANDLER_CAPABILITY){
+            return handler.cast();
+        }else if (cap == CostStorageCapability.COST_STORAGE){
+            return costStorage.cast();
+        }
+        return super.getCapability(cap, side);
+    }
+
+    @Override
+    public void lowerPrice() {
+        costStorage.ifPresent(iCostStorage -> iCostStorage.lowerPrice(tech_key_id));
+    }
+
+    @Override
+    public void raisePrice() {
+        costStorage.ifPresent(iCostStorage -> iCostStorage.raisePrice(tech_key_id));
+    }
+
+    @Override
+    public int getPrice() {
+        AtomicInteger key_id_price= new AtomicInteger(0);
+        costStorage.ifPresent(iCostStorage -> key_id_price.set(iCostStorage.getCostMap().get(tech_key_id)));
+        return key_id_price.get();
+    }
+
+    public void onCardTake() {
+        handler.ifPresent(h->{
+            int price_to_pay = costStorage.map(iCostStorage -> iCostStorage.getCostMap().get(selected_id)).orElse(-1);
+            h.extractItem(0,price_to_pay,false);
+        });
+    }
+
+    @Override
+    @Nonnull
+    public CompoundTag getUpdateTag() {
+        CompoundTag tag = new CompoundTag();
+        getCapability(CapabilityItemHandler.ITEM_HANDLER_CAPABILITY).ifPresent(h -> {
+            CompoundTag compoundNBT = ((INBTSerializable<CompoundTag>) h).serializeNBT();
+            tag.put("inv", compoundNBT);
+        });
+        getCapability(CostStorageCapability.COST_STORAGE).ifPresent(c->{
+            CompoundTag compoundNBT = c.serializeNBT();
+            tag.put("cost",compoundNBT);
+        });
+        return tag;
+    }
+
+}
